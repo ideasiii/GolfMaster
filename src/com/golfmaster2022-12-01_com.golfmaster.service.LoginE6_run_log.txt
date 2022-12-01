@@ -1,0 +1,13 @@
+2022-12-01 11:31:11 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-12-01 11:31:18 : E6mail: 1234
+2022-12-01 11:31:18 : confirmEmail: 1234
+2022-12-01 11:31:18 : E6password: 12356
+2022-12-01 11:31:18 : confirmPassword: 12356
+2022-12-01 11:31:18 : E6displayName: joke
+2022-12-01 11:31:19 : Dexterity: Right
+2022-12-01 11:31:19 : 錯誤項目:Password must be at least 8 characters long
+2022-12-01 11:31:19 : 錯誤項目:Invalid e-mail.

@@ -1,0 +1,156 @@
+2022-11-30 16:35:23 : ---Request Parameter---
+123:
+2022-11-30 16:46:19 : ---Request Parameter---
+account:123
+2022-11-30 16:46:34 : E6mail: 123
+2022-11-30 16:46:34 : confirmEmail: 123
+2022-11-30 17:16:58 : ---Request Parameter---
+account:1234
+2022-11-30 17:17:11 : E6mail: 1234
+2022-11-30 17:17:12 : confirmEmail: 1234
+2022-11-30 17:17:12 : E6password: 1231231313
+2022-11-30 17:17:12 : confirmPassword: 1231231313
+2022-11-30 17:17:12 : E6displayName: nick
+2022-11-30 17:17:13 : Dexterity: Right
+2022-11-30 17:17:13 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:17:13 : emailExists: true
+2022-11-30 17:17:14 : ---Request Parameter---
+account:null
+2022-11-30 17:17:24 : E6mail: null
+2022-11-30 17:17:24 : confirmEmail: null
+2022-11-30 17:17:25 : E6password: 1231231313
+2022-11-30 17:17:25 : confirmPassword: 1231231313
+2022-11-30 17:17:25 : E6displayName: nick
+2022-11-30 17:17:26 : Dexterity: Right
+2022-11-30 17:17:26 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:17:26 : emailExists: true
+2022-11-30 17:17:27 : ---Request Parameter---
+account:null
+2022-11-30 17:20:53 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:23:36 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:23:54 : E6mail: 1234
+2022-11-30 17:23:54 : confirmEmail: 1234
+2022-11-30 17:23:54 : E6password: 12356
+2022-11-30 17:23:54 : confirmPassword: 12356
+2022-11-30 17:23:54 : E6displayName: joke
+2022-11-30 17:23:55 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:23:55 : 錯誤項目:Dexterity is required
+2022-11-30 17:23:55 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:23:55 : emailExists: true
+2022-11-30 17:26:30 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:26:42 : E6mail: 1234
+2022-11-30 17:26:42 : confirmEmail: 1234
+2022-11-30 17:26:43 : E6password: 12356
+2022-11-30 17:26:43 : confirmPassword: 12356
+2022-11-30 17:26:43 : E6displayName: joke
+2022-11-30 17:26:44 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:26:44 : 錯誤項目:Dexterity is required
+2022-11-30 17:26:44 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:26:44 : emailExists: true
+2022-11-30 17:32:46 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:32:56 : E6mail: 1234
+2022-11-30 17:32:57 : confirmEmail: 1234
+2022-11-30 17:32:57 : E6password: 12356
+2022-11-30 17:32:57 : confirmPassword: 12356
+2022-11-30 17:32:57 : E6displayName: joke
+2022-11-30 17:32:58 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:32:58 : 錯誤項目:Dexterity is required
+2022-11-30 17:32:58 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:32:58 : emailExists: true
+2022-11-30 17:40:28 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:40:38 : E6mail: 1234
+2022-11-30 17:40:38 : confirmEmail: 1234
+2022-11-30 17:40:39 : E6password: 12356
+2022-11-30 17:40:39 : confirmPassword: 12356
+2022-11-30 17:40:39 : E6displayName: joke
+2022-11-30 17:40:40 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:40:40 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:40:40 : 錯誤項目:Dexterity is required
+2022-11-30 17:41:49 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:41:58 : E6mail: 1234
+2022-11-30 17:41:59 : confirmEmail: 1234
+2022-11-30 17:41:59 : E6password: 12356
+2022-11-30 17:41:59 : confirmPassword: 12356
+2022-11-30 17:41:59 : E6displayName: joke
+2022-11-30 17:42:00 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:42:00 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:42:00 : 錯誤項目:Dexterity is required
+2022-11-30 17:42:00 : emailExists: true
+2022-11-30 17:46:59 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:47:10 : E6mail: 1234
+2022-11-30 17:47:10 : confirmEmail: 1234
+2022-11-30 17:47:10 : E6password: 12356
+2022-11-30 17:47:11 : confirmPassword: 12356
+2022-11-30 17:47:11 : E6displayName: joke
+2022-11-30 17:47:12 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:47:12 : 錯誤項目:Dexterity is required
+2022-11-30 17:47:12 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:47:12 : emailExists: true
+2022-11-30 17:52:27 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:52:38 : E6mail: 1234
+2022-11-30 17:52:38 : confirmEmail: 1234
+2022-11-30 17:52:39 : E6password: 12356
+2022-11-30 17:52:39 : confirmPassword: 12356
+2022-11-30 17:52:39 : E6displayName: joke
+2022-11-30 17:52:40 : Dexterity: Right
+2022-11-30 17:52:40 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:52:40 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 17:52:40 : emailExists: true
+2022-11-30 17:53:49 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 17:53:59 : E6mail: 1234
+2022-11-30 17:53:59 : confirmEmail: 1234
+2022-11-30 17:53:59 : E6password: 12356
+2022-11-30 17:54:00 : confirmPassword: 12356
+2022-11-30 17:54:00 : E6displayName: joke
+2022-11-30 17:54:00 : Dexterity: Right
+2022-11-30 17:54:01 : 錯誤項目:Invalid e-mail.
+2022-11-30 17:54:01 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 18:02:28 : ---Request Parameter---
+account:1234
+password:12356
+nickname:joke
+dexterity:1
+2022-11-30 18:02:37 : E6mail: 1234
+2022-11-30 18:02:37 : confirmEmail: 1234
+2022-11-30 18:02:37 : E6password: 12356
+2022-11-30 18:02:37 : confirmPassword: 12356
+2022-11-30 18:02:37 : E6displayName: joke
+2022-11-30 18:02:38 : Dexterity: Right
+2022-11-30 18:02:38 : 錯誤項目:Password must be at least 8 characters long
+2022-11-30 18:02:38 : 錯誤項目:Invalid e-mail.
