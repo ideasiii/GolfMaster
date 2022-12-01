@@ -2,7 +2,7 @@
  * 擊球數據API
  * 參數: player(必填),start_date,end_date (無日期則抓最近10筆)
  * http://localhost/GolfMaster/service/shot-data.jsp?player=louisju
- * http://18.181.37.98/GolfMaster/service/shot-data.jsp?player=louisju
+ * http://175.41.245.90/GolfMaster/service/shot-data.jsp?player=louisju
  * http://localhost:8080/GolfMaster/service/shot-data.jsp?player=louisju
  */
 package com.golfmaster.service;
