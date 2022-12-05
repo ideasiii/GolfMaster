@@ -1,7 +1,7 @@
 package com.golfmaster.service;
 
 //http://localhost:8080/GolfMaster/service/golfmasterregister.jsp?account=1234&password=12356&nickname=joke&dexterity=1
-//http://localhost:8080/GolfMaster/service/golfmasterregister.jsp?account=uwk51642@nezid.com&password=as45770437&nickname=Sam&dexterity=1
+//http://localhost:8080/GolfMaster/service/golfmasterregister.jsp?account=iak47273@cdfaq.com&password=test412345&nickname=SamOO&dexterity=1&name=阿仲&birth=1995-01-19&gender=1&tee=1&phone=0983123123&address=新北市板橋區&seniority=1&recent=2022-10-11&average=一個禮拜&score=20
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
@@ -47,7 +47,7 @@ public class GolfMasterRegister {
 
 		gmParam paramM = new gmParam();
 		gaParam paramA = new gaParam();
-
+//		註冊部分
 		paramM.name = req.getParameter("name");
 		paramM.birth = Date.valueOf(req.getParameter("birth"));
 		paramM.gender = Integer.parseInt(req.getParameter("gender"));
@@ -58,7 +58,7 @@ public class GolfMasterRegister {
 		paramM.recent = Date.valueOf(req.getParameter("recent"));
 		paramM.average = req.getParameter("average");
 		paramM.score = Integer.parseInt(req.getParameter("score"));
-
+//		E6部分
 		paramM.nickname = req.getParameter("nickname");
 		paramM.dexterity = Integer.parseInt(req.getParameter("dexterity"));
 		paramA.account = req.getParameter("account");

@@ -92,7 +92,7 @@ public class LoginE6 {
 		}
 		// 同意合約框
 		WebElement checkbox = driverE6
-				.findElement(By.xpath("//*[@id=\"app\"]/div/div[1]/div/div/div/div[2]/div/form/div[8]/div/div[1]/div"));
+				.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
 
 		List<WebElement> wrongMessage = driverE6.findElements(By.cssSelector("div [class='v-messages__wrapper']"));
@@ -122,7 +122,7 @@ public class LoginE6 {
 
 			// 註冊按鈕
 			WebElement signupBtn = driverE6
-					.findElement(By.xpath("//*[@id=\"app\"]/div/div[1]/div/div/div/div[2]/div/form/button"));
+					.findElement(By.cssSelector("#app > div > div.signup > div > div > div > div.layout.wrap > div > form > button > span"));
 			signupBtn.click();
 
 		}
