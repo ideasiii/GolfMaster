@@ -1,12 +1,12 @@
 <%@ page language="java" contentType="application/json; charset=UTF-8"
 	pageEncoding="UTF-8" session="false" trimDirectiveWhitespaces="true"%>
-<%@ page import="com.golfmaster.service.GolfMasterLogin"%>
+<%@ page import="com.golfmaster.service.GolfMasterRegister"%>
 
-<%! GolfMasterLogin golfMasterLogin = new GolfMasterLogin();%>
+<%!GolfMasterRegister golfMasterLogin = new GolfMasterRegister();%>
 <%
 request.setCharacterEncoding("UTF-8");
-response.setCharacterEncoding("UTF-8");
-golfMasterLogin.getMemberData(request, response);
+
+golfMasterLogin.getMemberData(request);
 System.gc();
 Runtime.getRuntime().gc();
 %>
