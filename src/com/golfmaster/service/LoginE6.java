@@ -5,7 +5,6 @@
 
 package com.golfmaster.service;
 
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -23,16 +22,16 @@ import javax.servlet.http.HttpServletRequest;
 
 public class LoginE6 {
 
-	public int E6Web(String email, String password, String displayName, int dexterity,HttpServletRequest req)
+	public int E6Web(String email, String password, String displayName, int dexterity, HttpServletRequest req)
 			throws InterruptedException, IOException {
 		printParam(req);
-		
+
 		System.out.println("E6 Crawl Run");
 //		伺服器175.41.245.90為linux
-//		System.setProperty("webdriver.chrome.driver", "/opt/web_driver/chromedriver");
+		System.setProperty("webdriver.chrome.driver", "/opt/web_driver/chromedriver");
 //		本機windows
-		System.setProperty("webdriver.chrome.driver",
-				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
+//		System.setProperty("webdriver.chrome.driver",
+//				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
 
 		final ChromeOptions chromeOpt = new ChromeOptions();
 
@@ -91,8 +90,7 @@ public class LoginE6 {
 			Logs.log(Logs.RUN_LOG, "Dexterity: Left");
 		}
 		// 同意合約框
-		WebElement checkbox = driverE6
-				.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
+		WebElement checkbox = driverE6.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
 
 		List<WebElement> wrongMessage = driverE6.findElements(By.cssSelector("div [class='v-messages__wrapper']"));
@@ -121,15 +119,14 @@ public class LoginE6 {
 		} else {
 
 			// 註冊按鈕
-			WebElement signupBtn = driverE6
-					.findElement(By.cssSelector("#app > div > div.signup > div > div > div > div.layout.wrap > div > form > button > span"));
+			WebElement signupBtn = driverE6.findElement(By.cssSelector(
+					"#app > div > div.signup > div > div > div > div.layout.wrap > div > form > button > span"));
 			signupBtn.click();
 
 		}
-
+		// 等待註冊結果
 		Thread.sleep(2000);
 		// 顯示信箱已被註冊
-//			WebElement emailExists = driverE6.findElement(By.xpath("//*[@id=\"app\"]/div/div[2]/div"));
 		WebElement emailExists = driverE6
 				.findElement(By.cssSelector("div [ class='v-snack__wrapper v-sheet theme--dark elevation-16 error']"));
 		String x = null;
@@ -142,8 +139,6 @@ public class LoginE6 {
 		driverE6.quit();
 		return 0;
 	}
-
-	
 
 	private void printParam(HttpServletRequest req) {
 		String strReq = "---Request Parameter---";

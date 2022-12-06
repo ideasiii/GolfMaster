@@ -2,7 +2,7 @@
 <Context>
 	<Resource name="jdbc/golfmaster" auth="Container"
 		type="javax.sql.DataSource" driverClassName="com.mysql.cj.jdbc.Driver"
-		url="jdbc:mysql://54.95.9.248:3306/golf_master?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
+		url="jdbc:mysql://10.0.20.106:3306/golf_master?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
 		username="wU4bTAacqiCiSvZvQmmJew=="
 		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
 		maxTotal="100" />
