@@ -67,7 +67,7 @@ public class GolfMasterRegister {
 		LoginE6 loginE6 = new LoginE6();
 		JSONObject jsobj = new JSONObject();
 		String errorType = "{\"success\": true,\"result\": []}";
-		int getResult = loginE6.E6Web(paramA.account, paramA.password, paramM.nickname, paramM.dexterity,req);
+		int getResult = loginE6.E6Web(paramA.account, paramA.password, paramM.nickname, paramM.dexterity, req);
 		switch (getResult) {
 
 		case 1:
@@ -116,7 +116,7 @@ public class GolfMasterRegister {
 		JSONArray jarrProj = new JSONArray();
 
 		jsonResp.put("result", jarrProj);
-		// ignore可以無視uq問題
+		// ignore可以讓uq問題不報錯
 		strSQL = String.format(
 				"insert ignore into golf_master.member ("
 						+ "name,nickname,birth,gender,tee,phone,address,seniority,recent,average,score,dexterity)"
@@ -149,7 +149,7 @@ public class GolfMasterRegister {
 		}
 		DBUtil.close(null, stmt, conn);
 		jsonResp.put("result", jarrProj);
-		
+
 		return stmtRs;
 	}
 
@@ -186,7 +186,7 @@ public class GolfMasterRegister {
 		}
 		DBUtil.close(rs, stmt, conn);
 		jsonResp.put("result", jarrProj);
-		
+
 		return stmtRs;
 	}
 
