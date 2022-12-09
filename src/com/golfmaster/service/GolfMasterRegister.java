@@ -72,31 +72,42 @@ public class GolfMasterRegister {
 
 		case 1:
 			jsobj.put("success", false);
-			jsobj.put("result", "資料有誤");
+			jsobj.put("code", -1);
+			jsobj.put("message", "資料有誤");
 			errorType = jsobj.toString();
 			Logs.log(Logs.RUN_LOG, errorType);
 			break;
 		case 2:
 			jsobj.put("success", false);
-			jsobj.put("result", "信箱或暱稱已被註冊");
+			jsobj.put("code", 1);
+			jsobj.put("message", "信箱或暱稱已被註冊");
 			errorType = jsobj.toString();
 			Logs.log(Logs.RUN_LOG, errorType);
 			break;
 		case 0:
 			if (-1 == queryGolfMasterMember(paramM, jsobj)) {
 				jsobj.put("success", false);
-				jsobj.put("result", "member新增失敗");
+				jsobj.put("code", -1);
+				jsobj.put("message", "member新增失敗");
+				errorType = jsobj.toString();
+				Logs.log(Logs.RUN_LOG, errorType);
+			} else if (0 == queryGolfMasterMember(paramM, jsobj)) {
+				jsobj.put("success", false);
+				jsobj.put("code", 1);
+				jsobj.put("message", "member資料重複");
 				errorType = jsobj.toString();
 				Logs.log(Logs.RUN_LOG, errorType);
 			} else {
 				if (-1 == queryGolfMasterAccount(paramA, jsobj, paramM)) {
 					jsobj.put("success", false);
-					jsobj.put("result", "account新增失敗");
+					jsobj.put("code", -1);
+					jsobj.put("message", "account新增失敗");
 					errorType = jsobj.toString();
 					Logs.log(Logs.RUN_LOG, errorType);
 				} else {
 					jsobj.put("success", true);
-					jsobj.put("result", "註冊完成");
+					jsobj.put("code", 0);
+					jsobj.put("message", "註冊完成");
 					errorType = jsobj.toString();
 				}
 
