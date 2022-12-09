@@ -6,7 +6,7 @@
 <%
 request.setCharacterEncoding("UTF-8");
 
-golfMasterLogin.getMemberData(request);
+out.print(golfMasterLogin.getMemberData(request));
 System.gc();
 Runtime.getRuntime().gc();
 %>
