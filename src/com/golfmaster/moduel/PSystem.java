@@ -294,7 +294,7 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = DRAW_TRAJECTORY;
 		wrgExpert.expert_cause = DRAW_CAUSE;
-		wrgExpert.expert_p_system = "";
+		wrgExpert.expert_p_system = P2_3;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -314,7 +314,7 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = STRAIGHT_TRAJECTORY;
 		wrgExpert.expert_cause = STRAIGHT_CAUSE;
-		wrgExpert.expert_p_system = "";
+		wrgExpert.expert_p_system = P2_3;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -331,10 +331,10 @@ public class PSystem extends DeviceData
 	private boolean getFadeTrajectory(WrgData wrgData, WrgExpert wrgExpert)
 	{
 		boolean bValid = false;
-		
+
 		wrgExpert.expert_trajectory = FADE_TRAJECTORY;
 		wrgExpert.expert_cause = FADE_CAUSE;
-		wrgExpert.expert_p_system = "";
+		wrgExpert.expert_p_system = P2_3;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -344,17 +344,17 @@ public class PSystem extends DeviceData
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + FADE_SUGGEST;
-		
+
 		return bValid;
 	}
 
 	private boolean getPushHookTrajectory(WrgData wrgData, WrgExpert wrgExpert)
 	{
 		boolean bValid = false;
-		
+
 		wrgExpert.expert_trajectory = PUSH_HOOK_TRAJECTORY;
 		wrgExpert.expert_cause = PUSH_HOOK_CAUSE;
-		wrgExpert.expert_p_system = "";
+		wrgExpert.expert_p_system = P2_3;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -364,17 +364,17 @@ public class PSystem extends DeviceData
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PUSH_HOOK_SUGGEST;
-		
+
 		return bValid;
 	}
 
 	private boolean getPushTrajectory(WrgData wrgData, WrgExpert wrgExpert)
 	{
 		boolean bValid = false;
-		
+
 		wrgExpert.expert_trajectory = PUSH_TRAJECTORY;
 		wrgExpert.expert_cause = PUSH_CAUSE;
-		wrgExpert.expert_p_system = "";
+		wrgExpert.expert_p_system = P2_3;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -384,13 +384,45 @@ public class PSystem extends DeviceData
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PUSH_SUGGEST;
-		// suggestionJSONObject.put(KEY_P_SYSTEM, P_System.P2_3);
-		// suggestionJSONObject.put(KEY_CAUSE, "上桿時，角度過於平緩，手腕過度內收，未保持適當角度"); //
-		// ==>OK:P2~3
-		// suggestionJSONObject.put(KEY_SUGGESTION, "上桿時，左手腕維持固定，腰部減少轉動"); //
-		// ======>OK:P2~3
 		return bValid;
 	}
+
+	private boolean getPullTrajectory(WrgData wrgData, WrgExpert wrgExpert)
+	{
+		boolean bValid = false;
+
+		wrgExpert.expert_trajectory = PULL_TRAJECTORY;
+		wrgExpert.expert_cause = PULL_CAUSE;
+		wrgExpert.expert_p_system = P2_3;
+
+		bValid = true;
+		if (!getCarryDistFt(wrgData, wrgExpert))
+		{
+			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+		}
+		else
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_SUGGEST;
+		return bValid;
+	}
+	
+	private boolean getPullHookTrajectory(WrgData wrgData, WrgExpert wrgExpert)
+	{
+		boolean bValid = false;
+
+		wrgExpert.expert_trajectory = PULL_HOOK_TRAJECTORY;
+		wrgExpert.expert_cause = PULL_HOOK_CAUSE;
+		wrgExpert.expert_p_system = P2_3;
+
+		bValid = true;
+		if (!getCarryDistFt(wrgData, wrgExpert))
+		{
+			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+		}
+		else
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_HOOK_SUGGEST;
+		return bValid;
+	}
+	
 
 	private boolean pSystemCheck(WrgData wrgData, WrgExpert wrgExpert)
 	{
@@ -411,15 +443,6 @@ public class PSystem extends DeviceData
 		}
 		else
 		{
-			if (PULL_HOOK.equals(wrgExpert.expert_trajectory) || PULL.equals(wrgExpert.expert_trajectory))
-			{
-				// Pull Hook(左曲球):
-				wrgExpert.expert_p_system = P2_3;
-				wrgExpert.expert_cause = "上桿時，角度過於陡峭";
-				wrgExpert.expert_suggestion = "上桿時，肩膀往右轉動";
-				bValid = true;
-			}
-
 			if (PULL_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory) || STRAIGHT_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory)
 					|| PUSH_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory))
 			{
@@ -444,6 +467,14 @@ public class PSystem extends DeviceData
 			else if (PUSH.equals(wrgExpert.expert_trajectory))
 			{
 				bValid = getPushTrajectory(wrgData, wrgExpert);
+			}
+			else if (PULL.equals(wrgExpert.expert_trajectory))
+			{
+				bValid = getPullTrajectory(wrgData, wrgExpert);
+			}
+			else if (PULL_HOOK.equals(wrgExpert.expert_trajectory))
+			{
+				bValid = getPullHookTrajectory(wrgData, wrgExpert);
 			}
 			else
 			{
