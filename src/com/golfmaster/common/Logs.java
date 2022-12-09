@@ -17,9 +17,9 @@ public abstract class Logs
 	public static final String	DEBUG			= "debug_log.txt";
 	public static final String	EXCEPTION_LOG	= "exception_log.txt";
 //	伺服器路徑
-//	public static final String	PATH_LOG		= "/logs/golfmaster/";
+	public static final String	PATH_LOG		= "/logs/golfmaster/";
 //	本機路徑
-	public static final String	PATH_LOG ="C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster";
+//	public static final String	PATH_LOG ="C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster";
 	public static void log(String strPath, String strMsg)
 	{
 		Throwable throwable = new Throwable();
