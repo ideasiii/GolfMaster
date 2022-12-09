@@ -28,20 +28,20 @@ public abstract class DeviceData
 
 	// slice(外彎)與hook(內彎)
 	// 1.Pull Hook, 2.Pull, 3.Pull Slice
-	public static final String	PULL_HOOK				= "左曲球";	// 左曲球
-	public static final String	PULL_HOOK_TRAJECTORY	= "左曲球";	// 左曲球
-	public static final String	PULL_HOOK_CAUSE			= "左曲球";	// 左曲球
-	public static final String	PULL_HOOK_SUGGEST		= "左曲球";	// 左曲球
+	public static final String	PULL			= "左飛球";		// 5.Pull(左飛球)
+	public static final String	PULL_TRAJECTORY	= "左飛球";		// 左曲球
+	public static final String	PULL_CAUSE		= "上桿時，角度過於陡峭";	// 左曲球
+	public static final String	PULL_SUGGEST	= "上桿時，肩膀往右轉動";	// 左曲球
 
-	public static final String	PULL			= "左飛球";	// 5.Pull(左飛球)
-	public static final String	PULL_TRAJECTORY	= "左飛球";	// 左曲球
-	public static final String	PULL_CAUSE		= "左飛球";	// 左曲球
-	public static final String	PULL_SUGGEST	= "左飛球";	// 左曲球
+	public static final String	PULL_HOOK				= "左曲球";		// 左曲球
+	public static final String	PULL_HOOK_TRAJECTORY	= "左曲球";		// 左曲球
+	public static final String	PULL_HOOK_CAUSE			= "上桿時，角度過於陡峭";	// 左曲球
+	public static final String	PULL_HOOK_SUGGEST		= "上桿時，肩膀往右轉動";	// 左曲球
 
 	public static final String	PUSH			= "右飛球";
 	public static final String	PUSH_TRAJECTORY	= "右飛球";
-	public static final String	PUSH_CAUSE		= "右飛球";
-	public static final String	PUSH_SUGGEST	= "右飛球";
+	public static final String	PUSH_CAUSE		= "上桿時，角度過於平緩，手腕過度內收，未保持適當角度";
+	public static final String	PUSH_SUGGEST	= "上桿時，左手腕維持固定，腰部減少轉動";
 
 	public static final String	PUSH_HOOK				= "右曲球";
 	public static final String	PUSH_HOOK_TRAJECTORY	= "右曲球";
