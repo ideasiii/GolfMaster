@@ -1,33 +1,27 @@
 /*
- * 擊球數據API
- * 參數: player(必填),start_date,end_date (無日期則抓最近10筆)
- * http://localhost/GolfMaster/service/shot-data.jsp?player=louisju
- * http://18.181.37.98/GolfMaster/service/shot-data.jsp?player=louisju
- * http://localhost:8080/GolfMaster/service/shot-data.jsp?player=louisju
+ * 顯示專家系統建議API
+ * 參數: expert(必填)
+ * http://localhost/GolfMaster/service/expert-data.jsp?expert=1
+ * http://18.181.37.98/GolfMaster/service/expert-data.jsp?expert=1
+ * http://localhost:8080/GolfMaster/service/expert-data.jsp?expert=1
  */
 package com.golfmaster.service;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.DeviceData;
-import com.golfmaster.moduel.PSystem;
 
 public class ExpertData extends DeviceData{
 	
@@ -61,7 +55,9 @@ public class ExpertData extends DeviceData{
 			printParam(request);
 			
 			String expertID = request.getParameter("expert");
-			expert = this.queryExpertData(Long.parseLong(expertID));
+			if(expertID != null) {
+				expert = this.queryExpertData(Long.parseLong(expertID));
+			}
 		}catch(Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 			
