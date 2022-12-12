@@ -14,6 +14,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import com.golfmaster.common.Logs;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -21,6 +22,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 public class LoginE6 {
+	private JWebDriver jWebDriver;
+
+	public LoginE6() {
+		jWebDriver = new JWebDriver();
+	}
 
 	public int E6Web(String email, String password, String displayName, int dexterity, HttpServletRequest req)
 			throws InterruptedException, IOException {
@@ -28,20 +34,14 @@ public class LoginE6 {
 
 		System.out.println("E6 Crawl Run");
 //		伺服器175.41.245.90為linux
-		System.setProperty("webdriver.chrome.driver", "/opt/web_driver/chromedriver");
+		CreateWebDriver();
 //		本機windows
 //		System.setProperty("webdriver.chrome.driver",
 //				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
 
-		final ChromeOptions chromeOpt = new ChromeOptions();
+		jWebDriver.LoadUrl("https://portal.e6golf.com/signup");
 
-//		給server用的屬性
-		chromeOpt.addArguments("--no-sandbox");
-		chromeOpt.addArguments("--headless");
-		chromeOpt.addArguments("--disable-dev-shm-usage");
-
-		WebDriver driverE6 = new ChromeDriver(chromeOpt);
-		driverE6.get("https://portal.e6golf.com/signup");
+		WebDriver driverE6 = jWebDriver.getWdriver();
 
 		// 信箱欄
 		WebElement emailBar = driverE6.findElement(By.id("input-27"));
@@ -149,6 +149,16 @@ public class LoginE6 {
 			strReq = strReq + "\n" + paramName + ":" + pValue;
 		}
 		Logs.log(Logs.RUN_LOG, strReq);
+	}
+
+	public JWebDriver CreateWebDriver() {
+		try {
+			jWebDriver.CreateWebDriver();
+		} catch (UnknownHostException e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.getMessage());
+			e.printStackTrace();
+		}
+		return jWebDriver;
 	}
 
 }
