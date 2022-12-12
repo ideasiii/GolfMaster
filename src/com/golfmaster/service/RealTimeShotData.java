@@ -1,9 +1,9 @@
 /*
  * 即時擊球數據API
  * 參數: shotData(必填)
- * http://localhost/GolfMaster/service/shot-data.jsp?player=louisju
- * http://18.181.37.98/GolfMaster/service/shot-data.jsp?player=louisju
- * http://localhost:8080/GolfMaster/service/shot-data.jsp?player=louisju
+ * http://localhost/GolfMaster/service/realtime-shotdata.jsp
+ * http://18.181.37.98/GolfMaster/service/realtime-shotdata.jsp
+ * http://localhost:8080/GolfMaster/service/realtime-shotdata.jsp
  */
 package com.golfmaster.service;
 
@@ -62,6 +62,7 @@ public class RealTimeShotData extends DeviceData{
 		public float ClubHeadSpeed;
 		public float LaunchDirection;
 		public float DistToPinFt;
+		
 		@SuppressWarnings("unused")
 		public String ClubType;
 	}
@@ -95,7 +96,13 @@ public class RealTimeShotData extends DeviceData{
 		try {
 			printParam(request);
 			
-			String redirectUrl = "";
+			String port = "";
+			if(request.getServerPort() != 80) {
+				port = String.valueOf(request.getServerPort());
+			}	
+			String basePath = request.getScheme() + "://" + request.getServerName() + ":" + port + request.getContextPath() + "/";
+			String redirectUrl = basePath + "service/expert-data.jsp";
+			
 			String shotData = request.getParameter("shotData");
 			jsonResponse = this.checkParam(shotData);
 			if (null != jsonResponse) {
@@ -123,7 +130,9 @@ public class RealTimeShotData extends DeviceData{
 						}
 					}
 					
-					this.saveExpertData(expert);
+					long expertId = this.saveExpertData(expert);
+					
+					redirectUrl = redirectUrl + "?expert=" + expertId;
 				}
 			}
 			
@@ -153,12 +162,10 @@ public class RealTimeShotData extends DeviceData{
 			if(shotData == null || StringUtils.trimToEmpty(shotData).isEmpty()) {
 				result = ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
 			}else {
-//				boolean hasKey = true;
 				JSONObject main = new JSONObject(shotData);
 				String [] keys = {"idx", "LID", "Player", "Date", "Token", "ShotData"};
 				for(int i = 0;i<keys.length;i++) {
 					if(!main.has(keys[i])) {
-//						hasKey = false;
 						result = ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
 						break;
 					}
@@ -191,17 +198,6 @@ public class RealTimeShotData extends DeviceData{
 						}
 					}
 				}
-				/*
-				if(!hasKey) {
-					return ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
-				}else {
-					for(String key : main.keySet()) {
-						if(main.get(key) == null || main.get(key).toString().isEmpty()) {
-							
-						}
-					}
-				}
-				*/
 			}
 		}catch(Exception e) {
 			throw e;
@@ -324,9 +320,11 @@ public class RealTimeShotData extends DeviceData{
 		return id;
 	}
 	
-	private void saveExpertData(Expert expert) throws Exception{
+	private long saveExpertData(Expert expert) throws Exception{
+		long id = 0;
 		Connection conn = null;
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			Map<String, Object> datas = new HashMap<String, Object>();
 			
@@ -358,8 +356,10 @@ public class RealTimeShotData extends DeviceData{
 			}
 			sql.append(");");
 			
+			Logs.log(Logs.RUN_LOG, "strSQL: " + sql.toString());
+			
 			conn = DBUtil.getConnGolfMaster();
-			ps = conn.prepareStatement(sql.toString());
+			ps = conn.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 			
 			cnt = 1;
 			for(String key:datas.keySet()) {
@@ -369,14 +369,22 @@ public class RealTimeShotData extends DeviceData{
 				}
 			}
 			
-			ps.executeUpdate();
-			
+			int updateResult = ps.executeUpdate();
+			if(updateResult == 1) {
+				rs = ps.getGeneratedKeys();
+				while (rs.next()) {
+					id = rs.getLong(1);
+				}
+			}
 		}catch(Exception e) {
 			throw e;
 		}finally {
 			DBUtil.closePreparedStatement(ps);
+			DBUtil.closeResultSet(rs);
 			DBUtil.closeConn(conn);
 		}
+		
+		return id;
 	}
 
 	private void printParam(HttpServletRequest request)
