@@ -98,9 +98,9 @@ public class RealTimeShotData extends DeviceData{
 			
 			String port = "";
 			if(request.getServerPort() != 80) {
-				port = String.valueOf(request.getServerPort());
+				port = ":" + String.valueOf(request.getServerPort());
 			}	
-			String basePath = request.getScheme() + "://" + request.getServerName() + ":" + port + request.getContextPath() + "/";
+			String basePath = request.getScheme() + "://" + request.getServerName() + port + request.getContextPath() + "/";
 			String redirectUrl = basePath + "service/expert-data.jsp";
 			
 			String shotData = request.getParameter("shotData");
