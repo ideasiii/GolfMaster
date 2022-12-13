@@ -8,8 +8,6 @@ package com.golfmaster.service;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 
 import com.golfmaster.common.Logs;
 
@@ -142,12 +140,6 @@ public class LoginE6 {
 
 	private void printParam(HttpServletRequest req) {
 		String strReq = "---Request Parameter---";
-		Enumeration<?> in = req.getParameterNames();
-		while (in.hasMoreElements()) {
-			String paramName = in.nextElement().toString();
-			String pValue = req.getParameter(paramName);
-			strReq = strReq + "\n" + paramName + ":" + pValue;
-		}
 		Logs.log(Logs.RUN_LOG, strReq);
 	}
 

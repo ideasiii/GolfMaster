@@ -20,16 +20,22 @@ public class JWebDriver {
 	public void CreateWebDriver() throws UnknownHostException {
 		System.setProperty("webdriver.chrome.silentOutput", "true");
 		System.setProperty("webdriver.chrome.driver", "/opt/web_driver/chromedriver");
+//		System.setProperty("webdriver.chrome.driver",
+//				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
+
 
 		if (1 == Config.HEADLESS) {
 			chromeOptions.setHeadless(true);
 		} else {
 			chromeOptions.setHeadless(false);
 		}
-		chromeOptions.addArguments("--disable-infobars");
 		chromeOptions.addArguments("--incognito");
+		chromeOptions.addArguments("--disable-gpu", "--blink-settings=imagesEnabled=false");
+		chromeOptions.addArguments("--disable-infobars");
 		chromeOptions.addArguments("--no-sandbox");
 		chromeOptions.addArguments("--disable-dev-shm-usage");
+		chromeOptions.addArguments("--disable-extensions");
+		
 		wdriver = new ChromeDriver(chromeOptions);
 	}
 
@@ -37,8 +43,8 @@ public class JWebDriver {
 	public void LoadUrl(String strUrl) {
 		try {
 			if (null != wdriver) {
-				System.out.println("Load URL : " + strUrl);
 				wdriver.get(strUrl);
+				Logs.log(Logs.RUN_LOG, "Load URL : " + strUrl);
 			} else {
 				Logs.log(Logs.RUN_LOG, "Web Driver is null");
 			}

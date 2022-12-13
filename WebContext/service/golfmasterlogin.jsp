@@ -2,11 +2,11 @@
 	pageEncoding="UTF-8" session="false" trimDirectiveWhitespaces="true"%>
 <%@ page import="com.golfmaster.service.GolfMasterRegister"%>
 
-<%!GolfMasterRegister golfMasterRegister = new GolfMasterRegister();%>
+<%!GolfMasterRegister golfMasterLogin = new GolfMasterRegister();%>
 <%
 request.setCharacterEncoding("UTF-8");
+out.print(golfMasterLogin.doLogin(request));
 
-out.print(golfMasterRegister.getMemberData(request));
 System.gc();
 Runtime.getRuntime().gc();
 %>

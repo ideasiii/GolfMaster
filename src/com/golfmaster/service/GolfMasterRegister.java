@@ -37,11 +37,12 @@ public class GolfMasterRegister {
 	}
 
 	public class gaParam {
+		private int id;
 		private String account;
 		private String password;
 		private int member_id;
 	}
-
+	//註冊會員
 	public String getMemberData(HttpServletRequest req) throws ServletException, IOException, InterruptedException {
 		printParam(req);
 
@@ -112,7 +113,32 @@ public class GolfMasterRegister {
 		Logs.log(Logs.RUN_LOG, errorType);
 		return errorType;
 	}
+	//會員登入
+	public String doLogin(HttpServletRequest req) {
+		printParam(req);
 
+		gaParam paramA = new gaParam();
+		paramA.account = req.getParameter("account");
+		paramA.password = req.getParameter("password");
+		
+		JSONObject jsobj = new JSONObject();
+		String errorType = "{\"success\": true,\"result\": []}";
+		
+		if(0<getAccountData(paramA, jsobj)) {
+			jsobj.put("success", true);
+			jsobj.put("code", 0);
+			jsobj.put("message", "登入成功");
+			errorType = jsobj.toString();
+		}else {
+			jsobj.put("success",false);
+			jsobj.put("code", -1);
+			jsobj.put("message", "帳號密碼錯誤");
+			errorType = jsobj.toString();
+		}
+		Logs.log(Logs.RUN_LOG, errorType);
+		return errorType;
+	}
+	//輸入memeber table
 	public int queryGolfMasterMember(gmParam paramM, JSONObject jsonResp) {
 
 		int stmtRs = -1;
@@ -155,10 +181,10 @@ public class GolfMasterRegister {
 		}
 		DBUtil.close(null, stmt, conn);
 		jsonResp.put("result", jarrProj);
-
+		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return stmtRs;
 	}
-
+	//輸入account table
 	public int queryGolfMasterAccount(gaParam paramA, JSONObject jsonResp, gmParam paramM) {
 		int stmtRs = -1;
 
@@ -192,8 +218,43 @@ public class GolfMasterRegister {
 		}
 		DBUtil.close(rs, stmt, conn);
 		jsonResp.put("result", jarrProj);
-
+		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return stmtRs;
+	}
+	//確認登入帳號密碼
+	public int getAccountData(gaParam paramA,JSONObject jsonResp) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		JSONArray jarrProjects = new JSONArray();
+
+		jsonResp.put("result", jarrProjects);
+		strSQL = String.format("select * from golf_master.account where account = '%s' and password = '%s'",
+				paramA.account, paramA.password);
+		Logs.log(Logs.RUN_LOG, strSQL);
+		
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while(rs.next()) {
+				JSONObject jsonProject = new JSONObject();
+				jsonProject.put("account", rs.getString("account"));
+				jsonProject.put("password", rs.getString("password"));
+				
+				jarrProjects.put(jsonProject);
+			}
+			jsonResp.put("success", true);
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+			jsonResp.put("success", false);
+			jsonResp.put("message", e.getMessage());
+		}
+		DBUtil.close(rs, stmt, conn);
+		Logs.log(Logs.RUN_LOG, jsonResp.toString());
+		return jarrProjects.length();
 	}
 
 	private void printParam(HttpServletRequest req) {
