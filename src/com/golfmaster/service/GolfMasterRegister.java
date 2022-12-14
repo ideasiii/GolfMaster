@@ -24,12 +24,10 @@ public class GolfMasterRegister {
 
 	public class gmParam {
 		private int id;
-		private String name;
 		private String nickname;
-		private Date birth;
+		private int birth;
 		private int gender;
 		private int tee;
-		private String phone;
 		private String address;
 		private int seniority;
 		private Date recent;
@@ -52,11 +50,9 @@ public class GolfMasterRegister {
 		gmParam paramM = new gmParam();
 		gaParam paramA = new gaParam();
 //		註冊部分
-		paramM.name = req.getParameter("name");
-		paramM.birth = Date.valueOf(req.getParameter("birth"));
+		paramM.birth = Integer.parseInt(req.getParameter("birth"));
 		paramM.gender = Integer.parseInt(req.getParameter("gender"));
 		paramM.tee = Integer.parseInt(req.getParameter("tee"));
-		paramM.phone = req.getParameter("phone");
 		paramM.address = req.getParameter("address");
 		paramM.seniority = Integer.parseInt(req.getParameter("seniority"));
 		paramM.recent = Date.valueOf(req.getParameter("recent"));
@@ -87,18 +83,20 @@ public class GolfMasterRegister {
 			errorType = jsobj.toString();
 			break;
 		case 0:
-			if (-1 == queryGolfMasterMember(paramM, jsobj)) {
+			int tempM = queryGolfMasterMember(paramM, jsobj);
+			if (-1 == tempM) {
 				jsobj.put("success", false);
 				jsobj.put("code", -1);
 				jsobj.put("message", "member新增失敗");
 				errorType = jsobj.toString();
-			} else if (0 == queryGolfMasterMember(paramM, jsobj)) {
+			} else if (0 == tempM) {
 				jsobj.put("success", false);
 				jsobj.put("code", 1);
 				jsobj.put("message", "member資料重複");
 				errorType = jsobj.toString();
 			} else {
-				if (-1 == queryGolfMasterAccount(paramA, jsobj, paramM)) {
+				int tempA = queryGolfMasterAccount(paramA, jsobj, paramM);
+				if (-1 == tempA) {
 					jsobj.put("success", false);
 					jsobj.put("code", -1);
 					jsobj.put("message", "account新增失敗");
@@ -153,14 +151,13 @@ public class GolfMasterRegister {
 		String strSQL;
 		JSONArray jarrProj = new JSONArray();
 
-		jsonResp.put("result", jarrProj);
 		// ignore可以讓uq問題不報錯
 		strSQL = String.format(
 				"insert ignore into golf_master.member ("
-						+ "name,nickname,birth,gender,tee,phone,address,seniority,recent,average,score,dexterity)"
-						+ "values('%s','%s','%s','%d','%d','%s','%s','%d','%s','%s','%d','%d')",
-				paramM.name, paramM.nickname, paramM.birth, paramM.gender, paramM.tee, paramM.phone, paramM.address,
-				paramM.seniority, paramM.recent, paramM.average, paramM.score, paramM.dexterity);
+						+ "nickname,birth,gender,tee,address,seniority,recent,average,score,dexterity)"
+						+ "values('%s','%d','%d','%d','%s','%d','%s','%s','%d','%d')",
+				paramM.nickname, paramM.birth, paramM.gender, paramM.tee, paramM.address, paramM.seniority,
+				paramM.recent, paramM.average, paramM.score, paramM.dexterity);
 		Logs.log(Logs.RUN_LOG, strSQL);
 
 		try {
@@ -172,7 +169,6 @@ public class GolfMasterRegister {
 				if (rs.next()) {
 					paramM.id = rs.getInt(1);
 					JSONObject jsonProject = new JSONObject();
-					jsonProject.put("insertResult", stmtRs);
 					jarrProj.put(jsonProject);
 					jsonResp.put("success", true);
 				}
@@ -186,7 +182,6 @@ public class GolfMasterRegister {
 			jsonResp.put("message", e.getMessage());
 		}
 		DBUtil.close(null, stmt, conn);
-		jsonResp.put("result", jarrProj);
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return stmtRs;
 	}
@@ -201,7 +196,6 @@ public class GolfMasterRegister {
 		String strSQL;
 		JSONArray jarrProj = new JSONArray();
 
-		jsonResp.put("result", jarrProj);
 
 		strSQL = String.format("insert into golf_master.account(account,password,member_id)values('%s','%s','%d')",
 				paramA.account, paramA.password, paramM.id);
@@ -213,7 +207,6 @@ public class GolfMasterRegister {
 			stmtRs = stmt.executeUpdate(strSQL);
 
 			JSONObject jsonProject = new JSONObject();
-			jsonProject.put("insertResult", stmtRs);
 			jarrProj.put(jsonProject);
 			jsonResp.put("success", true);
 
@@ -224,7 +217,6 @@ public class GolfMasterRegister {
 			jsonResp.put("message", e.getMessage());
 		}
 		DBUtil.close(rs, stmt, conn);
-		jsonResp.put("result", jarrProj);
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return stmtRs;
 	}
