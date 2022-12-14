@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 
 import javax.servlet.ServletException;
@@ -42,7 +44,8 @@ public class GolfMasterRegister {
 		private String password;
 		private int member_id;
 	}
-	//註冊會員
+
+	// 註冊會員
 	public String getMemberData(HttpServletRequest req) throws ServletException, IOException, InterruptedException {
 		printParam(req);
 
@@ -67,7 +70,7 @@ public class GolfMasterRegister {
 
 		LoginE6 loginE6 = new LoginE6();
 		JSONObject jsobj = new JSONObject();
-		String errorType = "{\"success\": true,\"result\": []}";
+		String errorType = "{\"code\":0,\"success\": true,\"message\": []}";
 		int getResult = loginE6.E6Web(paramA.account, paramA.password, paramM.nickname, paramM.dexterity, req);
 		switch (getResult) {
 
@@ -113,24 +116,26 @@ public class GolfMasterRegister {
 		Logs.log(Logs.RUN_LOG, errorType);
 		return errorType;
 	}
-	//會員登入
+
+	// 會員登入
 	public String doLogin(HttpServletRequest req) {
 		printParam(req);
 
 		gaParam paramA = new gaParam();
 		paramA.account = req.getParameter("account");
 		paramA.password = req.getParameter("password");
-		
+
 		JSONObject jsobj = new JSONObject();
-		String errorType = "{\"success\": true,\"result\": []}";
-		
-		if(0<getAccountData(paramA, jsobj)) {
+		String errorType = "{\"code\":0,\"success\": true,\"message\": []}";
+		if (0 < getAccountData(paramA, jsobj)) {
+			insertLoginLog(paramA, 0);
 			jsobj.put("success", true);
 			jsobj.put("code", 0);
 			jsobj.put("message", "登入成功");
 			errorType = jsobj.toString();
-		}else {
-			jsobj.put("success",false);
+		} else {
+			insertLoginLog(paramA, -1);
+			jsobj.put("success", false);
 			jsobj.put("code", -1);
 			jsobj.put("message", "帳號密碼錯誤");
 			errorType = jsobj.toString();
@@ -138,7 +143,8 @@ public class GolfMasterRegister {
 		Logs.log(Logs.RUN_LOG, errorType);
 		return errorType;
 	}
-	//輸入memeber table
+
+	// 輸入memeber table
 	public int queryGolfMasterMember(gmParam paramM, JSONObject jsonResp) {
 
 		int stmtRs = -1;
@@ -184,7 +190,8 @@ public class GolfMasterRegister {
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return stmtRs;
 	}
-	//輸入account table
+
+	// 輸入account table
 	public int queryGolfMasterAccount(gaParam paramA, JSONObject jsonResp, gmParam paramM) {
 		int stmtRs = -1;
 
@@ -221,28 +228,28 @@ public class GolfMasterRegister {
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return stmtRs;
 	}
-	//確認登入帳號密碼
-	public int getAccountData(gaParam paramA,JSONObject jsonResp) {
+
+	// 確認登入帳號密碼
+	public int getAccountData(gaParam paramA, JSONObject jsonResp) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
 		JSONArray jarrProjects = new JSONArray();
 
-		jsonResp.put("result", jarrProjects);
 		strSQL = String.format("select * from golf_master.account where account = '%s' and password = '%s'",
 				paramA.account, paramA.password);
 		Logs.log(Logs.RUN_LOG, strSQL);
-		
+
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(strSQL);
-			while(rs.next()) {
+			while (rs.next()) {
 				JSONObject jsonProject = new JSONObject();
 				jsonProject.put("account", rs.getString("account"));
 				jsonProject.put("password", rs.getString("password"));
-				
+
 				jarrProjects.put(jsonProject);
 			}
 			jsonResp.put("success", true);
@@ -255,6 +262,31 @@ public class GolfMasterRegister {
 		DBUtil.close(rs, stmt, conn);
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return jarrProjects.length();
+	}
+
+	public int insertLoginLog(gaParam paramA, int enter) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime dateTime = LocalDateTime.now();
+		String todayTime = dateTime.format(formatter).toString();
+
+		Connection conn = null;
+		Statement stmt = null;
+		int stmtRs = -1;
+		String strSQL;
+		strSQL = String.format(
+				"insert into golf_master.login_log(account,password,day,result)values('%s','%s','%s','%d')",
+				paramA.account, paramA.password, todayTime, enter);
+		Logs.log(Logs.RUN_LOG, strSQL);
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			stmtRs = stmt.executeUpdate(strSQL);
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		}
+		DBUtil.close(null, stmt, conn);
+		return stmtRs;
 	}
 
 	private void printParam(HttpServletRequest req) {
