@@ -101,7 +101,7 @@ public class ShotData
 				jsonProject.put("TotalDistFt", rs.getDouble("TotalDistFt")); //置球點到擊球後停止滾動的距離，單位: ft 呎
 				jsonProject.put("expert_trajectory", rs.getString("expert_trajectory"));
 				jsonProject.put("expert_note", rs.getString("expert_note"));
-				jsonProject.put("expert_p-system", rs.getString("expert_p-system"));
+				jsonProject.put("expert_p_system", rs.getString("expert_p-system"));
 				jsonProject.put("expert_suggestion", rs.getString("expert_suggestion"));
 				jsonProject.put("expert_cause", rs.getString("expert_cause"));
 				
