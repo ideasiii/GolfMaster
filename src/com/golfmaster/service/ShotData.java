@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
+import com.golfmaster.moduel.PSystem;
 
 public class ShotData
 {
@@ -56,7 +57,9 @@ public class ShotData
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
+		String strExpert;
 		JSONArray jarrProjects = new JSONArray();
+		PSystem psystem = new PSystem();
 
 		jsonResponse.put("result", jarrProjects);
 		// 無日期就取最近的10筆
@@ -99,11 +102,18 @@ public class ShotData
 				jsonProject.put("DistToPinFt", rs.getDouble("DistToPinFt")); //擊球後與目標的距離，單位: ft 呎
 				jsonProject.put("CarryDistFt", rs.getDouble("CarryDistFt")); //置球點到擊球落點的距離，單位: ft 呎
 				jsonProject.put("TotalDistFt", rs.getDouble("TotalDistFt")); //置球點到擊球後停止滾動的距離，單位: ft 呎
-				jsonProject.put("expert_trajectory", rs.getString("expert_trajectory"));
 				jsonProject.put("expert_note", rs.getString("expert_note"));
-				jsonProject.put("expert_p_system", rs.getString("expert_p-system"));
-				jsonProject.put("expert_suggestion", rs.getString("expert_suggestion"));
-				jsonProject.put("expert_cause", rs.getString("expert_cause"));
+				//jsonProject.put("expert_trajectory", rs.getString("expert_trajectory"));
+				//jsonProject.put("expert_p_system", rs.getString("expert_p-system"));
+				//jsonProject.put("expert_suggestion", rs.getString("expert_suggestion"));
+				//jsonProject.put("expert_cause", rs.getString("expert_cause"));
+				strExpert = psystem.expertAnalysis((float)rs.getDouble("BallSpeed"), (float)rs.getDouble("ClubAnglePath"), (float)rs.getDouble("ClubAngleFace"), (float)rs.getDouble("TotalDistFt"), (float)rs.getDouble("CarryDistFt"), (float)rs.getDouble("LaunchAngle"), (float)rs.getDouble("SmashFactor"), (float)rs.getInt("BackSpin"), (float)rs.getInt("SideSpin"), (float)rs.getDouble("ClubHeadSpeed"), (float)rs.getDouble("LaunchDirection"), (float)rs.getDouble("DistToPinFt"));
+				
+				JSONObject jsonExpert = new JSONObject(strExpert);
+				jsonProject.put("expert_suggestion", jsonExpert.getString("expert_suggestion"));
+				jsonProject.put("expert_cause", jsonExpert.getString("expert_cause"));
+				jsonProject.put("expert_trajectory", jsonExpert.getString("expert_trajectory"));
+				jsonProject.put("expert_p_system", jsonExpert.getString("expert_p_system"));
 				
 				jarrProjects.put(jsonProject);
 			}
