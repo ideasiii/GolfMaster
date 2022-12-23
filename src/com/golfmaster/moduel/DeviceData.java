@@ -92,7 +92,13 @@ public abstract class DeviceData
 																			// of
 																			// Strength
 																			// (力道不足)
-
+	public static final float LONG_PUTT = 10;	//長推桿距離30英尺,約為10碼
+	public static final float SHORT_PUTT = 2;	//短推桿距離6英尺,約2碼
+	
+	public static final float Putt_FACE_SQUARE_MIN = 2;		//桿面傾角
+	public static final float Putt_FACE_SQUARE_MAX = 4;		
+	
+	
 	public class WrgData
 	{
 		public float	BallSpeed;

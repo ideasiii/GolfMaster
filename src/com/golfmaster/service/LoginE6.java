@@ -14,7 +14,6 @@ import com.golfmaster.common.Logs;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,8 +37,8 @@ public class LoginE6 {
 //				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
 
 		jWebDriver.LoadUrl("https://portal.e6golf.com/signup");
-
 		WebDriver driverE6 = jWebDriver.getWdriver();
+		String startUrl = driverE6.getCurrentUrl();
 
 		// 信箱欄
 		WebElement emailBar = driverE6.findElement(By.id("input-27"));
@@ -123,17 +122,13 @@ public class LoginE6 {
 
 		}
 		// 等待註冊結果
-		Thread.sleep(2000);
+		Thread.sleep(5000);
 		// 顯示信箱已被註冊
-		WebElement emailExists = driverE6
-				.findElement(By.cssSelector("div [ class='v-snack__wrapper v-sheet theme--dark elevation-16 error']"));
-		String x = null;
-		if (emailExists.getAttribute("style") != x) {
+		if (driverE6.getCurrentUrl().compareTo(startUrl) == 0) {
 			System.out.println("已經被註冊");
 			Logs.log(Logs.RUN_LOG, "emailExists: " + "true");
 			return 2;
 		}
-
 		driverE6.quit();
 		return 0;
 	}
