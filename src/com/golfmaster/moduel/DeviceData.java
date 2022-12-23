@@ -6,6 +6,7 @@ public abstract class DeviceData
 	public static final String	SHOT_FAIL_BODY	= "擊球姿勢嚴重錯誤";
 
 	// P-System
+	public static final String  p2_9    = "P2~3 上桿 , P5~6 下桿 , P7 Impact 擊球)";
 	public static final String	P2_3	= "P2~3 上桿";
 	public static final String	P4		= "P4 頂點/轉換";
 	public static final String	P5_6	= "P5~6 下桿";
@@ -82,16 +83,10 @@ public abstract class DeviceData
 	// 7.Push Hook, 8.Push, 9.Push Slice
 
 	// TODO: 其他問題球:
-	public static final String	THE_TOP				= "The Top";			// 1.The
-																			// Top(剃頭球.切滾球)
-	public static final String	DUFF				= "Duff";				// 2.Duff
-																			// (先擊到球後方之草〈地〉，再擊到球)
-	public static final String	SHANK				= "Shank";				// 3.Shank
-																			// (棒擊球)
-	public static final String	LACK_OF_STRENGTH	= "Lack of Strength";	// 8.Lack
-																			// of
-																			// Strength
-																			// (力道不足)
+	public static final String	THE_TOP				= "擊球失誤導致擊出剃頭球或切滾球";			
+	public static final String	DUFF				= "擊球失誤導致先擊到球後方之草地，再擊到球";				
+	public static final String	SHANK				= "擊球失誤導致棒擊球";				
+	public static final String	LACK_OF_STRENGTH	= "力道不足的擊球";
 
 	public class WrgData
 	{
