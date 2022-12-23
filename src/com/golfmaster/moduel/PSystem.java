@@ -404,7 +404,7 @@ public class PSystem extends DeviceData
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_SUGGEST;
 		return bValid;
 	}
-	
+
 	private boolean getPullHookTrajectory(WrgData wrgData, WrgExpert wrgExpert)
 	{
 		boolean bValid = false;
@@ -422,24 +422,90 @@ public class PSystem extends DeviceData
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_HOOK_SUGGEST;
 		return bValid;
 	}
-	
+
+	private boolean getHitFail(WrgData wrgData, WrgExpert wrgExpert)
+	{
+		boolean bValid = false;
+
+		wrgExpert.expert_p_system = p2_9;
+		wrgExpert.expert_suggestion = SHOT_FAIL_BODY;
+		wrgExpert.expert_cause = "擊球角度過小 ";
+
+		int nYt = Math.round(wrgData.CarryDistFt / 10);
+
+		if (0 < nYt)
+			bValid = true;
+
+		if (4 <= wrgData.LaunchAngle && 70 <= wrgData.CarryDistFt)
+		{
+			if (60 <= wrgData.BallSpeed)
+			{
+				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，揮動手臂下杆或者下杆時肩膀太過主動，這些動作都無法形成強大的力量";
+				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+			}
+			else
+			{
+				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，而不是依靠手臂的力量。身體旋轉地速度越快，擊球力量就會越大";
+				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+			}
+		}
+		else
+		{
+			switch (nYt)
+			{
+				case 0:
+					wrgExpert.expert_suggestion = SHOT_FAIL;
+					wrgExpert.expert_cause = SHOT_FAIL;
+					wrgExpert.expert_p_system = SHOT_FAIL;
+					wrgExpert.expert_trajectory = THE_TOP;
+					break;
+				case 1:
+					wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭";
+					wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+					break;
+				case 2:
+					wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
+					wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+					break;
+				case 3:
+				case 4:
+				case 5:
+					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
+					wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+					break;
+				case 6:
+				case 7:
+				case 8:
+					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
+					wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+					break;
+				case 9:
+					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
+					wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+					break;
+				case 10:
+				case 11:
+					wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
+					wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+					break;
+				default:
+					bValid = false;
+					break;
+			}
+		}
+
+		return bValid;
+	}
 
 	private boolean pSystemCheck(WrgData wrgData, WrgExpert wrgExpert)
 	{
 		boolean bValid = false;
-		// 1.The top 剃頭球(切滾球): ==>See Above: ==>TBD:??? 距離 <
-		// 40碼(40*3=120ft),發射角度 < 6
 
 		wrgExpert.expert_trajectory = getTrajectory(wrgData); // 取得彈道
 
 		if (wrgData.CarryDistFt < CARRY_DIST_FT_MIN && wrgData.LaunchAngle < LAUNCH_ANGLE_MIN)
 		{
-			bValid = true;
-			wrgExpert.expert_p_system = P5_6;
-			wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
-			wrgExpert.expert_suggestion = "下桿時，不要伸直雙腿，或抬起上半身";
-			if (null == wrgExpert.expert_trajectory)
-				wrgExpert.expert_trajectory = THE_TOP;
+			bValid = getHitFail(wrgData, wrgExpert);
 		}
 		else
 		{
