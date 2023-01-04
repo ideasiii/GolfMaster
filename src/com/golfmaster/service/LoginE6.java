@@ -112,6 +112,7 @@ public class LoginE6 {
 		}
 		if (showWrongMessage.size() > 0) {
 			System.out.println("有錯誤");
+			driverE6.quit();
 			return 1;
 		} else {
 
@@ -125,8 +126,15 @@ public class LoginE6 {
 		Thread.sleep(5000);
 		// 顯示信箱已被註冊
 		if (driverE6.getCurrentUrl().compareTo(startUrl) == 0) {
+			if(password.length()<=8) {
+				System.out.println("密碼過短");
+				Logs.log(Logs.RUN_LOG, "passwordTooShort: " + "false");
+				driverE6.quit();
+				return 1;
+			}
 			System.out.println("已經被註冊");
 			Logs.log(Logs.RUN_LOG, "emailExists: " + "true");
+			driverE6.quit();
 			return 2;
 		}
 		driverE6.quit();
