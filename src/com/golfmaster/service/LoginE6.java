@@ -82,7 +82,7 @@ public class LoginE6 {
 			Logs.log(Logs.RUN_LOG, "Dexterity: Right");
 		} else if (dexterity == 2 && dexterity > 0) {
 			// 列表左手選項
-			WebElement dexterityLeft = driverE6.findElement(By.id("list-item-70-1"));
+			WebElement dexterityLeft = driverE6.findElement(By.id("list-item-151-1"));
 			dexterityLeft.click();
 			Logs.log(Logs.RUN_LOG, "Dexterity: Left");
 		}
