@@ -13,6 +13,7 @@ import java.util.Enumeration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,7 +45,8 @@ public class GolfMasterRegister {
 	}
 
 	// 註冊會員
-	public String getMemberData(HttpServletRequest req) throws ServletException, IOException, InterruptedException {
+	public String getMemberData(HttpServletRequest req)
+			throws ServletException, IOException, InterruptedException {
 		printParam(req);
 
 		gmParam paramM = new gmParam();
@@ -195,7 +197,6 @@ public class GolfMasterRegister {
 		ResultSet rs = null;
 		String strSQL;
 		JSONArray jarrProj = new JSONArray();
-
 
 		strSQL = String.format("insert into golf_master.account(account,password,member_id)values('%s','%s','%d')",
 				paramA.account, paramA.password, paramM.id);

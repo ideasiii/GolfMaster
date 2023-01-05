@@ -6,6 +6,7 @@
 <%
 request.setCharacterEncoding("UTF-8");
 
+
 out.print(golfMasterRegister.getMemberData(request));
 System.gc();
 Runtime.getRuntime().gc();
