@@ -6,7 +6,7 @@ public abstract class DeviceData
 	public static final String	SHOT_FAIL_BODY	= "擊球姿勢嚴重錯誤";
 
 	// P-System
-	public static final String  p2_9    = "P2~3 上桿 , P5~6 下桿 , P7 Impact 擊球)";
+	public static final String  p2_9    = "P2~3 上桿 , P5~6 下桿 , P7 Impact 擊球";
 	public static final String	P2_3	= "P2~3 上桿";
 	public static final String	P4		= "P4 頂點/轉換";
 	public static final String	P5_6	= "P5~6 下桿";
@@ -74,11 +74,11 @@ public abstract class DeviceData
 																																				// //
 																																				// Slice(右曲球)
 	public static final String	PUSH_SLICE_CAUSE		= "桿頭路徑INSIDE IN,桿面方向朝向桿頭路徑更右方,結果球先往右邊飛出去再向右偏,上桿時，角度過於平緩，手腕過度內收，未保持適當角度，肩或腰旋轉過度";
-	public static final String	PUSH_SLICE_SUGGEST		= "上桿時，左手腕維持固定，腰部減少轉動,正常站位就會打出INSIDE OUT的話，桿面在觸球時容易也是開的,不想往右邊去，稍微站關閉一點，想打一個左曲球路矯正回來";
+	public static final String	PUSH_SLICE_SUGGEST		= "上桿時，左手腕維持固定，腰部減少轉動,正常站位就會打出INSIDE OUT的話，桿面在觸球時容易也是開的,如果球不想往右邊飛去，可以稍微站關閉一點";
 
 	public static final String	PULL_SLICE_TRAJECTORY	= "球先往左邊飛出,然後再往右旋回到前方目標線,危險度比較低但是想要的距離出不來";
 	public static final String	PULL_SLICE_CAUSE		= "桿頭路徑OUTSIDE IN,桿面方向是對往目標的左邊,結果球先往左邊飛再往右偏";
-	public static final String	PULL_SLICE_SUGGEST		= "OUTSIDE IN的軌道,桿面稍往左關閉,即使有桿頭數度的人也會因為距離出不來,需要再改善";
+	public static final String	PULL_SLICE_SUGGEST		= "OUTSIDE IN的軌道,桿面稍往左關閉,即使有桿頭速度的人也會因為距離出不來,需要再改善";
 
 	// 7.Push Hook, 8.Push, 9.Push Slice
 
