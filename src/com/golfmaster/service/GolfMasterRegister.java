@@ -45,21 +45,41 @@ public class GolfMasterRegister {
 	}
 
 	// 註冊會員
-	public String getMemberData(HttpServletRequest req)
-			throws ServletException, IOException, InterruptedException {
+	@SuppressWarnings("null")
+	public String getMemberData(HttpServletRequest req) throws ServletException, IOException, InterruptedException {
 		printParam(req);
 
 		gmParam paramM = new gmParam();
 		gaParam paramA = new gaParam();
 //		註冊部分
-		paramM.birth = Integer.parseInt(req.getParameter("birth"));
-		paramM.gender = Integer.parseInt(req.getParameter("gender"));
-		paramM.tee = Integer.parseInt(req.getParameter("tee"));
+		String birth = req.getParameter("birth");
+		String gender = req.getParameter("gender");
+		String tee = req.getParameter("tee");
+		String seniority = req.getParameter("seniority");
+		String recent = req.getParameter("recent");
+		String score = req.getParameter("score");
+		if (birth != null && gender != null && tee != null && seniority != null && recent != null && score != null) {
+			paramM.birth = Integer.parseInt(birth);
+			paramM.gender = Integer.parseInt(gender);
+			paramM.tee = Integer.parseInt(tee);
+			paramM.seniority = Integer.parseInt(seniority);
+			paramM.recent = Date.valueOf(recent);
+			paramM.score = Integer.parseInt(score);
+		} else if (birth == null) {
+			paramM.birth = (Integer) null;
+		} else if (gender == null) {
+			paramM.gender = (Integer) null;
+		} else if (tee == null) {
+			paramM.tee = (Integer) null;
+		} else if (seniority == null) {
+			paramM.seniority = (Integer) null;
+		} else if (recent == null) {
+			paramM.recent = (Date) null;
+		} else if (score == null) {
+			paramM.score = (Integer) null;
+		}
 		paramM.address = req.getParameter("address");
-		paramM.seniority = Integer.parseInt(req.getParameter("seniority"));
-		paramM.recent = Date.valueOf(req.getParameter("recent"));
 		paramM.average = req.getParameter("average");
-		paramM.score = Integer.parseInt(req.getParameter("score"));
 //		E6部分
 		paramM.nickname = req.getParameter("nickname");
 		paramM.dexterity = Integer.parseInt(req.getParameter("dexterity"));
