@@ -15,6 +15,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.util.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -45,7 +46,7 @@ public class GolfMasterRegister {
 	}
 
 	// 註冊會員
-	@SuppressWarnings("null")
+
 	public String getMemberData(HttpServletRequest req) throws ServletException, IOException, InterruptedException {
 		printParam(req);
 
@@ -58,28 +59,27 @@ public class GolfMasterRegister {
 		String seniority = req.getParameter("seniority");
 		String recent = req.getParameter("recent");
 		String score = req.getParameter("score");
-		if (birth != null && gender != null && tee != null && seniority != null && recent != null && score != null) {
+		if (birth != null && !birth.isEmpty()) {
 			paramM.birth = Integer.parseInt(birth);
-			paramM.gender = Integer.parseInt(gender);
-			paramM.tee = Integer.parseInt(tee);
-			paramM.seniority = Integer.parseInt(seniority);
-			paramM.recent = Date.valueOf(recent);
-			paramM.score = Integer.parseInt(score);
-		} else if (birth == null) {
-			paramM.birth = (Integer) null;
-		} else if (gender == null) {
-			paramM.gender = (Integer) null;
-		} else if (tee == null) {
-			paramM.tee = (Integer) null;
-		} else if (seniority == null) {
-			paramM.seniority = (Integer) null;
-		} else if (recent == null) {
-			paramM.recent = (Date) null;
-		} else if (score == null) {
-			paramM.score = (Integer) null;
 		}
-		paramM.address = req.getParameter("address");
+		if (gender != null && !birth.isEmpty()) {
+			paramM.gender = Integer.parseInt(gender);
+		}
+		if (tee != null && !birth.isEmpty()) {
+			paramM.birth = Integer.parseInt(tee);
+		}
+		if (seniority != null && !birth.isEmpty()) {
+			paramM.birth = Integer.parseInt(seniority);
+		}
+		if (recent != null && !birth.isEmpty()) {
+			paramM.birth = Integer.parseInt(recent);
+		}
+		if (score != null && !birth.isEmpty()) {
+			paramM.birth = Integer.parseInt(score);
+		}
+
 		paramM.average = req.getParameter("average");
+		paramM.address = req.getParameter("address");
 //		E6部分
 		paramM.nickname = req.getParameter("nickname");
 		paramM.dexterity = Integer.parseInt(req.getParameter("dexterity"));
