@@ -62,20 +62,20 @@ public class GolfMasterRegister {
 		if (birth != null && !birth.isEmpty()) {
 			paramM.birth = Integer.parseInt(birth);
 		}
-		if (gender != null && !birth.isEmpty()) {
+		if (gender != null && !gender.isEmpty()) {
 			paramM.gender = Integer.parseInt(gender);
 		}
-		if (tee != null && !birth.isEmpty()) {
-			paramM.birth = Integer.parseInt(tee);
+		if (tee != null && !tee.isEmpty()) {
+			paramM.tee = Integer.parseInt(tee);
 		}
-		if (seniority != null && !birth.isEmpty()) {
-			paramM.birth = Integer.parseInt(seniority);
+		if (seniority != null && !seniority.isEmpty()) {
+			paramM.seniority = Integer.parseInt(seniority);
 		}
-		if (recent != null && !birth.isEmpty()) {
-			paramM.birth = Integer.parseInt(recent);
+		if (recent != null && !recent.isEmpty()) {
+			paramM.recent = Date.valueOf(recent);
 		}
-		if (score != null && !birth.isEmpty()) {
-			paramM.birth = Integer.parseInt(score);
+		if (score != null && !score.isEmpty()) {
+			paramM.score = Integer.parseInt(score);
 		}
 
 		paramM.average = req.getParameter("average");
