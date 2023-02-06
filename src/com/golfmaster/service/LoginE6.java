@@ -97,7 +97,9 @@ public class LoginE6 {
 		WebElement checkbox = driverE6.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
 		
-		
+		if(checkDisplayName(displayName)>0) {
+			return 1;
+		}
 
 		List<WebElement> wrongMessage = driverE6.findElements(By.cssSelector("div [class='v-messages__wrapper']"));
 		String noWord = "";
@@ -150,34 +152,45 @@ public class LoginE6 {
 		return 0;
 	}
 	
-//	public int checkDisplayName(String displayName) {
-//		Connection conn = null;
-//		Statement stmt = null;
-//		ResultSet rs = null;
-//		
-//		String strSQL;
-//		JSONArray jarrProjects = new JSONArray();
-//
-//		strSQL = String.format("select * from golf_master.member where nickname = '%s'",
-//				displayName);
-//		Logs.log(Logs.RUN_LOG, strSQL);
-//		
-//		try {
-//			conn = DBUtil.getConnGolfMaster();
-//			stmt = conn.createStatement();
-//			rs = stmt.executeQuery(strSQL);
-//			while (rs.next()) {
-//				JSONObject jsonProject = new JSONObject();
-//				jsonProject.put("account", rs.getString("account"));
-//				jsonProject.put("password", rs.getString("password"));
-//				
-//				jarrProjects.put(jsonProject);
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return 0;
-//	}
+	public int checkDisplayName(String displayName) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String strSQL;
+		JSONArray jarrProjects = new JSONArray();
+
+		strSQL = String.format("select * from golf_master.member where nickname = '%s'",
+				displayName);
+		Logs.log(Logs.RUN_LOG, strSQL);
+		
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while (rs.next()) {
+				JSONObject jsonProject = new JSONObject();
+				jsonProject.put("nickname", rs.getString("nickname"));
+				jsonProject.put("birth", rs.getString("birth"));
+				jsonProject.put("gender", rs.getString("gender"));
+				jsonProject.put("tee", rs.getString("tee"));
+				jsonProject.put("address", rs.getString("address"));
+				jsonProject.put("seniority", rs.getString("seniority"));
+				jsonProject.put("recent", rs.getString("recent"));
+				jsonProject.put("average", rs.getString("average"));
+				jsonProject.put("score", rs.getString("score"));
+				jsonProject.put("dexterity", rs.getString("dexterity"));
+				
+				jarrProjects.put(jsonProject);
+			}
+			Logs.log(Logs.RUN_LOG, jarrProjects.toString());
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		}
+		DBUtil.close(rs, stmt, conn);
+		return jarrProjects.length();
+	}
 
 	private void printParam(HttpServletRequest req) {
 		String strReq = "---Request Parameter---";
