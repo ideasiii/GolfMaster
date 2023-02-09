@@ -87,8 +87,8 @@ public class ShotData
 				jsonProject.put("LID", rs.getString("LID")); //每個不同模擬器配合場域的odd
 				jsonProject.put("Player", rs.getString("Player"));
 				jsonProject.put("Date", rs.getString("Date"));
-				jsonProject.put("shotVideo_front", rs.getString("shotVideo_front")); //正面影片
-				jsonProject.put("shotVideo_side", rs.getString("shotVideo_side")); //側面影片
+				//jsonProject.put("shotVideo_front", rs.getString("shotVideo_front")); //正面影片
+				//jsonProject.put("shotVideo_side", rs.getString("shotVideo_side")); //側面影片
 				jsonProject.put("BallSpeed", rs.getDouble("BallSpeed")); //高爾夫球在撞擊後立即的速度，球速是由球桿速度和衝擊力決定的。*技術定義：球速係指高爾夫球重心與桿面分離後的速度\n單位: mph
 				jsonProject.put("LaunchAngle", rs.getDouble("LaunchAngle")); //隨著球速的降低，最佳發射角度必須增加，後旋也必須增加。單位: degree
 				jsonProject.put("LaunchDirection", rs.getDouble("LaunchDirection")); //發射方向是球相對於目標線開始的初始方向。正發射方向表示球從目標右側開始，負發射方向......單位: degree
@@ -102,7 +102,7 @@ public class ShotData
 				jsonProject.put("DistToPinFt", rs.getDouble("DistToPinFt")); //擊球後與目標的距離，單位: ft 呎
 				jsonProject.put("CarryDistFt", rs.getDouble("CarryDistFt")); //置球點到擊球落點的距離，單位: ft 呎
 				jsonProject.put("TotalDistFt", rs.getDouble("TotalDistFt")); //置球點到擊球後停止滾動的距離，單位: ft 呎
-				jsonProject.put("expert_note", rs.getString("expert_note"));
+				//jsonProject.put("expert_note", rs.getString("expert_note"));
 				//jsonProject.put("expert_trajectory", rs.getString("expert_trajectory"));
 				//jsonProject.put("expert_p_system", rs.getString("expert_p-system"));
 				//jsonProject.put("expert_suggestion", rs.getString("expert_suggestion"));
