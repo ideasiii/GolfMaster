@@ -97,6 +97,11 @@ public class LoginE6 {
 		WebElement checkbox = driverE6.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
 		
+		String regex = "[a-zA-Z0-9]+";
+		if(displayName.matches(regex)==false) {
+			return 1;
+		}
+		
 		if(checkDisplayName(displayName)>0) {
 			return 1;
 		}
