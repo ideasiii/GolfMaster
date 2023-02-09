@@ -7,6 +7,6 @@
 <title>GolfMaster Version</title>
 </head>
 <body>
-<h1>VOC Version : 20221021</h1>
+<h1>VOC Version : 20230209</h1>
 </body>
 </html>

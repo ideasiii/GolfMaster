@@ -65,19 +65,19 @@ public class ShotData
 		// 無日期就取最近的10筆
 		if (StringUtils.isEmpty(paramData.start_date) || StringUtils.isEmpty(paramData.end_date))
 		{
-			strSQL = String.format("SELECT * FROM golf_2022.ShotData WHERE Player = '%s' order by Date DESC LIMIT 10", paramData.player);
+			strSQL = String.format("SELECT * FROM shot_data WHERE Player = '%s' order by Date DESC LIMIT 10", paramData.player);
 		}
 		else
 		{
 			strSQL = String.format(
-					"SELECT * FROM golf_2022.ShotData WHERE Player = '%s' AND AND Date >= '%s 00:00:00' AND Date <= '%s 23:59:59' order by Date DESC",
+					"SELECT * FROM shot_data WHERE Player = '%s' AND AND Date >= '%s 00:00:00' AND Date <= '%s 23:59:59' order by Date DESC",
 					paramData.player, paramData.start_date, paramData.end_date);
 		}
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try
 		{
-			conn = DBUtil.getConnGolfController();
+			conn = DBUtil.getConnGolfMaster();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(strSQL);
 			while (rs.next())
