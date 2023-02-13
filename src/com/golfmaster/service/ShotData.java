@@ -1,9 +1,9 @@
 /*
  * 擊球數據API
  * 參數: player(必填),start_date,end_date (無日期則抓最近10筆)
- * http://localhost/GolfMaster/service/shot-data.jsp?player=louisju
- * http://175.41.245.90/GolfMaster/service/shot-data.jsp?player=louisju
- * http://localhost:8080/GolfMaster/service/shot-data.jsp?player=louisju
+ * http://localhost/GolfMaster/service/shot-data.jsp?player=Guest.1
+ * http://175.41.245.90/GolfMaster/service/shot-data.jsp?player=Guest.1
+ * http://localhost:8080/GolfMaster/service/shot-data.jsp?player=Guest.1
  */
 package com.golfmaster.service;
 
@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
+import com.golfmaster.moduel.AnalysisNetwork;
 import com.golfmaster.moduel.PSystem;
 
 public class ShotData
@@ -108,6 +109,11 @@ public class ShotData
 				//jsonProject.put("expert_suggestion", rs.getString("expert_suggestion"));
 				//jsonProject.put("expert_cause", rs.getString("expert_cause"));
 				strExpert = psystem.expertAnalysis((float)rs.getDouble("BallSpeed"), (float)rs.getDouble("ClubAnglePath"), (float)rs.getDouble("ClubAngleFace"), (float)rs.getDouble("TotalDistFt"), (float)rs.getDouble("CarryDistFt"), (float)rs.getDouble("LaunchAngle"), (float)rs.getDouble("SmashFactor"), (float)rs.getInt("BackSpin"), (float)rs.getInt("SideSpin"), (float)rs.getDouble("ClubHeadSpeed"), (float)rs.getDouble("LaunchDirection"), (float)rs.getDouble("DistToPinFt"));
+				
+				// 分析網路測試 ==============================
+				AnalysisNetwork analysisNetWork = new AnalysisNetwork();
+				analysisNetWork.expertAnalysis((float)rs.getDouble("BallSpeed"), (float)rs.getDouble("ClubAnglePath"), (float)rs.getDouble("ClubAngleFace"), (float)rs.getDouble("TotalDistFt"), (float)rs.getDouble("CarryDistFt"), (float)rs.getDouble("LaunchAngle"), (float)rs.getDouble("SmashFactor"), (float)rs.getInt("BackSpin"), (float)rs.getInt("SideSpin"), (float)rs.getDouble("ClubHeadSpeed"), (float)rs.getDouble("LaunchDirection"), (float)rs.getDouble("DistToPinFt"));
+				//===========================================
 				
 				JSONObject jsonExpert = new JSONObject(strExpert);
 				jsonProject.put("expert_suggestion", jsonExpert.getString("expert_suggestion"));
