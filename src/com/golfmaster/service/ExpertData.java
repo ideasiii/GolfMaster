@@ -57,11 +57,39 @@ public class ExpertData extends DeviceData{
 			String expertID = request.getParameter("expert");
 			if(expertID != null) {
 				expert = this.queryExpertData(Long.parseLong(expertID));
+				
+//				String imgFile = "";
+				boolean result = false;
+				String psystem = expert.getString("expert_p_system");
+				if(psystem != null && !psystem.isEmpty()) {
+					if(psystem.toUpperCase().indexOf("P") >= 0) {
+						String vf = "";
+						String p = psystem.substring(0, 2);
+						if("P1".equals(p) || "P2".equals(p) || "P3".equals(p) || "P4".equals(p)) {
+							vf = "P1_P4.mp4";
+						}
+						if("P5".equals(p) || "P6".equals(p) || "P7".equals(p) ) {
+							vf = "P5_P7.mp4";
+						}
+						if("P8".equals(p) || "P9".equals(p) || "P10".equals(p)) {
+							vf = "P8_P10.mp4";
+						}
+						
+						result = true;
+						expert.put("video", vf);
+					}else {
+						if(psystem.contains("擊球失敗")) {
+//							imgFile = "warning.png";
+							expert.put("img_name", "warning.png");
+						}
+					}
+				}
+				
+//				expert.put("img_name", imgFile);
+				expert.put("result", result);
 			}
 		}catch(Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
-			
-			
 		}
 		
 		Logs.log(Logs.RUN_LOG, "Response : " + (expert != null ? expert:null));

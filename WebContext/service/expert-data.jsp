@@ -13,6 +13,7 @@ String psystem = "";
 String trajectory = "";
 String cause = "";
 String suggestion = "";
+String img = "";
 
 if(result != null && result.getString("expert_p_system") != null){
 	psystem = result.getString("expert_p_system");
@@ -26,6 +27,11 @@ if(result != null && result.getString("expert_cause") != null){
 if(result != null && result.getString("expert_suggestion") != null){
 	suggestion = result.getString("expert_suggestion");
 }
+/*
+if(result != null && result.getString("img_name") != null){
+	img = result.getString("img_name");
+}
+*/
 %>
 
 <!DOCTYPE html>
@@ -69,7 +75,8 @@ if(result != null && result.getString("expert_suggestion") != null){
    .p2Box__content-left {
      width: 50%;
      display: flex;
-     justify-content: flex-end;
+     justify-content: center;
+/*     justify-content: flex-end;*/
    }
    .p2Box__content-right {
      width: 50%;
@@ -115,7 +122,22 @@ if(result != null && result.getString("expert_suggestion") != null){
 	    <img src="../page/img/logo.756e00c6.png" alt="logo" class="logoImage">
 	  </div>
 	  <div class="p2Box__content">
-	   <div class="p2Box__content-left"><img src="../page/img/problem2.091e3551.png" ></div>
+	   <div class="p2Box__content-left">
+	     <!--<img src="../page/img/problem2.091e3551.png" >-->
+	     <% 
+	       if(result.getBoolean("result")){
+	    	   String video = result.getString("video");
+	    	   out.print("<video style='width:80%' autoplay loop muted><source src='../page/video/" + video + "' type='video/mp4'></video>");
+	       }else{
+	    	   if(result != null && result.getString("img_name") != null){
+	    			img = result.getString("img_name");
+	    		}
+	    	   if(img != null && !img.isEmpty()){
+		    	   out.print("<img src='../page/img/" + img + "' style='width:50%' />");
+		       } 
+	       }
+	     %>
+	   </div>
 	   <div class="p2Box__content-right">
 	    <div class="p2Box__content-right-upper">
 	     <div class="expert_p_system"> <%="P-System:" + psystem%> </div>
