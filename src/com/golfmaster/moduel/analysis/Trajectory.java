@@ -41,7 +41,8 @@ public class Trajectory extends AnalysisRunner
 			}
 			else if (fPathFace < 0)
 			{
-				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
+//				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
+				wrgExpert.expert_trajectory = PULL_SLICE;
 			}
 			else
 			{
@@ -87,7 +88,8 @@ public class Trajectory extends AnalysisRunner
 			}
 			else if (fPathFace < 0)
 			{
-				wrgExpert.expert_trajectory = PUSH_SLICE_TRAJECTORY;
+//				wrgExpert.expert_trajectory = PUSH_SLICE_TRAJECTORY;
+				wrgExpert.expert_trajectory = PUSH_SLICE;
 			}
 			else
 			{

@@ -97,7 +97,7 @@ public class LoginE6 {
 		WebElement checkbox = driverE6.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
 		
-		String regex = "[a-zA-Z0-9]+";
+		String regex = "[a-zA-Z0-9\\s\\d]+";
 		if(displayName.matches(regex)==false) {
 			return 1;
 		}
@@ -161,7 +161,7 @@ public class LoginE6 {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
-		
+		int result = 0;
 		String strSQL;
 		JSONArray jarrProjects = new JSONArray();
 
@@ -185,16 +185,21 @@ public class LoginE6 {
 				jsonProject.put("average", rs.getString("average"));
 				jsonProject.put("score", rs.getString("score"));
 				jsonProject.put("dexterity", rs.getString("dexterity"));
+				jsonProject.put("same_nickname", rs.getString("nickname").equals(displayName));
+				
+				if(jsonProject.get("same_nickname")=="true")
+					result=1;
 				
 				jarrProjects.put(jsonProject);
 			}
+			
 			Logs.log(Logs.RUN_LOG, jarrProjects.toString());
 		} catch (Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 			e.printStackTrace();
 		}
 		DBUtil.close(rs, stmt, conn);
-		return jarrProjects.length();
+		return result;
 	}
 
 	private void printParam(HttpServletRequest req) {
