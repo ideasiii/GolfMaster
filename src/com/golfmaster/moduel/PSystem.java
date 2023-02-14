@@ -176,7 +176,7 @@ public class PSystem extends DeviceData
 			}
 			if (fPathFace < 0)
 			{
-				strTrajectory = PULL_SLICE_TRAJECTORY;
+				strTrajectory = PULL_SLICE;
 			}
 		}
 
@@ -193,7 +193,7 @@ public class PSystem extends DeviceData
 			}
 			if (fPathFace < 0)
 			{
-				strTrajectory = STRAIGHT_SLICE_TRAJECTORY;
+				strTrajectory = FADE;
 			}
 		}
 
@@ -210,7 +210,7 @@ public class PSystem extends DeviceData
 			}
 			if (fPathFace < 0)
 			{
-				strTrajectory = PUSH_SLICE_TRAJECTORY;
+				strTrajectory = PUSH_SLICE;
 			}
 		}
 
@@ -509,8 +509,8 @@ public class PSystem extends DeviceData
 		}
 		else
 		{
-			if (PULL_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory) || STRAIGHT_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory)
-					|| PUSH_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory))
+			if (PULL_SLICE.equals(wrgExpert.expert_trajectory) || STRAIGHT_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory)
+					|| PUSH_SLICE.equals(wrgExpert.expert_trajectory))
 			{
 				bValid = getSliceTrajectory(wrgData, wrgExpert);
 			}
