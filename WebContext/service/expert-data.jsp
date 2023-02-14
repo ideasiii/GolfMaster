@@ -54,7 +54,7 @@ if(result != null && result.getString("img_name") != null){
    }
    .p2Box {
      width: 98%;
-     min-height: 930px;
+     min-height: 710px;
      display: flex;
      flex-direction: column;
      background-color: #F7F7F7;
@@ -93,8 +93,8 @@ if(result != null && result.getString("img_name") != null){
    }
    .p2Box__content-right-lower {
      width: 100%;
-     height: 50%;
-     padding-top: 8%;
+     height: 70%;
+     padding-top: 0%;
    }
    .expert_p_system {
      font-style: normal;
@@ -115,7 +115,7 @@ if(result != null && result.getString("img_name") != null){
    }
   </style>
  </head>
- <body class="p2Box" style="background-image:url('../page/img/background.png');background-size:100%;background-position:center center">
+ <body class="p2Box" style="background-image:url('../page/img/background.png');background-size:cover;background-position:center center;background-repeat: no-repeat">
  
 	 
 	  <div>
@@ -127,7 +127,7 @@ if(result != null && result.getString("img_name") != null){
 	     <% 
 	       if(result.getBoolean("result")){
 	    	   String video = result.getString("video");
-	    	   out.print("<video style='width:80%' autoplay loop muted><source src='../page/video/" + video + "' type='video/mp4'></video>");
+	    	   out.print("<video style='width:500px' autoplay loop muted><source src='../page/video/" + video + "' type='video/mp4'></video>");
 	       }else{
 	    	   if(result != null && result.getString("img_name") != null){
 	    			img = result.getString("img_name");
@@ -141,11 +141,16 @@ if(result != null && result.getString("img_name") != null){
 	   <div class="p2Box__content-right">
 	    <div class="p2Box__content-right-upper">
 	     <div class="expert_p_system"> <%="P-System:" + psystem%> </div>
+	     
 	     <div class="expert_cause"> <%="彈道:" + trajectory%> </div>
+	     <%--<div class="expert_cause"> <%="原因:" + cause%> </div>
+	     <div class="expert_cause"> <%="建議:" + suggestion%> </div>--%>
+	    </div>
+	    <div class="p2Box__content-right-lower">
+	     
 	     <div class="expert_cause"> <%="原因:" + cause%> </div>
 	     <div class="expert_cause"> <%="建議:" + suggestion%> </div>
 	    </div>
-	    <div class="p2Box__content-right-lower"></div>
 	   </div>
 	  </div>
 	  
