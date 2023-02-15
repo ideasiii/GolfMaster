@@ -111,8 +111,8 @@ public class ShotData
 				strExpert = psystem.expertAnalysis((float)rs.getDouble("BallSpeed"), (float)rs.getDouble("ClubAnglePath"), (float)rs.getDouble("ClubAngleFace"), (float)rs.getDouble("TotalDistFt"), (float)rs.getDouble("CarryDistFt"), (float)rs.getDouble("LaunchAngle"), (float)rs.getDouble("SmashFactor"), (float)rs.getInt("BackSpin"), (float)rs.getInt("SideSpin"), (float)rs.getDouble("ClubHeadSpeed"), (float)rs.getDouble("LaunchDirection"), (float)rs.getDouble("DistToPinFt"));
 				
 				// 分析網路測試 ==============================
-				AnalysisNetwork analysisNetWork = new AnalysisNetwork();
-				analysisNetWork.expertAnalysis((float)rs.getDouble("BallSpeed"), (float)rs.getDouble("ClubAnglePath"), (float)rs.getDouble("ClubAngleFace"), (float)rs.getDouble("TotalDistFt"), (float)rs.getDouble("CarryDistFt"), (float)rs.getDouble("LaunchAngle"), (float)rs.getDouble("SmashFactor"), (float)rs.getInt("BackSpin"), (float)rs.getInt("SideSpin"), (float)rs.getDouble("ClubHeadSpeed"), (float)rs.getDouble("LaunchDirection"), (float)rs.getDouble("DistToPinFt"));
+				//AnalysisNetwork analysisNetWork = new AnalysisNetwork();
+				//analysisNetWork.expertAnalysis((float)rs.getDouble("BallSpeed"), (float)rs.getDouble("ClubAnglePath"), (float)rs.getDouble("ClubAngleFace"), (float)rs.getDouble("TotalDistFt"), (float)rs.getDouble("CarryDistFt"), (float)rs.getDouble("LaunchAngle"), (float)rs.getDouble("SmashFactor"), (float)rs.getInt("BackSpin"), (float)rs.getInt("SideSpin"), (float)rs.getDouble("ClubHeadSpeed"), (float)rs.getDouble("LaunchDirection"), (float)rs.getDouble("DistToPinFt"));
 				//===========================================
 				
 				JSONObject jsonExpert = new JSONObject(strExpert);
