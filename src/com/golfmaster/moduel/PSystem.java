@@ -238,7 +238,8 @@ public class PSystem extends DeviceData
 				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
 				wrgExpert.expert_cause = PULL_SLICE_CAUSE;
 				wrgExpert.expert_suggestion = PULL_SLICE_SUGGEST;
-				wrgExpert.expert_p_system = P2_3;
+//				wrgExpert.expert_p_system = P2_3;
+				wrgExpert.expert_p_system = P2;
 				bIsSlice = true;
 			}
 		}
@@ -294,13 +295,15 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = DRAW_TRAJECTORY;
 		wrgExpert.expert_cause = DRAW_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
+//		wrgExpert.expert_p_system = P2_3;
+		wrgExpert.expert_p_system = P7;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
 			wrgExpert.expert_suggestion = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+			wrgExpert.expert_p_system = P5_6;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + DRAW_SUGGEST;
@@ -334,7 +337,8 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = FADE_TRAJECTORY;
 		wrgExpert.expert_cause = FADE_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
+//		wrgExpert.expert_p_system = P2_3;
+		wrgExpert.expert_p_system = P7;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -374,7 +378,8 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = PUSH_TRAJECTORY;
 		wrgExpert.expert_cause = PUSH_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
+//		wrgExpert.expert_p_system = P2_3;
+		wrgExpert.expert_p_system = P2;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
 		bValid = true;
@@ -393,7 +398,8 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = PULL_TRAJECTORY;
 		wrgExpert.expert_cause = PULL_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
+//		wrgExpert.expert_p_system = P2_3;
+		wrgExpert.expert_p_system = P3;
 
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
@@ -411,7 +417,8 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_trajectory = PULL_HOOK_TRAJECTORY;
 		wrgExpert.expert_cause = PULL_HOOK_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
+//		wrgExpert.expert_p_system = P2_3;
+		wrgExpert.expert_p_system = P7;
 
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))

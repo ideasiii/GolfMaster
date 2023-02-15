@@ -16,7 +16,7 @@ public abstract class DeviceData
 	// public static final String P4 = "P4 Top of Swing 上桿頂點";
 	public static final String	P5	= "P5 Downswing 下桿";
 	public static final String	P6	= "P6 Downswing 下桿";
-	public static final String	P7	= "P7 Impact 擊球)";
+	public static final String	P7	= "P7 Impact 擊球";
 	public static final String	P8	= "P8 Release 送桿";
 	public static final String	P9	= "P9 Release 送桿";
 	public static final String	P10	= "P10 Finish 收桿";
