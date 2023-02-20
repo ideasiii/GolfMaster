@@ -14,7 +14,7 @@ JSONObject result = expertData.processRequest(request);
 
 Long shot_data_id = result.getLong("shotdata_id");
 
-float[] shotResult = shotData.processPlayerReq(shot_data_id);
+float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 
 String psystem = "";
 String trajectory = "";
@@ -200,21 +200,33 @@ if(result != null && result.getString("img_name") != null){
 
 </body>
 <script>
-	var ballSpeed = [];
-<%for (int i = 0; i < shotResult.length; i++) {%>
-	ballSpeed.push(
-<%=shotResult[i]%>
+	var ballspeed = [];
+	var clubheadspeed = [];
+<%for (int i = 0; i < shotResult[0].length; i++) {%>
+	ballspeed.push(
+<%=shotResult[0][i]%>
+	);
+	clubheadspeed.push(
+<%=shotResult[1][i]%>
 	);
 <%}%>
 	var lineChartData = {
 		labels : [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" ], //顯示區間名稱
 		datasets : [ {
-			label : 'ballspeed', // tootip 出現的名稱
+			label : '球速', // tootip 出現的名稱
 			lineTension : 0, // 曲線的彎度，設0 表示直線
 			backgroundColor : "#ea464d",
 			borderColor : "#ea464d",
 			borderWidth : 5,
-			data : ballSpeed,
+			data : ballspeed,
+			fill : false, // 是否填滿色彩
+		}, {
+			label : '桿頭速度', // tootip 出現的名稱
+			lineTension : 0, // 曲線的彎度，設0 表示直線
+			backgroundColor : "#29b288",
+			borderColor : "#29b288",
+			borderWidth : 5,
+			data : clubheadspeed,
 			fill : false, // 是否填滿色彩
 		}, ]
 	};
@@ -226,17 +238,26 @@ if(result != null && result.getString("img_name") != null){
 
 				responsive : true,
 				legend : { //是否要顯示圖示
-					display : false,
+					display : true,
+					align: 'center'
 				},
 				tooltips : { //是否要顯示 tooltip
 					enabled : true
 				},
 				scales : { //是否要顯示 x、y 軸
 					xAxes : [ {
-						display : true
+						scaleLabel : {
+							display : true,
+							labelString : "次數",
+							fontSize : 16
+						}
 					} ],
 					yAxes : [ {
-						display : true
+						scaleLabel : {
+							display : true,
+							labelString : "速度(mph)",
+							fontSize : 16
+						}
 					} ]
 				},
 			}

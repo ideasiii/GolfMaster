@@ -50,12 +50,12 @@ public class ShotData {
 		return strResponse;
 	}
 
-	public float[] processPlayerReq(Long shot_data_id) {
+	public float[][] processPlayerReq(Long shot_data_id) {
 		String player = queryPlayer(shot_data_id);
-		float[] playerBallSpeed = null;
+		float[][] playerBallSpeed = null;
 		if (player != null || !player.isEmpty()) {
 			playerBallSpeed = queryBallSpeed(player);
-		}
+		} 
 
 		return playerBallSpeed;
 	}
@@ -88,15 +88,16 @@ public class ShotData {
 		return player;
 	}
 
-	private float[] queryBallSpeed(String player) {
+	private float[][] queryBallSpeed(String player) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
-		float[] ballSpeed = new float[10];
+		//BallSpeed and ClubHeadSpeed
+		float[][] BSAndCHS = new float[2][10];
 		// 取最近的10筆
 		strSQL = String.format(
-				"SELECT BallSpeed FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10", player);
+				"SELECT BallSpeed,ClubHeadSpeed FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10", player);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try {
@@ -105,8 +106,9 @@ public class ShotData {
 			rs = stmt.executeQuery(strSQL);
 			int i = 0;
 			while (rs.next()) {
-				ballSpeed[i] = rs.getFloat("BallSpeed");
-				System.out.println(ballSpeed[i]);
+				BSAndCHS[0][i] = rs.getFloat("BallSpeed");
+				BSAndCHS[1][i] = rs.getFloat("ClubHeadSpeed");
+				System.out.println("BallSpeed:"+BSAndCHS[0][i]+" ClubHeadSpeed:"+BSAndCHS[1][i]);
 				i++;
 			}
 		} catch (Exception e) {
@@ -115,7 +117,7 @@ public class ShotData {
 			e.printStackTrace();
 		}
 		DBUtil.close(rs, stmt, conn);
-		return ballSpeed;
+		return BSAndCHS;
 	}
 
 	private int queryShotData(ParamData paramData, JSONObject jsonResponse) {
