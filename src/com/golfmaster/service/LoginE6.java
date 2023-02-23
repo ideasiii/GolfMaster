@@ -128,7 +128,7 @@ public class LoginE6 {
 		}
 		if (showWrongMessage.size() > 0) {
 			System.out.println("有錯誤");
-			driverE6.quit();
+			jWebDriver.closeDriver();
 			return 1;
 		} else {
 
@@ -145,15 +145,15 @@ public class LoginE6 {
 			if(password.length()<=8) {
 				System.out.println("密碼過短");
 				Logs.log(Logs.RUN_LOG, "passwordTooShort: " + "false");
-				driverE6.quit();
+				jWebDriver.closeDriver();
 				return 1;
 			}
 			System.out.println("已經被註冊");
 			Logs.log(Logs.RUN_LOG, "emailExists: " + "true");
-			driverE6.quit();
+			jWebDriver.closeDriver();
 			return 2;
 		}
-		driverE6.quit();
+		jWebDriver.closeDriver();
 		return 0;
 	}
 	
@@ -213,6 +213,17 @@ public class LoginE6 {
 		} catch (UnknownHostException e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.getMessage());
 			e.printStackTrace();
+		}
+		return jWebDriver;
+	}
+	
+	public JWebDriver closeChromeDriver() {
+		try {
+			jWebDriver.closeDriver();
+			Logs.log(Logs.RUN_LOG, "Web Driver is quit");
+		} catch(Exception e) {
+			e.printStackTrace();
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 		}
 		return jWebDriver;
 	}

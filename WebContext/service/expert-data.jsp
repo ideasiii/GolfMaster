@@ -239,7 +239,7 @@ if(result != null && result.getString("img_name") != null){
 				responsive : true,
 				legend : { //是否要顯示圖示
 					display : true,
-					align: 'center'
+					align : 'center'
 				},
 				tooltips : { //是否要顯示 tooltip
 					enabled : true

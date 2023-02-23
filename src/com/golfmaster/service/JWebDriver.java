@@ -50,6 +50,20 @@ public class JWebDriver {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+		}
+	}
+	
+	public void closeDriver() {
+		try {
+			wdriver.close();
+			wdriver.quit();
+			wdriver.quit();
+			wdriver = null;
+			Logs.log(Logs.RUN_LOG, "Web Driver is quit");
+		} catch(Exception e) {
+			e.printStackTrace();
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 		}
 	}
 
