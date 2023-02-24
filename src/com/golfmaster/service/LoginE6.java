@@ -48,61 +48,63 @@ public class LoginE6 {
 		String startUrl = driverE6.getCurrentUrl();
 
 		// 信箱欄
-		WebElement emailBar = driverE6.findElement(By.id("input-27"));
+		WebElement emailBar = driverE6.findElement(By.cssSelector("#input-28"));
 		emailBar.sendKeys(email);
 		Logs.log(Logs.RUN_LOG, "E6mail: " + email);
 
 		// 確認信箱欄
-		WebElement confirmEmailBar = driverE6.findElement(By.id("input-30"));
+		WebElement confirmEmailBar = driverE6.findElement(By.cssSelector("#input-31"));
 		confirmEmailBar.sendKeys(email);
 		Logs.log(Logs.RUN_LOG, "confirmEmail: " + email);
 
 		// 密碼欄
-		WebElement passwordBar = driverE6.findElement(By.id("input-33"));
+		WebElement passwordBar = driverE6.findElement(By.cssSelector("#input-34"));
 		passwordBar.sendKeys(password);
 		Logs.log(Logs.RUN_LOG, "E6password: " + password);
 
 		// 確認密碼欄
-		WebElement confirmPasswordBar = driverE6.findElement(By.id("input-37"));
+		WebElement confirmPasswordBar = driverE6.findElement(By.cssSelector("#input-38"));
 		confirmPasswordBar.sendKeys(password);
 		Logs.log(Logs.RUN_LOG, "confirmPassword: " + password);
 
 		// 暱稱欄
-		WebElement displayNameBar = driverE6.findElement(By.id("input-41"));
+		WebElement displayNameBar = driverE6.findElement(By.cssSelector("#input-42"));
 		displayNameBar.sendKeys(displayName);
 		Logs.log(Logs.RUN_LOG, "E6displayName: " + displayName);
 
 		// 列表國家
-		WebElement countryScroll = driverE6.findElement(By.id("input-44"));
+		WebElement countryScroll = driverE6.findElement(By.cssSelector("#input-45"));
 		countryScroll.sendKeys("Taiwan");
 
 		// 列表國家台灣選項
-		WebElement countrySR = driverE6.findElement(By.id("list-44"));
+		WebElement countrySR = driverE6.findElement(By.cssSelector("#list-45"));
 		countrySR.click();
 		// 列表慣用手
-		WebElement dexterityScroll = driverE6.findElement(By.id("input-49"));
+		WebElement dexterityScroll = driverE6.findElement(By.cssSelector("#input-50"));
 		dexterityScroll.click();
 		if (dexterity == 1 && dexterity > 0) {
 			// 列表右手選項
-			WebElement dexterityRight = driverE6.findElement(By.id("list-item-151-0"));
+			WebElement dexterityRight = driverE6.findElement(By.cssSelector("#list-item-152-0"));
 			dexterityRight.click();
 			Logs.log(Logs.RUN_LOG, "Dexterity: Right");
 		} else if (dexterity == 2 && dexterity > 0) {
 			// 列表左手選項
-			WebElement dexterityLeft = driverE6.findElement(By.id("list-item-151-1"));
+			WebElement dexterityLeft = driverE6.findElement(By.cssSelector("#list-item-152-1"));
 			dexterityLeft.click();
 			Logs.log(Logs.RUN_LOG, "Dexterity: Left");
 		}
 		// 同意合約框
 		WebElement checkbox = driverE6.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
-		
+
 		String regex = "[a-zA-Z0-9\\s\\d]+";
-		if(displayName.matches(regex)==false) {
+		if (displayName.matches(regex) == false) {
+			closeChrome();
 			return 1;
 		}
-		
-		if(checkDisplayName(displayName)>0) {
+
+		if (checkDisplayName(displayName) > 0) {
+			closeChrome();
 			return 1;
 		}
 
@@ -128,7 +130,7 @@ public class LoginE6 {
 		}
 		if (showWrongMessage.size() > 0) {
 			System.out.println("有錯誤");
-			jWebDriver.closeDriver();
+			closeChrome();
 			return 1;
 		} else {
 
@@ -142,21 +144,21 @@ public class LoginE6 {
 		Thread.sleep(5000);
 		// 顯示信箱已被註冊
 		if (driverE6.getCurrentUrl().compareTo(startUrl) == 0) {
-			if(password.length()<=8) {
+			if (password.length() <= 8) {
 				System.out.println("密碼過短");
 				Logs.log(Logs.RUN_LOG, "passwordTooShort: " + "false");
-				jWebDriver.closeDriver();
+				closeChrome();
 				return 1;
 			}
 			System.out.println("已經被註冊");
 			Logs.log(Logs.RUN_LOG, "emailExists: " + "true");
-			jWebDriver.closeDriver();
+			closeChrome();
 			return 2;
 		}
-		jWebDriver.closeDriver();
+		closeChrome();
 		return 0;
 	}
-	
+
 	public int checkDisplayName(String displayName) {
 		Connection conn = null;
 		Statement stmt = null;
@@ -165,10 +167,9 @@ public class LoginE6 {
 		String strSQL;
 		JSONArray jarrProjects = new JSONArray();
 
-		strSQL = String.format("select * from golf_master.member where nickname = '%s'",
-				displayName);
+		strSQL = String.format("select * from golf_master.member where nickname = '%s'", displayName);
 		Logs.log(Logs.RUN_LOG, strSQL);
-		
+
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			stmt = conn.createStatement();
@@ -186,13 +187,13 @@ public class LoginE6 {
 				jsonProject.put("score", rs.getString("score"));
 				jsonProject.put("dexterity", rs.getString("dexterity"));
 				jsonProject.put("same_nickname", rs.getString("nickname").equals(displayName));
-				
-				if(jsonProject.get("same_nickname")=="true")
-					result=1;
-				
+
+				if (jsonProject.get("same_nickname").toString() == "true")
+					result = 1;
+
 				jarrProjects.put(jsonProject);
 			}
-			
+
 			Logs.log(Logs.RUN_LOG, jarrProjects.toString());
 		} catch (Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
@@ -217,13 +218,11 @@ public class LoginE6 {
 		return jWebDriver;
 	}
 	
-	public JWebDriver closeChromeDriver() {
+	public JWebDriver closeChrome() {
 		try {
 			jWebDriver.closeDriver();
-			Logs.log(Logs.RUN_LOG, "Web Driver is quit");
-		} catch(Exception e) {
+		}catch(Exception e) {
 			e.printStackTrace();
-			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 		}
 		return jWebDriver;
 	}

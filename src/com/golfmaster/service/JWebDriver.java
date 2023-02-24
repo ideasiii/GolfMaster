@@ -21,7 +21,7 @@ public class JWebDriver {
 		System.setProperty("webdriver.chrome.silentOutput", "true");
 		System.setProperty("webdriver.chrome.driver", "/opt/web_driver/chromedriver");
 //		System.setProperty("webdriver.chrome.driver",
-//				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
+//				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\test\\chromedriver.exe");
 
 
 		if (1 == Config.HEADLESS) {
@@ -56,11 +56,13 @@ public class JWebDriver {
 	
 	public void closeDriver() {
 		try {
-			wdriver.close();
-			wdriver.quit();
-			wdriver.quit();
-			wdriver = null;
-			Logs.log(Logs.RUN_LOG, "Web Driver is quit");
+			if(null != wdriver) {				
+				wdriver.close();
+				wdriver.quit();
+				wdriver.quit();
+				wdriver = null;
+				Logs.log(Logs.RUN_LOG, "Web Driver is quit");
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
