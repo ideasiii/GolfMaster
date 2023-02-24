@@ -1,5 +1,7 @@
 package com.golfmaster.service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 
 import org.openqa.selenium.WebDriver;
@@ -30,7 +32,7 @@ public class JWebDriver {
 			chromeOptions.setHeadless(false);
 		}
 		chromeOptions.addArguments("--incognito");
-		chromeOptions.addArguments("--disable-gpu", "--blink-settings=imagesEnabled=false");
+//		chromeOptions.addArguments("--disable-gpu", "--blink-settings=imagesEnabled=false");
 		chromeOptions.addArguments("--disable-infobars");
 		chromeOptions.addArguments("--no-sandbox");
 		chromeOptions.addArguments("--disable-dev-shm-usage");
@@ -68,6 +70,36 @@ public class JWebDriver {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 		}
 	}
+	
+	public static void ClearChrome()
+    {
+        String cmd = "killall chromedriver";
+        String cmd2 = "killall chrome";
+        Runtime run = Runtime.getRuntime();
+        Process pr;
+        try
+        {
+            pr = run.exec(cmd);
+            pr.waitFor();
+            BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+            String line = "";
+            while ((line=buf.readLine())!=null) {
+                System.out.println(line);
+            }
+
+            pr = run.exec(cmd2);
+            pr.waitFor();
+            buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+            line = "";
+            while ((line=buf.readLine())!=null) {
+                System.out.println(line);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 
 	public WebDriver getWdriver() {
 		return wdriver;

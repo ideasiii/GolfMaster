@@ -30,6 +30,14 @@ public class LoginE6 {
 
 	public LoginE6() {
 		jWebDriver = new JWebDriver();
+		System.out.println("creat jWebDriver id:"+jWebDriver.getClass());
+	}
+	@Override
+	protected void finalize() throws Throwable {
+		// TODO Auto-generated method stub
+		super.finalize();
+		jWebDriver.closeDriver();
+//		JWebDriver.ClearChrome();
 	}
 
 	public int E6Web(String email, String password, String displayName, int dexterity, HttpServletRequest req)
@@ -44,62 +52,62 @@ public class LoginE6 {
 //				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\chromedriver.exe");
 
 		jWebDriver.LoadUrl("https://portal.e6golf.com/signup");
-		WebDriver driverE6 = jWebDriver.getWdriver();
-		String startUrl = driverE6.getCurrentUrl();
+		String startUrl = jWebDriver.getWdriver().getCurrentUrl();
 
 		// 信箱欄
-		WebElement emailBar = driverE6.findElement(By.cssSelector("#input-28"));
+		WebElement emailBar = jWebDriver.getWdriver().findElement(By.cssSelector("#input-28"));
 		emailBar.sendKeys(email);
 		Logs.log(Logs.RUN_LOG, "E6mail: " + email);
 
 		// 確認信箱欄
-		WebElement confirmEmailBar = driverE6.findElement(By.cssSelector("#input-31"));
+		WebElement confirmEmailBar = jWebDriver.getWdriver().findElement(By.cssSelector("#input-31"));
 		confirmEmailBar.sendKeys(email);
 		Logs.log(Logs.RUN_LOG, "confirmEmail: " + email);
 
 		// 密碼欄
-		WebElement passwordBar = driverE6.findElement(By.cssSelector("#input-34"));
+		WebElement passwordBar = jWebDriver.getWdriver().findElement(By.cssSelector("#input-34"));
 		passwordBar.sendKeys(password);
 		Logs.log(Logs.RUN_LOG, "E6password: " + password);
 
 		// 確認密碼欄
-		WebElement confirmPasswordBar = driverE6.findElement(By.cssSelector("#input-38"));
+		WebElement confirmPasswordBar = jWebDriver.getWdriver().findElement(By.cssSelector("#input-38"));
 		confirmPasswordBar.sendKeys(password);
 		Logs.log(Logs.RUN_LOG, "confirmPassword: " + password);
 
 		// 暱稱欄
-		WebElement displayNameBar = driverE6.findElement(By.cssSelector("#input-42"));
+		WebElement displayNameBar = jWebDriver.getWdriver().findElement(By.cssSelector("#input-42"));
 		displayNameBar.sendKeys(displayName);
 		Logs.log(Logs.RUN_LOG, "E6displayName: " + displayName);
 
 		// 列表國家
-		WebElement countryScroll = driverE6.findElement(By.cssSelector("#input-45"));
+		WebElement countryScroll = jWebDriver.getWdriver().findElement(By.cssSelector("#input-45"));
 		countryScroll.sendKeys("Taiwan");
 
 		// 列表國家台灣選項
-		WebElement countrySR = driverE6.findElement(By.cssSelector("#list-45"));
+		WebElement countrySR = jWebDriver.getWdriver().findElement(By.cssSelector("#list-45"));
 		countrySR.click();
 		// 列表慣用手
-		WebElement dexterityScroll = driverE6.findElement(By.cssSelector("#input-50"));
+		WebElement dexterityScroll = jWebDriver.getWdriver().findElement(By.cssSelector("#input-50"));
 		dexterityScroll.click();
 		if (dexterity == 1 && dexterity > 0) {
 			// 列表右手選項
-			WebElement dexterityRight = driverE6.findElement(By.cssSelector("#list-item-152-0"));
+			WebElement dexterityRight = jWebDriver.getWdriver().findElement(By.cssSelector("#list-item-152-0"));
 			dexterityRight.click();
 			Logs.log(Logs.RUN_LOG, "Dexterity: Right");
 		} else if (dexterity == 2 && dexterity > 0) {
 			// 列表左手選項
-			WebElement dexterityLeft = driverE6.findElement(By.cssSelector("#list-item-152-1"));
+			WebElement dexterityLeft = jWebDriver.getWdriver().findElement(By.cssSelector("#list-item-152-1"));
 			dexterityLeft.click();
 			Logs.log(Logs.RUN_LOG, "Dexterity: Left");
 		}
 		// 同意合約框
-		WebElement checkbox = driverE6.findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
+		WebElement checkbox = jWebDriver.getWdriver().findElement(By.cssSelector("div [class='v-input--selection-controls__ripple']"));
 		checkbox.click();
 
 		String regex = "[a-zA-Z0-9\\s\\d]+";
 		if (displayName.matches(regex) == false) {
 			closeChrome();
+			
 			return 1;
 		}
 
@@ -108,7 +116,7 @@ public class LoginE6 {
 			return 1;
 		}
 
-		List<WebElement> wrongMessage = driverE6.findElements(By.cssSelector("div [class='v-messages__wrapper']"));
+		List<WebElement> wrongMessage = jWebDriver.getWdriver().findElements(By.cssSelector("div [class='v-messages__wrapper']"));
 		String noWord = "";
 
 		ArrayList<Object> showWrongMessage = new ArrayList<>();
@@ -135,7 +143,7 @@ public class LoginE6 {
 		} else {
 
 			// 註冊按鈕
-			WebElement signupBtn = driverE6.findElement(By.cssSelector(
+			WebElement signupBtn = jWebDriver.getWdriver().findElement(By.cssSelector(
 					"#app > div > div.signup > div > div > div > div.layout.wrap > div > form > button > span"));
 			signupBtn.click();
 
@@ -143,7 +151,7 @@ public class LoginE6 {
 		// 等待註冊結果
 		Thread.sleep(5000);
 		// 顯示信箱已被註冊
-		if (driverE6.getCurrentUrl().compareTo(startUrl) == 0) {
+		if (jWebDriver.getWdriver().getCurrentUrl().compareTo(startUrl) == 0) {
 			if (password.length() <= 8) {
 				System.out.println("密碼過短");
 				Logs.log(Logs.RUN_LOG, "passwordTooShort: " + "false");
@@ -209,8 +217,10 @@ public class LoginE6 {
 	}
 
 	public JWebDriver CreateWebDriver() {
+		jWebDriver.closeDriver();
 		try {
 			jWebDriver.CreateWebDriver();
+			System.out.println("creat jWebDriver id:"+jWebDriver.getClass());
 		} catch (UnknownHostException e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.getMessage());
 			e.printStackTrace();
@@ -219,6 +229,7 @@ public class LoginE6 {
 	}
 	
 	public JWebDriver closeChrome() {
+		System.out.println("close jWebDriver id:"+jWebDriver.getClass());
 		try {
 			jWebDriver.closeDriver();
 		}catch(Exception e) {
@@ -226,5 +237,6 @@ public class LoginE6 {
 		}
 		return jWebDriver;
 	}
+
 
 }
