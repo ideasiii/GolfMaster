@@ -63,7 +63,8 @@ if(result != null && result.getString("img_name") != null){
 
 .p2Box {
 	width: 98%;
-	min-height: 710px;
+	/*min-height: 710px;*/
+	max-height: 850px;
 	display: flex;
 	flex-direction: column;
 	background-color: #F7F7F7;
@@ -80,15 +81,26 @@ if(result != null && result.getString("img_name") != null){
 .p2Box__content {
 	width: 100%;
 	display: flex;
-	margin: 170px 0%;
+	/*margin: 170px 0%;*/
+	margin: 110px 0%;
 	flex-direction: row;
 }
 
-.p2Box__content-left-lower {
-	width: 500px;
-	height: 250px;
+.p2Box__content-left-upper {
+	width: 40%;
+	display: flex;
+	margin-left: 76px;
 	position: absolute;
-	bottom: 0px;
+	button: 0px;
+	/*     justify-content: flex-end;*/
+}
+
+.p2Box__content-left-lower {
+	width: 40%;
+	display: flex;
+	margin-left: 76px;
+	position: absolute;
+	top: 500px;
 	/*     justify-content: flex-end;*/
 }
 
@@ -104,11 +116,12 @@ if(result != null && result.getString("img_name") != null){
 	display: flex;
 	flex-direction: column;
 	margin-left: 0%;
+	
 }
 
 .p2Box__content-right-upper {
 	width: 100%;
-	height: 70%;
+	height: 50%;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
@@ -140,8 +153,8 @@ if(result != null && result.getString("img_name") != null){
 }
 
 .canvas {
-	width: 500;
-	height: 250
+	width: 500px;
+	height: 250px;
 }
 </style>
 
@@ -155,31 +168,37 @@ if(result != null && result.getString("img_name") != null){
 	</div>
 	<div class="p2Box__content">
 		<div class="p2Box__content-left">
-			<!--<img src="../page/img/problem2.091e3551.png" >-->
+			<div class="p2Box__content-left-upper">
+				<!--<img src="../page/img/problem2.091e3551.png" >-->
+				<%
+				if (result.getBoolean("result")) {
+					String video = result.getString("video");
+					out.print("<video style='width:500px;height:400px' autoplay loop muted><source src='../page/video/" + video
+					+ "' type='video/mp4'></video>");
+				} else {
+					if (result != null && result.getString("img_name") != null) {
+						img = result.getString("img_name");
+					}
+					if (img != null && !img.isEmpty()) {
+						out.print("<img src='../page/img/" + img + "' style='width:50%' />");
+					}
+				}
+				%>
+			</div>
+			<div class="p2Box__content-left-lower">
 			<%
-			if (result.getBoolean("result")) {
-				String video = result.getString("video");
-				out.print("<video style='width:500px' autoplay loop muted><source src='../page/video/" + video
-				+ "' type='video/mp4'></video>");
-			} else {
-				if (result != null && result.getString("img_name") != null) {
-					img = result.getString("img_name");
-				}
-				if (img != null && !img.isEmpty()) {
-					out.print("<img src='../page/img/" + img + "' style='width:50%' />");
-				}
+			if(result.getBoolean("result")){
+				out.print("<img src='../page/gif/" + trajectory + "' style='width: 500px; height: 336px' />");
+			}else {
+				out.print("");
 			}
 			%>
-			<div class="p2Box__content-left-lower">
-				<canvas id="canvas"></canvas>
+				<img src='../page/gif/1.gif' style='width: 500px; height: 336px' />
 			</div>
 		</div>
 		<div class="p2Box__content-right">
 			<div class="p2Box__content-right-upper">
-				<div class="expert_p_system">
-					<%="P-System:" + psystem%>
-				</div>
-
+				<canvas id="canvas" style='height: 240px'></canvas>
 				<div class="expert_cause">
 					<%="彈道:" + trajectory%>
 				</div>

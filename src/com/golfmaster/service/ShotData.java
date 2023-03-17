@@ -55,7 +55,7 @@ public class ShotData {
 		float[][] playerBallSpeed = null;
 		if (player != null || !player.isEmpty()) {
 			playerBallSpeed = queryBallSpeed(player);
-		} 
+		}
 
 		return playerBallSpeed;
 	}
@@ -93,11 +93,12 @@ public class ShotData {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
-		//BallSpeed and ClubHeadSpeed
+		// BallSpeed and ClubHeadSpeed
 		float[][] BSAndCHS = new float[2][10];
 		// 取最近的10筆
 		strSQL = String.format(
-				"SELECT BallSpeed,ClubHeadSpeed FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10", player);
+				"SELECT BallSpeed,ClubHeadSpeed FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10",
+				player);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try {
@@ -108,7 +109,7 @@ public class ShotData {
 			while (rs.next()) {
 				BSAndCHS[0][i] = rs.getFloat("BallSpeed");
 				BSAndCHS[1][i] = rs.getFloat("ClubHeadSpeed");
-				System.out.println("BallSpeed:"+BSAndCHS[0][i]+" ClubHeadSpeed:"+BSAndCHS[1][i]);
+				System.out.println("BallSpeed:" + BSAndCHS[0][i] + " ClubHeadSpeed:" + BSAndCHS[1][i]);
 				i++;
 			}
 		} catch (Exception e) {
@@ -118,6 +119,35 @@ public class ShotData {
 		}
 		DBUtil.close(rs, stmt, conn);
 		return BSAndCHS;
+	}
+
+	// 球員平均擊球距離
+	public float playerDistanceAVG(String player) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		float avgNum = 0;
+		strSQL = String.format(
+				"SELECT ROUND(AVG(CarryDistFt),1) AS distAVG FROM golf_master.shot_data WHERE Player = '%s';", player);
+		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while (rs.next()) {
+				avgNum = rs.getFloat("distAVG");
+
+			}
+			System.out.println("distances average:" + avgNum);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		}
+		DBUtil.close(rs, stmt, conn);
+		return avgNum;
 	}
 
 	private int queryShotData(ParamData paramData, JSONObject jsonResponse) {

@@ -235,7 +235,8 @@ public class PSystem extends DeviceData
 			}
 			if (fPathFace < 0)
 			{
-				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
+//				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
+				wrgExpert.expert_trajectory = PULL_SLICE;
 				wrgExpert.expert_cause = PULL_SLICE_CAUSE;
 				wrgExpert.expert_suggestion = PULL_SLICE_SUGGEST;
 //				wrgExpert.expert_p_system = P2_3;
@@ -257,9 +258,12 @@ public class PSystem extends DeviceData
 			}
 			if (fPathFace < 0)
 			{
-				wrgExpert.expert_trajectory = STRAIGHT_SLICE_TRAJECTORY;
-				wrgExpert.expert_cause = STRAIGHT_SLICE_CAUSE;
-				wrgExpert.expert_suggestion = STRAIGHT_SLICE_SUGGEST;
+//				wrgExpert.expert_trajectory = STRAIGHT_SLICE_TRAJECTORY;
+				wrgExpert.expert_trajectory = FADE;
+//				wrgExpert.expert_cause = STRAIGHT_SLICE_CAUSE;
+				wrgExpert.expert_cause = FADE_CAUSE;
+//				wrgExpert.expert_suggestion = STRAIGHT_SLICE_SUGGEST;
+				wrgExpert.expert_suggestion = FADE_SUGGEST;
 				wrgExpert.expert_p_system = P2_3;
 				bIsSlice = true;
 			}
@@ -278,7 +282,8 @@ public class PSystem extends DeviceData
 			}
 			if (fPathFace < 0)
 			{
-				wrgExpert.expert_trajectory = PUSH_SLICE_TRAJECTORY;
+//				wrgExpert.expert_trajectory = PUSH_SLICE_TRAJECTORY;
+				wrgExpert.expert_trajectory = PUSH_SLICE;
 				wrgExpert.expert_cause = PUSH_SLICE_CAUSE;
 				wrgExpert.expert_suggestion = PUSH_SLICE_SUGGEST;
 				wrgExpert.expert_p_system = P2_3;
@@ -293,7 +298,8 @@ public class PSystem extends DeviceData
 		// 常為技術純熟球員所刻意擊出的球路，一個過度的Draw通常會形成為一個大左曲球(左勾球)
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = DRAW_TRAJECTORY;
+//		wrgExpert.expert_trajectory = DRAW_TRAJECTORY;
+		wrgExpert.expert_trajectory = DRAW;
 		wrgExpert.expert_cause = DRAW_CAUSE;
 //		wrgExpert.expert_p_system = P2_3;
 		wrgExpert.expert_p_system = P7;
@@ -315,7 +321,8 @@ public class PSystem extends DeviceData
 	{
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = STRAIGHT_TRAJECTORY;
+//		wrgExpert.expert_trajectory = STRAIGHT_TRAJECTORY;
+		wrgExpert.expert_trajectory = STRAIGHT;
 		wrgExpert.expert_cause = STRAIGHT_CAUSE;
 		wrgExpert.expert_p_system = P2_3;
 
@@ -335,7 +342,8 @@ public class PSystem extends DeviceData
 	{
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = FADE_TRAJECTORY;
+//		wrgExpert.expert_trajectory = FADE_TRAJECTORY;
+		wrgExpert.expert_trajectory = FADE;
 		wrgExpert.expert_cause = FADE_CAUSE;
 //		wrgExpert.expert_p_system = P2_3;
 		wrgExpert.expert_p_system = P7;
@@ -356,7 +364,8 @@ public class PSystem extends DeviceData
 	{
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = PUSH_HOOK_TRAJECTORY;
+//		wrgExpert.expert_trajectory = PUSH_HOOK_TRAJECTORY;
+		wrgExpert.expert_trajectory = PUSH_HOOK;
 		wrgExpert.expert_cause = PUSH_HOOK_CAUSE;
 		wrgExpert.expert_p_system = P2_3;
 
@@ -376,7 +385,8 @@ public class PSystem extends DeviceData
 	{
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = PUSH_TRAJECTORY;
+//		wrgExpert.expert_trajectory = PUSH_TRAJECTORY;
+		wrgExpert.expert_trajectory = PUSH;
 		wrgExpert.expert_cause = PUSH_CAUSE;
 //		wrgExpert.expert_p_system = P2_3;
 		wrgExpert.expert_p_system = P2;
@@ -396,7 +406,8 @@ public class PSystem extends DeviceData
 	{
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = PULL_TRAJECTORY;
+//		wrgExpert.expert_trajectory = PULL_TRAJECTORY;
+		wrgExpert.expert_trajectory = PULL;
 		wrgExpert.expert_cause = PULL_CAUSE;
 //		wrgExpert.expert_p_system = P2_3;
 		wrgExpert.expert_p_system = P3;
@@ -415,7 +426,8 @@ public class PSystem extends DeviceData
 	{
 		boolean bValid = false;
 
-		wrgExpert.expert_trajectory = PULL_HOOK_TRAJECTORY;
+//		wrgExpert.expert_trajectory = PULL_HOOK_TRAJECTORY;
+		wrgExpert.expert_trajectory = PULL_HOOK;
 		wrgExpert.expert_cause = PULL_HOOK_CAUSE;
 //		wrgExpert.expert_p_system = P2_3;
 		wrgExpert.expert_p_system = P7;

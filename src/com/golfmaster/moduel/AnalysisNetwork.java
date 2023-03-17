@@ -1,7 +1,12 @@
 package com.golfmaster.moduel;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import org.json.JSONObject;
 
+import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.analysis.DrawTrajectory;
 import com.golfmaster.moduel.analysis.FadeTrajectory;
@@ -39,7 +44,7 @@ public class AnalysisNetwork extends DeviceData {
 
 	public String expertAnalysis(float BallSpeed, float ClubAnglePath, float ClubAngleFace, float TotalDistFt,
 			float CarryDistFt, float LaunchAngle, float SmashFactor, float BackSpin, float SideSpin,
-			float ClubHeadSpeed, float LaunchDirection, float DistToPinFt) throws InterruptedException {
+			float ClubHeadSpeed, float LaunchDirection, float DistToPinFt, String ClubType) throws InterruptedException {
 		String strResult;
 		JSONObject jsonExpert = new JSONObject();
 		jsonExpert.put("success", true);
@@ -59,7 +64,8 @@ public class AnalysisNetwork extends DeviceData {
 		wrgData.BackSpin = BackSpin; // 後旋
 		wrgData.SideSpin = SideSpin; // 側旋
 		wrgData.ClubHeadSpeed = ClubHeadSpeed; // 桿頭速度
-
+		wrgData.ClubType = ClubType; // 球桿種類
+		
 		// ======== 分析網路開始 Sample ===============
 //		trajectory = new Trajectory(wrgData);
 //		sliceTrajectory = new SliceTrajectory(wrgData);
@@ -123,6 +129,32 @@ public class AnalysisNetwork extends DeviceData {
 		return strResult;
 	}
 
+//	public int querryCountPlayerPlay(String player) {
+//		Connection conn = null;
+//		Statement stmt = null;
+//		ResultSet rs = null;
+//		String strSQL;
+//		int countNum = 0;
+//		strSQL = String.format("SELECT COUNT(*) FROM golf_master.shot_data WHERE Player = '%s';", player);
+//		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+//
+//		try {
+//			conn = DBUtil.getConnGolfMaster();
+//			stmt = conn.createStatement();
+//			rs = stmt.executeQuery(strSQL);
+//			while (rs.next()) {
+//				countNum = rs.getInt("COUNT(*)");
+//
+//			}
+//			System.out.println("total times:"+countNum);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+//			e.printStackTrace();
+//		}
+//		DBUtil.close(rs, stmt, conn);
+//		return countNum;
+//	}
 	private String formatExpertJSON(WrgExpert wrgExpert, JSONObject jsonExpert) {
 		jsonExpert.put("expert_suggestion", wrgExpert.expert_suggestion);
 		jsonExpert.put("expert_cause", wrgExpert.expert_cause);

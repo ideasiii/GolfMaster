@@ -80,7 +80,8 @@ if(result != null && result.getString("img_name") != null){
 .p2Box__content {
 	width: 100%;
 	display: flex;
-	margin: 170px 0%;
+	/*margin: 170px 0%;*/
+	margin: 110px 0%;
 	flex-direction: row;
 }
 
@@ -141,7 +142,7 @@ if(result != null && result.getString("img_name") != null){
 
 .canvas {
 	width: 500;
-	height: 250
+	height: 250;
 }
 </style>
 

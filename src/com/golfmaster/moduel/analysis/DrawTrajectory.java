@@ -1,5 +1,11 @@
 package com.golfmaster.moduel.analysis;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import com.golfmaster.common.DBUtil;
+import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.DeviceData;
 
 public class DrawTrajectory extends AnalysisRunner {
