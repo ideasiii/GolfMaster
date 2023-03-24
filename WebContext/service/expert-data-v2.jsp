@@ -89,7 +89,7 @@ if(result != null && result.getString("img_name") != null){
 .p2Box__content-left-upper {
 	width: 40%;
 	display: flex;
-	margin-left: 76px;
+	margin-left: 50px;
 	position: absolute;
 	button: 0px;
 	/*     justify-content: flex-end;*/
@@ -98,7 +98,7 @@ if(result != null && result.getString("img_name") != null){
 .p2Box__content-left-lower {
 	width: 40%;
 	display: flex;
-	margin-left: 76px;
+	margin-left: 50px;
 	position: absolute;
 	top: 500px;
 	/*     justify-content: flex-end;*/
@@ -116,7 +116,6 @@ if(result != null && result.getString("img_name") != null){
 	display: flex;
 	flex-direction: column;
 	margin-left: 0%;
-	
 }
 
 .p2Box__content-right-upper {
@@ -186,14 +185,18 @@ if(result != null && result.getString("img_name") != null){
 				%>
 			</div>
 			<div class="p2Box__content-left-lower">
-			<%
-			if(result.getBoolean("result")){
-				out.print("<img src='../page/gif/" + trajectory + "' style='width: 500px; height: 336px' />");
-			}else {
-				out.print("");
-			}
-			%>
-				<img src='../page/gif/1.gif' style='width: 500px; height: 336px' />
+				<%
+				if (result.getBoolean("result")) {
+					String temp = "(Push)Hook 右曲球";
+					if (trajectory.equals(temp)) {
+						out.print("<img src='../page/gif/" + trajectory + ".GIF' style='width: 500px; height: 336px' />");
+					} else {
+						out.print("<img src='../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
+					}
+				} else {
+					out.print("");
+				}
+				%>
 			</div>
 		</div>
 		<div class="p2Box__content-right">
