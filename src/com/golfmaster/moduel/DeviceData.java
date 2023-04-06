@@ -51,14 +51,14 @@ public abstract class DeviceData
 	// slice(外彎)與hook(內彎)
 	// 1.Pull Hook, 2.Pull, 3.Pull Slice
 	public static final String	PULL			= "Pull 左飛球";		// 5.Pull(左飛球)
-	public static final String	PULL_TRAJECTORY	= "出球方向直直往左之左拉球(P7觸球時桿面角度和軌跡都往左而且垂直，所以出球路徑筆直往左)";		// 左曲球
-	public static final String	PULL_CAUSE		= "通常是因為在下桿時由外側下桿、或是軸心偏移太多導致右手必須補償，或是沒有在P3時重心往左由左半身引導下桿所致。";	// 左曲球
-	public static final String	PULL_SUGGEST	= "上桿時維持軸心，P2至P4胸椎充分旋轉，下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";	// 左曲球
+	public static final String	PULL_TRAJECTORY	= "出球方向直直往左之左拉球(P7觸球時桿面角度和軌跡都往左而且垂直，所以出球路徑筆直往左)";		
+	public static final String	PULL_CAUSE		= "通常是因為在下桿時由外側下桿、或是軸心偏移太多導致右手必須補償，或是沒有在P3時重心往左由左半身引導下桿所致。";	
+	public static final String	PULL_SUGGEST	= "上桿時維持軸心，P2至P4胸椎充分旋轉，下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";	
 
 	public static final String	PULL_HOOK				= "Pull Hook 左曲球";		// 左曲球
-	public static final String	PULL_HOOK_TRAJECTORY	= "出球方向往目標左側之後再更向左曲之左拉曲球或稱為大左曲球(P7觸球時桿面角度和軌跡都朝左，且桿面角度大於揮桿軌跡，所以出球路徑往左飛後再更左曲)";		// 左曲球
-	public static final String	PULL_HOOK_CAUSE			= "通常是因為右手出力手腕往下壓太快導致揮桿路徑由外往內，且翻轉了手腕";	// 左曲球
-	public static final String	PULL_HOOK_SUGGEST		= "上桿時維持軸心，P2主P4胸椎充分旋轉下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";	// 左曲球
+	public static final String	PULL_HOOK_TRAJECTORY	= "出球方向往目標左側之後再更向左曲之左拉曲球或稱為大左曲球(P7觸球時桿面角度和軌跡都朝左，且桿面角度大於揮桿軌跡，所以出球路徑往左飛後再更左曲)";		
+	public static final String	PULL_HOOK_CAUSE			= "通常是因為右手出力手腕往下壓太快導致揮桿路徑由外往內，且翻轉了手腕";	
+	public static final String	PULL_HOOK_SUGGEST		= "上桿時維持軸心，P2主P4胸椎充分旋轉下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";	
 
 	public static final String	PUSH			= "Push 右飛球";
 	public static final String	PUSH_TRAJECTORY	= "出球方向直直往右之右推球(P7觸球時桿面角度和軌跡都往右而且垂直，所以出球路徑筆直往右)";
@@ -100,8 +100,68 @@ public abstract class DeviceData
 	public static final String	PULL_SLICE_TRAJECTORY	= "出球方向往目標左側之後再向右曲之右曲球(P7觸球時桿面角度關閉，但桿面角度小於揮桿軌跡)";
 	public static final String	PULL_SLICE_CAUSE		= "通常是因為上桿時P2過於內側，手臂和身體過於靠近卡住之後，反而在下桿時由外側下桿、或是軸心偏移太多導致右手必須補償所致，最容易出現雞翅膀的問題。";
 	public static final String	PULL_SLICE_SUGGEST		= "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
-
-	// 7.Push Hook, 8.Push, 9.Push Slice
+	
+	// 不同LEVEL的原因
+	public static final String	PULL_TRAJECTORY_LEVEL1 = "";
+	public static final String	PULL_HOOK_TRAJECTORY_LEVEL1 = "";
+	public static final String	PULL_SLICE_TRAJECTORY_LEVEL1 = "";
+	public static final String	PUSH_TRAJECTORY_LEVEL1 = "";
+	public static final String	PUSH_HOOK_TRAJECTORY_LEVEL1 = "";
+	public static final String	PUSH_SLICE_TRAJECTORY_LEVEL1 = "";
+	public static final String	DRAW_TRAJECTORY_LEVEL1 = "";
+	public static final String	STRAIGHT_TRAJECTORY_LEVEL1 = "";
+	public static final String	FADE_TRAJECTORY_LEVEL1 = "";
+	
+	public static final String	PULL_TRAJECTORY_LEVEL2 = "";
+	public static final String	PULL_HOOK_TRAJECTORY_LEVEL2 = "";
+	public static final String	PULL_SLICE_TRAJECTORY_LEVEL2 = "";
+	public static final String	PUSH_TRAJECTORY_LEVEL2 = "";
+	public static final String	PUSH_HOOK_TRAJECTORY_LEVEL2 = "";
+	public static final String	PUSH_SLICE_TRAJECTORY_LEVEL2 = "";
+	public static final String	DRAW_TRAJECTORY_LEVEL2 = "";
+	public static final String	STRAIGHT_TRAJECTORY_LEVEL2 = "";
+	public static final String	FADE_TRAJECTORY_LEVEL2 = "";
+	
+	public static final String	PULL_TRAJECTORY_LEVEL3 = "";
+	public static final String	PULL_HOOK_TRAJECTORY_LEVEL3 = "";
+	public static final String	PULL_SLICE_TRAJECTORY_LEVEL3 = "";
+	public static final String	PUSH_TRAJECTORY_LEVEL3 = "";
+	public static final String	PUSH_HOOK_TRAJECTORY_LEVEL3 = "";
+	public static final String	PUSH_SLICE_TRAJECTORY_LEVEL3 = "";
+	public static final String	DRAW_TRAJECTORY_LEVEL3 = "";
+	public static final String	STRAIGHT_TRAJECTORY_LEVEL3 = "";
+	public static final String	FADE_TRAJECTORY_LEVEL3 = "";
+	
+	// 不同LEVEL建議
+	public static final String	PULL_SUGGEST_LEVEL1 = "";
+	public static final String	PULL_HOOK_SUGGEST_LEVEL1 = "";
+	public static final String	PULL_SLICE_SUGGEST_LEVEL1 = "";
+	public static final String	PUSH_SUGGEST_LEVEL1 = "";
+	public static final String	PUSH_HOOK_SUGGEST_LEVEL1 = "";
+	public static final String	PUSH_SLICE_SUGGEST_LEVEL1 = "";
+	public static final String	DRAW_SUGGEST_LEVEL1 = "";
+	public static final String	STRAIGHT_SUGGEST_LEVEL1 = "";
+	public static final String	FADE_SUGGEST_LEVEL1 = "";
+	
+	public static final String	PULL_SUGGEST_LEVEL2 = "";
+	public static final String	PULL_HOOK_SUGGEST_LEVEL2 = "";
+	public static final String	PULL_SLICE_SUGGEST_LEVEL2 = "";
+	public static final String	PUSH_SUGGEST_LEVEL2 = "";
+	public static final String	PUSH_HOOK_SUGGEST_LEVEL2 = "";
+	public static final String	PUSH_SLICE_SUGGEST_LEVEL2 = "";
+	public static final String	DRAW_SUGGEST_LEVEL2 = "";
+	public static final String	STRAIGHT_SUGGEST_LEVEL2 = "";
+	public static final String	FADE_SUGGEST_LEVEL2 = "";
+	
+	public static final String	PULL_SUGGEST_LEVEL3 = "";
+	public static final String	PULL_HOOK_SUGGEST_LEVEL3 = "";
+	public static final String	PULL_SLICE_SUGGEST_LEVEL3 = "";
+	public static final String	PUSH_SUGGEST_LEVEL3 = "";
+	public static final String	PUSH_HOOK_SUGGEST_LEVEL3 = "";
+	public static final String	PUSH_SLICE_SUGGEST_LEVEL3 = "";
+	public static final String	DRAW_SUGGEST_LEVEL3 = "";
+	public static final String	STRAIGHT_SUGGEST_LEVEL3 = "";
+	public static final String	FADE_SUGGEST_LEVEL3 = "";
 
 	public static final float LONG_PUTT = 10;	//長推桿距離30英尺,約為10碼
 	public static final float SHORT_PUTT = 2;	//短推桿距離6英尺,約2碼

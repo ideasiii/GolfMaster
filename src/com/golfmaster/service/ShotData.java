@@ -121,15 +121,17 @@ public class ShotData {
 		return BSAndCHS;
 	}
 
-	// 球員平均擊球距離
+	// 球員平均擊球距離,後旋,桿頭速度
 	public float playerDistanceAVG(String player) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
 		float avgNum = 0;
+		JSONArray jsonArray = new JSONArray();
 		strSQL = String.format(
-				"SELECT ROUND(AVG(CarryDistFt),1) AS distAVG FROM golf_master.shot_data WHERE Player = '%s';", player);
+				"SELECT ROUND(AVG(CarryDistFt),1) AS distAVG,ROUND(AVG(BackSpin),2) AS BSAVG,ROUND(AVG(ClubHeadSpeed),2) AS CHSAVG "
+				+ "FROM golf_master.shot_data WHERE Player = '%s';",player);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try {
@@ -137,10 +139,13 @@ public class ShotData {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(strSQL);
 			while (rs.next()) {
+				JSONObject jsonObject = new JSONObject();
 				avgNum = rs.getFloat("distAVG");
-
+				jsonObject.put("BackSpin",rs.getFloat("BSAVG"));
+				jsonObject.put("ClubHeadSpeed",rs.getFloat("CHSAVG"));
+				jsonObject.put("distAVG",rs.getFloat("distAVG"));
 			}
-			System.out.println("distances average:" + avgNum);
+			System.out.println("Player's history has distances average:" + avgNum);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
@@ -149,6 +154,42 @@ public class ShotData {
 		DBUtil.close(rs, stmt, conn);
 		return avgNum;
 	}
+	
+	// 球員該輪平均擊球距離,後旋,桿頭速度
+	public float playerHistory(String player) {
+			Connection conn = null;
+			Statement stmt = null;
+			ResultSet rs = null;
+			String strSQL;
+			float avgNum = 0;
+			JSONArray jsonArray = new JSONArray();
+			
+			strSQL = String.format(
+					"SELECT ROUND(AVG(CarryDistFt),1) AS distAVG,ROUND(AVG(BackSpin),2) AS BSAVG,ROUND(AVG(ClubHeadSpeed),2) AS CHSAVG "
+					+ "FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 12;",player);
+			Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+
+			try {
+				conn = DBUtil.getConnGolfMaster();
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery(strSQL);
+				while (rs.next()) {
+					JSONObject jsonObject = new JSONObject();
+					avgNum = rs.getFloat("distAVG");
+					jsonObject.put("BackSpin",rs.getFloat("BSAVG"));
+					jsonObject.put("ClubHeadSpeed",rs.getFloat("CHSAVG"));
+					jsonObject.put("distAVG",rs.getFloat("distAVG"));
+
+				}
+				System.out.println("This round distances average:" + avgNum);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				Logs.log(Logs.EXCEPTION_LOG, e.toString());
+				e.printStackTrace();
+			}
+			DBUtil.close(rs, stmt, conn);
+			return avgNum;
+		}
 
 	private int queryShotData(ParamData paramData, JSONObject jsonResponse) {
 		Connection conn = null;

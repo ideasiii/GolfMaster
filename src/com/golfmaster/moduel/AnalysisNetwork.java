@@ -19,6 +19,7 @@ import com.golfmaster.moduel.analysis.PushTrajectory;
 import com.golfmaster.moduel.analysis.SliceTrajectory;
 import com.golfmaster.moduel.analysis.StraightTrajectory;
 import com.golfmaster.moduel.analysis.Trajectory;
+import com.golfmaster.persona.Persona;
 
 public class AnalysisNetwork extends DeviceData {
 	private Trajectory trajectory = null;
@@ -44,13 +45,15 @@ public class AnalysisNetwork extends DeviceData {
 
 	public String expertAnalysis(float BallSpeed, float ClubAnglePath, float ClubAngleFace, float TotalDistFt,
 			float CarryDistFt, float LaunchAngle, float SmashFactor, float BackSpin, float SideSpin,
-			float ClubHeadSpeed, float LaunchDirection, float DistToPinFt, String ClubType) throws InterruptedException {
+			float ClubHeadSpeed, float LaunchDirection, float DistToPinFt, String ClubType)
+			throws InterruptedException {
 		String strResult;
 		JSONObject jsonExpert = new JSONObject();
 		jsonExpert.put("success", true);
 
 		DeviceData.WrgData wrgData = new DeviceData.WrgData();
 		WrgExpert wrgExpert = new WrgExpert();
+		Persona persona = new Persona();
 
 		wrgData.BallSpeed = BallSpeed; // 球速
 		wrgData.ClubAnglePath = ClubAnglePath; // 桿面路徑
@@ -66,9 +69,15 @@ public class AnalysisNetwork extends DeviceData {
 		wrgData.ClubHeadSpeed = ClubHeadSpeed; // 桿頭速度
 		wrgData.ClubType = ClubType; // 球桿種類
 		
+		int personLevel = persona.getDistancelevel(CarryDistFt);
+		if (personLevel == 1) {
+			wrgExpert.expert_cause = SHOT_FAIL;
+			wrgExpert.expert_suggestion = SHOT_FAIL_BODY;
+		}else {
 		// ======== 分析網路開始 Sample ===============
 //		trajectory = new Trajectory(wrgData);
 //		sliceTrajectory = new SliceTrajectory(wrgData);
+			
 		drawTrajectory = new DrawTrajectory(wrgData);
 		straightTrajectory = new StraightTrajectory(wrgData);
 		fadeTrajectory = new FadeTrajectory(wrgData);
@@ -105,16 +114,16 @@ public class AnalysisNetwork extends DeviceData {
 
 //		thrTrajectory.join();
 //		theSliceTrajectory.join();
-		theDrawTrajectory.start();
-		theStraightTrajectory.start();
-		theFadeTrajectory.start();
-		thePullHookTrajectory.start();
-		thePullSliceTrajectory.start();
-		thePullTrajectory.start();
-		thePushHookTrajectory.start();
-		thePushSliceTrajectory.start();
-		thePushTrajectory.start();
-
+		theDrawTrajectory.join();
+		theStraightTrajectory.join();
+		theFadeTrajectory.join();
+		thePullHookTrajectory.join();
+		thePullSliceTrajectory.join();
+		thePullTrajectory.join();
+		thePushHookTrajectory.join();
+		thePushSliceTrajectory.join();
+		thePushTrajectory.join();
+		}
 //		System.out.println("Trajectory weight=" + trajectory.getWeight() + " suggest="
 //				+ trajectory.getWrgExpert().expert_trajectory);
 //		System.out.println("SliceTrajectory weight=" + sliceTrajectory.getWeight() + " suggest="
