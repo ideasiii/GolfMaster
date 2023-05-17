@@ -4,6 +4,8 @@
  * http://localhost/GolfMaster/service/shot-data.jsp?player=Guest.1
  * http://175.41.245.90/GolfMaster/service/shot-data.jsp?player=Guest.1
  * http://localhost:8080/GolfMaster/service/shot-data.jsp?player=Guest.1
+ * http://localhost:80/GolfMaster/service/shot-data.jsp?player=Guest.1
+ * http://61.216.149.161/GolfMaster/service/shot-data.jsp?player=Guest.1
  */
 package com.golfmaster.service;
 
@@ -207,7 +209,7 @@ public class ShotData {
 					paramData.player);
 		} else {
 			strSQL = String.format(
-					"SELECT * FROM shot_data WHERE Player = '%s' AND AND Date >= '%s 00:00:00' AND Date <= '%s 23:59:59' order by Date DESC",
+					"SELECT * FROM shot_data WHERE Player = '%s' AND Date >= '%s 00:00:00' AND Date <= '%s 23:59:59' order by Date DESC",
 					paramData.player, paramData.start_date, paramData.end_date);
 		}
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);

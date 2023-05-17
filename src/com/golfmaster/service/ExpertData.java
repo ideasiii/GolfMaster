@@ -4,6 +4,7 @@
  * http://localhost/GolfMaster/service/expert-data.jsp?expert=1
  * http://18.181.37.98/GolfMaster/service/expert-data.jsp?expert=1
  * http://localhost:8080/GolfMaster/service/expert-data.jsp?expert=1
+ * http://61.216.149.161/GolfMaster/service/expert-data-v2.jsp?expert=11349
  */
 package com.golfmaster.service;
 

@@ -3,6 +3,8 @@
  * 參數: yardage
  * http://localhost/GolfMaster/service/club-recommendation.jsp?yardage=120
  * http://18.181.37.98/GolfMaster/service/club-recommendation.jsp?yardage=120
+ * http://61.216.149.161/GolfMaster/service/club-recommendation.jsp?yardage=120
+ * 
  */
 package com.golfmaster.service;
 
