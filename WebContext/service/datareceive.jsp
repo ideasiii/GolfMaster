@@ -6,7 +6,7 @@
 <%!RawDataReceive rawDataReceive = new RawDataReceive();%>
 <%
 request.setCharacterEncoding("UTF-8");
-
+out.print(rawDataReceive.insertJmexRawData(request));
 System.gc();
 Runtime.getRuntime().gc();
 
