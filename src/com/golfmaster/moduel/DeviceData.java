@@ -217,6 +217,14 @@ public abstract class DeviceData {
 		public String topFlatShoulder;
 		public String impactHipTurn;
 	}
+	
+	public class ITRIData {
+		public float BallSpeed;
+		public float BackSpin;
+		public float SideSpin;
+		public float LaunchAngle;
+		public float Angle;
+	}
 
 	public class spaceCapuleParamData {
 		

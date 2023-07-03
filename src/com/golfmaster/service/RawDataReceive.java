@@ -165,6 +165,17 @@ public class RawDataReceive {
 		strSQL = "INSERT INTO raw_data.SpaceCapule () VALUES ();";
 		return 0;
 	}
+	
+	public int insertIRIT(HttpServletRequest req) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		JSONArray jarrProjects = new JSONArray();
+
+		strSQL = "INSERT INTO raw_data.IRIT () VALUES ();";
+		return 0;
+	}
 
 	private void printParam(HttpServletRequest request) {
 		String strRequest = " =========== Request Parameter ============";

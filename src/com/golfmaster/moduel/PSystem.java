@@ -330,7 +330,8 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "優秀的高爾夫球手往往非常擅長在球落地之前保持收尾，此擊球它看起來不錯但置球點到擊球落點的距離不佳。 如果你的後腳沒有轉動，你肯定有時間在你完成並將它帶到下一個擊球時注意到並糾正它。 我堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+//			wrgExpert.expert_suggestion = "優秀的高爾夫球手往往非常擅長在球落地之前保持收尾，此擊球它看起來不錯但置球點到擊球落點的距離不佳。 如果你的後腳沒有轉動，你肯定有時間在你完成並將它帶到下一個擊球時注意到並糾正它。 我堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+			wrgExpert.expert_suggestion = STRAIGHT_SUGGEST;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + STRAIGHT_SUGGEST;
@@ -352,7 +353,8 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+			wrgExpert.expert_suggestion = FADE_SUGGEST;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + FADE_SUGGEST;
@@ -373,7 +375,8 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+			wrgExpert.expert_suggestion = PUSH_HOOK_SUGGEST;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PUSH_HOOK_SUGGEST;
@@ -395,7 +398,8 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+			wrgExpert.expert_suggestion = PUSH_SUGGEST;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PUSH_SUGGEST;
@@ -415,7 +419,8 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+			wrgExpert.expert_suggestion = PULL_SUGGEST;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_SUGGEST;
@@ -435,7 +440,8 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
+			wrgExpert.expert_suggestion = PULL_HOOK_SUGGEST;
 		}
 		else
 			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_HOOK_SUGGEST;
