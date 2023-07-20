@@ -1,6 +1,5 @@
 package com.golfmaster.service;
 
-import java.awt.geom.FlatteningPathIterator;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -14,9 +13,9 @@ import org.json.JSONObject;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.DeviceData.jmexParamData;
-import com.golfmaster.moduel.DeviceData.spaceCapuleParamData;
 
 public class RawDataReceive {
+	@SuppressWarnings("null")
 	public int insertJmexRawData(HttpServletRequest req) {
 		printParam(req);
 		jmexParamData paramData = null;
