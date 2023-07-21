@@ -111,7 +111,7 @@ public class ShotData {
 			while (rs.next()) {
 				BSAndCHS[0][i] = rs.getFloat("BallSpeed");
 				BSAndCHS[1][i] = rs.getFloat("ClubHeadSpeed");
-				System.out.println("BallSpeed:" + BSAndCHS[0][i] + " ClubHeadSpeed:" + BSAndCHS[1][i]);
+//				System.out.println("BallSpeed:" + BSAndCHS[0][i] + " ClubHeadSpeed:" + BSAndCHS[1][i]);
 				i++;
 			}
 		} catch (Exception e) {

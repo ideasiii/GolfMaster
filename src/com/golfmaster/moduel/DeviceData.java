@@ -54,7 +54,7 @@ public abstract class DeviceData {
 	public static final String PULL_CAUSE = "通常是因為在下桿時由外側下桿、或是軸心偏移太多導致右手必須補償，或是沒有在P3時重心往左由左半身引導下桿所致。";
 	public static final String PULL_SUGGEST = "上桿時維持軸心，P2至P4胸椎充分旋轉，下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
 
-	public static final String PULL_HOOK = "Pull Hook 左曲球"; // 左曲球
+	public static final String PULL_HOOK = "Pull Hook 左拉左曲球"; // 左曲球
 	public static final String PULL_HOOK_TRAJECTORY = "出球方向往目標左側之後再更向左曲之左拉曲球或稱為大左曲球(P7觸球時桿面角度和軌跡都朝左，且桿面角度大於揮桿軌跡，所以出球路徑往左飛後再更左曲)";
 	public static final String PULL_HOOK_CAUSE = "通常是因為右手出力手腕往下壓太快導致揮桿路徑由外往內，且翻轉了手腕";
 	public static final String PULL_HOOK_SUGGEST = "上桿時維持軸心，P2主P4胸椎充分旋轉下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
@@ -64,7 +64,7 @@ public abstract class DeviceData {
 	public static final String PUSH_CAUSE = "上桿時P2位置過於內側，且下桿時揮桿路徑由內向外，桿面角度與揮桿路徑垂直所致。";
 	public static final String PUSH_SUGGEST = "上桿時維持軸心，P2時桿頭不要往內側，桿面不要翻開，P2至P4胸椎充分旋轉，下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
 
-	public static final String PUSH_HOOK = "(Push)Hook 右曲球";
+	public static final String PUSH_HOOK = "(Push)Hook 左曲球";
 	public static final String PUSH_HOOK_TRAJECTORY = "出球方向往目標線右側之後再往左曲之左曲球(P7 觸球時桿面打開軌跡由內向外，但桿面角度小於揮桿路徑)";
 	public static final String PUSH_HOOK_CAUSE = "上桿往內側，然後再由內側透過手腕的翻轉使球往左旋。有時為了修正由外往內的揮桿路徑會刻意打出這種球來調整感覺，但做過頭的話很難控球，因為球落地會滾動太多，不容易控制距離。";
 	public static final String PUSH_HOOK_SUGGEST = "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
@@ -90,12 +90,12 @@ public abstract class DeviceData {
 	public static final String STRAIGHT_SLICE_CAUSE = "球桿方向朝目標方向右邊,幾乎直球飛出漸往右邊偏去";
 	public static final String STRAIGHT_SLICE_SUGGEST = "雖然軌道正確，但桿面是有點打開的情形下觸球，如果可以改善這個問題，距離跟方向都會更上一層樓";
 
-	public static final String PUSH_SLICE = "Push Slice 左拉右曲";
+	public static final String PUSH_SLICE = "Push Slice 右拉右曲球";
 	public static final String PUSH_SLICE_TRAJECTORY = "出球方向往目標右側之後再更往右曲之大右曲球(P7觸球時桿面過開，且揮桿軌跡由內往外但少於桿面角度，球會往右飛，然後再更向右曲)"; // 6.Push
 	public static final String PUSH_SLICE_CAUSE = "上桿過度陡峭，下桿時突然過度由內往外打，或是上桿太內側且由內往外推所致。";
 	public static final String PUSH_SLICE_SUGGEST = "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
 
-	public static final String PULL_SLICE = "Pull Slice 左拉左曲";
+	public static final String PULL_SLICE = "Pull Slice 左拉右曲球";
 	public static final String PULL_SLICE_TRAJECTORY = "出球方向往目標左側之後再向右曲之右曲球(P7觸球時桿面角度關閉，但桿面角度小於揮桿軌跡)";
 	public static final String PULL_SLICE_CAUSE = "通常是因為上桿時P2過於內側，手臂和身體過於靠近卡住之後，反而在下桿時由外側下桿、或是軸心偏移太多導致右手必須補償所致，最容易出現雞翅膀的問題。";
 	public static final String PULL_SLICE_SUGGEST = "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";

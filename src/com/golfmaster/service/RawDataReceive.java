@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
+import com.golfmaster.moduel.DeviceData.ITRIData;
 import com.golfmaster.moduel.DeviceData.jmexParamData;
 import com.golfmaster.moduel.DeviceData.spaceCapuleParamData;
 
@@ -103,7 +104,7 @@ public class RawDataReceive {
 
 		JSONObject jsobj = new JSONObject();
 		String errorType = "{\"code\":0,\"success\": true,\"message\": []}";
-		int result = insertQueryJMEX(paramData,jsobj);
+		int result = insertQueryJMEX(paramData, jsobj);
 		return 0;
 	}
 
@@ -165,15 +166,57 @@ public class RawDataReceive {
 		strSQL = "INSERT INTO raw_data.SpaceCapule () VALUES ();";
 		return 0;
 	}
-	
+
 	public int insertIRIT(HttpServletRequest req) {
+		printParam(req);
+		ITRIData paramData = null;
+		String BallSpeed = req.getParameter("BallSpeed");
+		String BackSpin = req.getParameter("BackSpin");
+		String SideSpin = req.getParameter("SideSpin");
+		String LaunchAngle = req.getParameter("LaunchAngle");
+		String Angle = req.getParameter("Angle");
+		paramData.BallSpeed = Float.parseFloat("BallSpeed");
+		paramData.BackSpin = Float.parseFloat("BackSpin");
+		paramData.SideSpin = Float.parseFloat("SideSpin");
+		paramData.LaunchAngle = Float.parseFloat("LaunchAngle");
+		paramData.Angle = Float.parseFloat("Angle");
+
+		JSONObject jsobj = new JSONObject();
+		String errorType = "{\"code\":0,\"success\": true,\"message\": []}";
+		int result = insertQuerryIRIT(paramData, jsobj);
+		return 0;
+	}
+
+	public int insertQuerryIRIT(ITRIData paramData, JSONObject jsonResp) {
+		int stmtRs = -1;
+
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
-		JSONArray jarrProjects = new JSONArray();
+		JSONArray jarrProj = new JSONArray();
 
-		strSQL = "INSERT INTO raw_data.IRIT () VALUES ();";
+		strSQL = String.format(
+				"INSERT INTO raw_data.IRIT (BallSpeed,BackSpin,SideSpin,LaunchAngle,Angle) VALUES (%f,%f,%f,%f,%f);",
+				paramData.BallSpeed, paramData.BackSpin, paramData.SideSpin, paramData.LaunchAngle, paramData.Angle);
+		Logs.log(Logs.RUN_LOG, strSQL);
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			stmtRs = stmt.executeUpdate(strSQL);
+
+			JSONObject jsonProject = new JSONObject();
+			jarrProj.put(jsonProject);
+			jsonResp.put("success", true);
+
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+			jsonResp.put("success", false);
+			jsonResp.put("message", e.getMessage());
+		}
+		DBUtil.close(rs, stmt, conn);
+		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		return 0;
 	}
 

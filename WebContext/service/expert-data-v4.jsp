@@ -160,35 +160,32 @@ if(result != null && result.getString("img_name") != null){
 	height: 250px;
 }
 
-.content {
-	display: none;
-}
-
-.expert_cause:hover .content {
-	display: block;
-	position: absolute;
-	top: 500px;
-	left: 200px;
-	padding: 5px;
-	border-radius: 5px;
-}
-
 .highlight {
 	font-style: normal;
 	font-weight: 500;
 	font-size: 25px;
 	line-height: 160%;
 	letter-spacing: 0.1em;
-	color: rgba(45, 45, 45, 0.55);
+	color: red;
 }
 
-.highlight:hover {
+.highlight:hover .image-container { 
 	display: block;
 	position: absolute;
-	top: 500px;
-	left: 200px;
+	top: 350px; 
+	left: 650px;
 	padding: 5px;
 	border-radius: 5px;
+	background-color: white;
+}
+
+.highlight:hover .image-container img { 
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.image-container {
+	display: none; 
 }
 </style>
 
@@ -222,12 +219,7 @@ if(result != null && result.getString("img_name") != null){
 			<div class="p2Box__content-left-lower">
 				<%
 				if (result.getBoolean("result")) {
-					String temp = "(Push)Hook 右曲球";
-					if (trajectory.equals(temp)) {
-						out.print("<img src='../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
-					} else {
-						out.print("<img src='../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
-					}
+					out.print("<img src='../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
 				} else {
 					out.print("");
 				}
@@ -244,37 +236,14 @@ if(result != null && result.getString("img_name") != null){
 			<div class="p2Box__content-right-lower">
 
 				<div class="expert_cause">
-					<%="原因:" + cause%>
-					<%
-					ArrayList<Integer> listrs = new ArrayList<Integer>();
-					int[][] g = new int[9][];
-					ArrayList<String> listp = new ArrayList();
-					listp.add("P2");
-					listp.add("P3");
-					listp.add("P4");
-					listp.add("P5");
-					listp.add("P6");
-					listp.add("P7");
-					listp.add("P8");
-					listp.add("P9");
-					listp.add("P10");
-					for (int i = 0; i < listp.size(); i++) {
-						int k = cause.indexOf(listp.get(i));
-						int l = cause.lastIndexOf(listp.get(i));
-						if (k != -1 && l != -1) {
-							listrs.add(k);
-							listrs.add(l);
-							g[i][0] = k;
-							g[i][1] = l;
-						} else if (k != -1 && l == -1) {
-							g[i][0] = k;
-						}
-					}
-					%>
-
+					<div id="textContainer1">
+						原因:<span id="causeText"><%=cause%></span>
+					</div>
 				</div>
 				<div class="expert_cause">
-					<%="建議:" + suggestion%>
+					<div id="textContainer">
+						建議:<span id="suggestionText"><%=suggestion%></span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -348,7 +317,39 @@ if(result != null && result.getString("img_name") != null){
 	window.onload = function() {
 		var ctx = document.getElementById("canvas").getContext("2d");
 		drawLineCanvas(ctx, lineChartData);
+		
+		const textContainer = document.getElementById('textContainer');
+		const textContainer1 = document.getElementById('textContainer1');
+	    const suggestionContent = document.getElementById('suggestionText').textContent;
+	    const causeContent = document.getElementById('causeText').textContent;
+	    const wordImageMap = {
+	        'P2': '../page/img/frontP2.png',
+	        'P3': '../page/img/frontP3.png',
+	        'P4': '../page/img/frontP4.png',
+	        'P5': '../page/img/frontP5.png',
+	        'P5.5': '../page/img/frontP5.png',
+	        'P6': '../page/img/frontP6.png',
+	        'P7': '../page/img/frontP7.png',
+	        'P8': '../page/img/frontP8.png',
+	        'P9': '../page/img/frontP9.png',
+	        'P10': '../page/img/frontP10.png'
+	    };
+
+	    let updatedContent = suggestionContent;
+	    Object.keys(wordImageMap).forEach(word => {
+	        const regex = new RegExp(word, 'gi');
+	        updatedContent = updatedContent.replace(regex, '<span class="highlight" data-word="' + word + '">' + word + '<div class="image-container"><img src="' + wordImageMap[word] + '"></div></span>');
+	    });
+	    textContainer.innerHTML = updatedContent;
+	    
+	    let updatedContent1 = causeContent;
+	    Object.keys(wordImageMap).forEach(word => {
+	        const regex = new RegExp(word, 'gi');
+	        updatedContent1 = updatedContent1.replace(regex, '<span class="highlight" data-word="' + word + '">' + word + '<div class="image-container"><img src="' + wordImageMap[word] + '"></div></span>');
+	    });
+	    textContainer1.innerHTML = updatedContent1;
 	};
+	
 </script>
 </html>
 
