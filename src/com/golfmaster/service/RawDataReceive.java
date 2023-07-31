@@ -12,14 +12,13 @@ import org.json.JSONObject;
 
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
-import com.golfmaster.moduel.DeviceData.ITRIData;
-import com.golfmaster.moduel.DeviceData.jmexParamData;
+import com.golfmaster.moduel.DeviceData;
 
-public class RawDataReceive {
-	@SuppressWarnings("null")
+public class RawDataReceive extends DeviceData{
+	
 	public int insertJmexRawData(HttpServletRequest req) {
 		printParam(req);
-		jmexParamData paramData = null;
+		jmexParamData paramData = new jmexParamData();
 		String id = req.getParameter("id");
 		String pelvisSpeed = req.getParameter("pelvisSpeed");
 		String trunkSpeed = req.getParameter("trunkSpeed");
@@ -168,7 +167,7 @@ public class RawDataReceive {
 
 	public int insertIRIT(HttpServletRequest req) {
 		printParam(req);
-		ITRIData paramData = null;
+		ITRIData paramData = new ITRIData();
 		String BallSpeed = req.getParameter("BallSpeed");
 		String BackSpin = req.getParameter("BackSpin");
 		String SideSpin = req.getParameter("SideSpin");
