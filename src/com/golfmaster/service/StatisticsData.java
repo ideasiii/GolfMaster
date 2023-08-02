@@ -1,7 +1,7 @@
 /*
  * 計算擊球數據及的各項統計API
  * 參數: (必填)
- * http://localhost/GolfMaster/service/expert-data.jsp?expert=1
+ * http://localhost/GolfMaster/service/statistics.jsp?player=Guest.1&type=month&start_date=2023-01-01&end_date=2023-08-02
  * http://61.216.149.161/GolfMaster/service/expert-data-v2.jsp?expert=11349
  */
 
