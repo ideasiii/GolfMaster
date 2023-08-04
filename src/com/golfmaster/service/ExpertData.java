@@ -68,15 +68,15 @@ public class ExpertData extends DeviceData{
 						String p = psystem.substring(0, 2);
 						if("P1".equals(p) || "P2".equals(p) || "P3".equals(p) || "P4".equals(p)) {
 //							vf = "P1_P4.mp4";
-							vf = "P1_P10.mp4";
+							vf = "P1_P10v5.mp4";
 						}
 						if("P5".equals(p) || "P6".equals(p) || "P7".equals(p) ) {
 //							vf = "P5_P7.mp4";
-							vf = "P1_P10.mp4";
+							vf = "P1_P10v5.mp4";
 						}
 						if("P8".equals(p) || "P9".equals(p) || "P10".equals(p)) {
 //							vf = "P8_P10.mp4";
-							vf = "P1_P10.mp4";
+							vf = "P1_P10v5.mp4";
 						}
 						
 						result = true;

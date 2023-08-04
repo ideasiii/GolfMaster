@@ -14,96 +14,44 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.DeviceData;
 
-public class RawDataReceive extends DeviceData{
-	
-	public int insertJmexRawData(HttpServletRequest req) {
-		printParam(req);
-		jmexParamData paramData = new jmexParamData();
-		String id = req.getParameter("id");
-		String pelvisSpeed = req.getParameter("pelvisSpeed");
-		String trunkSpeed = req.getParameter("trunkSpeed");
-		String forearmSpeed = req.getParameter("forearmSpeed");
-		String handSpeed = req.getParameter("handSpeed");
-		String trunkForwardBendAddress = req.getParameter("trunkForwardBendAddress");
-		String trunkForwardBendTop = req.getParameter("trunkForwardBendTop");
-		String trunkForwardBendImpact = req.getParameter("trunkForwardBendImpact");
-		String trunkSideBendAddress = req.getParameter("trunkSideBendAddress");
-		String trunkSideBendTop = req.getParameter("trunkSideBendTop");
-		String trunkSideBendImpact = req.getParameter("trunkSideBendImpact");
-		String trunkRotationAddress = req.getParameter("trunkRotationAddress");
-		String trunkRotationTop = req.getParameter("trunkRotationTop");
-		String trunkRotationImpact = req.getParameter("trunkRotationImpact");
-		String pelvisForwardBendAddress = req.getParameter("pelvisForwardBendAddress");
-		String pelvisForwardBendTop = req.getParameter("pelvisForwardBendTop");
-		String pelvisForwardBendImpact = req.getParameter("pelvisForwardBendImpact");
-		String pelvisSideBendAddress = req.getParameter("pelvisSideBendAddress");
-		String pelvisSideBendTop = req.getParameter("pelvisSideBendTop");
-		String pelvisSideBendImpact = req.getParameter("pelvisSideBendImpact");
-		String pelvisRotationAddress = req.getParameter("pelvisRotationAddress");
-		String pelvisRotationTop = req.getParameter("pelvisRotationTop");
-		String pelvisRotationImpact = req.getParameter("pelvisRotationImpact");
-		String TSPelvis = req.getParameter("TSPelvis");
-		String TSTrunk = req.getParameter("TSTrunk");
-		String TSForearm = req.getParameter("TSForearm");
-		String TSHand = req.getParameter("TSHand");
-		String PSSPelvis = req.getParameter("PSSPelvis");
-		String PSSTrunk = req.getParameter("PSSTrunk");
-		String PSSForearm = req.getParameter("PSSForearm");
-		String PSSHand = req.getParameter("PSSHand");
-		String backSwingTime = req.getParameter("backSwingTime");
-		String downSwingTime = req.getParameter("downSwingTime");
-		String tempo = req.getParameter("tempo");
-		String addressS_Posture = req.getParameter("addressS_Posture");
-		String addressC_Posture = req.getParameter("addressC_Posture");
-		String topX_Factor = req.getParameter("topX_Factor");
-		String topReverseSpine = req.getParameter("topReverseSpine");
-		String topFlatShoulder = req.getParameter("topFlatShoulder");
-		String impactHipTurn = req.getParameter("impactHipTurn");
-		paramData.id = Integer.parseInt(id);
-		paramData.pelvisSpeed = Float.parseFloat(pelvisSpeed);
-		paramData.trunkSpeed = Float.parseFloat(trunkSpeed);
-		paramData.forearmSpeed = Float.parseFloat(forearmSpeed);
-		paramData.handSpeed = Float.parseFloat(handSpeed);
-		paramData.trunkForwardBendAddress = Float.parseFloat(trunkForwardBendAddress);
-		paramData.trunkForwardBendTop = Float.parseFloat(trunkForwardBendTop);
-		paramData.trunkForwardBendImpact = Float.parseFloat(trunkForwardBendImpact);
-		paramData.trunkSideBendAddress = Float.parseFloat(trunkSideBendAddress);
-		paramData.trunkSideBendTop = Float.parseFloat(trunkSideBendTop);
-		paramData.trunkSideBendImpact = Float.parseFloat(trunkSideBendImpact);
-		paramData.trunkRotationAddress = Float.parseFloat(trunkRotationAddress);
-		paramData.trunkRotationTop = Float.parseFloat(trunkRotationTop);
-		paramData.trunkRotationImpact = Float.parseFloat(trunkRotationImpact);
-		paramData.pelvisForwardBendAddress = Float.parseFloat(pelvisForwardBendAddress);
-		paramData.pelvisForwardBendTop = Float.parseFloat(pelvisForwardBendTop);
-		paramData.pelvisForwardBendImpact = Float.parseFloat(pelvisForwardBendImpact);
-		paramData.pelvisSideBendAddress = Float.parseFloat(pelvisSideBendAddress);
-		paramData.pelvisSideBendTop = Float.parseFloat(pelvisSideBendTop);
-		paramData.pelvisSideBendImpact = Float.parseFloat(pelvisSideBendImpact);
-		paramData.pelvisRotationAddress = Float.parseFloat(pelvisRotationAddress);
-		paramData.pelvisRotationTop = Float.parseFloat(pelvisRotationTop);
-		paramData.pelvisRotationImpact = Float.parseFloat(pelvisRotationImpact);
-		paramData.TSPelvis = Integer.parseInt(TSPelvis);
-		paramData.TSTrunk = Integer.parseInt(TSTrunk);
-		paramData.TSForearm = Integer.parseInt(TSForearm);
-		paramData.TSHand = Integer.parseInt(TSHand);
-		paramData.PSSPelvis = Integer.parseInt(PSSPelvis);
-		paramData.PSSTrunk = Integer.parseInt(PSSTrunk);
-		paramData.PSSForearm = Integer.parseInt(PSSForearm);
-		paramData.PSSHand = Integer.parseInt(PSSHand);
-		paramData.backSwingTime = Float.parseFloat(backSwingTime);
-		paramData.downSwingTime = Float.parseFloat(downSwingTime);
-		paramData.tempo = Float.parseFloat(tempo);
-		paramData.addressS_Posture = addressS_Posture;
-		paramData.addressC_Posture = addressC_Posture;
-		paramData.topX_Factor = topX_Factor;
-		paramData.topReverseSpine = topReverseSpine;
-		paramData.topFlatShoulder = topFlatShoulder;
-		paramData.impactHipTurn = impactHipTurn;
+public class RawDataReceive extends DeviceData {
 
-		JSONObject jsobj = new JSONObject();
-		String errorType = "{\"code\":0,\"success\": true,\"message\": []}";
-		int result = insertQueryJMEX(paramData, jsobj);
-		return 0;
+	public JSONObject getJmexRawDataReq(HttpServletRequest req) {
+		JSONObject jsobjParam = new JSONObject();
+		JSONObject job = new JSONObject();
+		try {
+			printParam(req);
+			String jmexID = req.getParameter("jmex");
+			if (jmexID != null) {
+				Long jID = Long.parseLong(jmexID);
+				jsobjParam = this.JMEXshotData(jID, job);
+				
+				jsobjParam.put("result", true);
+			}
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+		}
+		Logs.log(Logs.RUN_LOG, "Response : " + jsobjParam.toString());
+		return jsobjParam;
+	}
+	
+	public JSONObject getIRITRawDataReq(HttpServletRequest req) {
+		JSONObject jsobjParam = new JSONObject();
+		JSONObject job = new JSONObject();
+		try {
+			printParam(req);
+			String IRITid = req.getParameter("IRIT");
+			if (IRITid != null) {
+				Long iritID = Long.parseLong(IRITid);
+				jsobjParam = this.JMEXshotData(iritID, job);
+				
+				jsobjParam.put("result", true);
+			}
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+		}
+		Logs.log(Logs.RUN_LOG, "Response : " + jsobjParam.toString());
+		return jsobjParam;
 	}
 
 	public int insertQueryJMEX(jmexParamData paramData, JSONObject jsonResp) {
@@ -133,7 +81,7 @@ public class RawDataReceive extends DeviceData{
 				paramData.PSSTrunk, paramData.PSSForearm, paramData.PSSHand, paramData.backSwingTime,
 				paramData.downSwingTime, paramData.tempo, paramData.addressS_Posture, paramData.addressC_Posture,
 				paramData.topX_Factor, paramData.topReverseSpine, paramData.topFlatShoulder, paramData.impactHipTurn);
-		Logs.log(Logs.RUN_LOG, strSQL);
+		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			stmt = conn.createStatement();
@@ -151,7 +99,43 @@ public class RawDataReceive extends DeviceData{
 		}
 		DBUtil.close(rs, stmt, conn);
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
-		return 0;
+		return stmtRs;
+	}
+
+	public JSONObject JMEXshotData(Long jmexID, JSONObject jsonResp) {
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		JSONArray jarrProj = new JSONArray();
+		JSONObject jsonProject = null;
+
+		strSQL = String.format("SELECT backSwingTime,downSwingTime,tempo FROM raw_data.JMEX WHERE id=%d", jmexID);
+		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while (rs.next()) {
+				jsonProject = new JSONObject();
+				jsonProject.put("backSwingTime", rs.getString("backSwingTime"));
+				jsonProject.put("downSwingTime", rs.getString("downSwingTime"));
+				jsonProject.put("tempo", rs.getString("tempo"));
+
+				jarrProj.put(jsonProject);
+			}
+			jsonResp.put("success", true);
+
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+			jsonResp.put("success", false);
+			jsonResp.put("message", e.getMessage());
+		}
+		DBUtil.close(rs, stmt, conn);
+		Logs.log(Logs.RUN_LOG, jsonResp.toString());
+		return jsonProject;
 	}
 
 	public int insertSpaceCapuleRawData(HttpServletRequest req) {
@@ -165,24 +149,40 @@ public class RawDataReceive extends DeviceData{
 		return 0;
 	}
 
-	public int insertIRIT(HttpServletRequest req) {
-		printParam(req);
-		ITRIData paramData = new ITRIData();
-		String BallSpeed = req.getParameter("BallSpeed");
-		String BackSpin = req.getParameter("BackSpin");
-		String SideSpin = req.getParameter("SideSpin");
-		String LaunchAngle = req.getParameter("LaunchAngle");
-		String Angle = req.getParameter("Angle");
-		paramData.BallSpeed = Float.parseFloat("BallSpeed");
-		paramData.BackSpin = Float.parseFloat("BackSpin");
-		paramData.SideSpin = Float.parseFloat("SideSpin");
-		paramData.LaunchAngle = Float.parseFloat("LaunchAngle");
-		paramData.Angle = Float.parseFloat("Angle");
+	public JSONObject IRITshotData(Long IRITid, JSONObject jsonResp) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		JSONArray jarrProj = new JSONArray();
+		JSONObject jsonProject = null;
+		strSQL = String.format("SELECT * FROM raw_data.IRIT WHERE id=%d", IRITid);
+		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while (rs.next()) {
+				jsonProject = new JSONObject();
+				jsonProject.put("BallSpeed", rs.getString("BallSpeed"));
+				jsonProject.put("BackSpin", rs.getString("BackSpin"));
+				jsonProject.put("SideSpin", rs.getString("SideSpin"));
+				jsonProject.put("LaunchAngle", rs.getString("LaunchAngle"));
+				jsonProject.put("Angle", rs.getString("Angle"));
 
-		JSONObject jsobj = new JSONObject();
-		String errorType = "{\"code\":0,\"success\": true,\"message\": []}";
-		int result = insertQuerryIRIT(paramData, jsobj);
-		return 0;
+				jarrProj.put(jsonProject);
+			}
+			jsonResp.put("success", true);
+
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+			jsonResp.put("success", false);
+			jsonResp.put("message", e.getMessage());
+		}
+		DBUtil.close(rs, stmt, conn);
+		Logs.log(Logs.RUN_LOG, jsonResp.toString());
+		return jsonProject;
 	}
 
 	public int insertQuerryIRIT(ITRIData paramData, JSONObject jsonResp) {

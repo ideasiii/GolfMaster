@@ -169,33 +169,34 @@ if(result != null && result.getString("img_name") != null){
 	color: red;
 }
 
-.highlight:hover .image-container { 
+.highlight:hover .image-container {
 	display: block;
 	position: absolute;
-	top: 350px; 
+	top: 350px;
 	left: 650px;
 	padding: 5px;
 	border-radius: 5px;
 	background-color: white;
 }
 
-.highlight:hover .image-container img { 
+.highlight:hover .image-container img {
 	max-width: 100%;
 	max-height: 100%;
 }
 
 .image-container {
-	display: none; 
+	display: none;
 }
 </style>
 
 </head>
 <body class="p2Box"
-	style="background-image: url('../page/img/background.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
+	style="background-image: url('../../page/img/background.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
 
 
 	<div>
-		<img src="../page/img/logo.756e00c6.png" alt="logo" class="logoImage">
+		<img src="../../page/img/logo.756e00c6.png" alt="logo"
+			class="logoImage">
 	</div>
 	<div class="p2Box__content">
 		<div class="p2Box__content-left">
@@ -204,14 +205,14 @@ if(result != null && result.getString("img_name") != null){
 				<%
 				if (result.getBoolean("result")) {
 					String video = result.getString("video");
-					out.print("<video style='width:500px;height:400px' autoplay loop muted><source src='../page/video/" + video
+					out.print("<video style='width:500px;height:400px' autoplay loop muted><source src='../../page/video/" + video
 					+ "' type='video/mp4'></video>");
 				} else {
 					if (result != null && result.getString("img_name") != null) {
 						img = result.getString("img_name");
 					}
 					if (img != null && !img.isEmpty()) {
-						out.print("<img src='../page/img/" + img + "' style='width:50%' />");
+						out.print("<img src='../../page/img/" + img + "' style='width:50%' />");
 					}
 				}
 				%>
@@ -219,7 +220,7 @@ if(result != null && result.getString("img_name") != null){
 			<div class="p2Box__content-left-lower">
 				<%
 				if (result.getBoolean("result")) {
-					out.print("<img src='../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
+					out.print("<img src='../../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
 				} else {
 					out.print("");
 				}
@@ -323,16 +324,16 @@ if(result != null && result.getString("img_name") != null){
 	    const suggestionContent = document.getElementById('suggestionText').textContent;
 	    const causeContent = document.getElementById('causeText').textContent;
 	    const wordImageMap = {
-	        'P2': '../page/img/frontP2.png',
-	        'P3': '../page/img/frontP3.png',
-	        'P4': '../page/img/frontP4.png',
-	        'P5': '../page/img/frontP5.png',
-	        'P5.5': '../page/img/frontP5.png',
-	        'P6': '../page/img/frontP6.png',
-	        'P7': '../page/img/frontP7.png',
-	        'P8': '../page/img/frontP8.png',
-	        'P9': '../page/img/frontP9.png',
-	        'P10': '../page/img/frontP10.png'
+	        'P2': '../../page/img/frontP2.png',
+	        'P3': '../../page/img/frontP3.png',
+	        'P4': '../../page/img/frontP4.png',
+	        'P5': '../../page/img/frontP5.png',
+	        'P5.5': '../../page/img/frontP5.png',
+	        'P6': '../../page/img/frontP6.png',
+	        'P7': '../../page/img/frontP7.png',
+	        'P8': '../../page/img/frontP8.png',
+	        'P9': '../../page/img/frontP9.png',
+	        'P10': '../../page/img/frontP10.png'
 	    };
 
 	    let updatedContent = suggestionContent;
