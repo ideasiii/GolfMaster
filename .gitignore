@@ -24,4 +24,3 @@ build/
 hs_err_pid*
 *log.txt
 /bin/
-.classpath
