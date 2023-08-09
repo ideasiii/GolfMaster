@@ -7,8 +7,12 @@
 
 package com.golfmaster.service;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,10 +20,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import com.golfmaster.common.ApiResponse;
+import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
+
 
 public class StatisticsData extends Service
 {
+	/**
+	 * Error code define
+	 */
+	
+	
+	
 	private class ParamData 
 	{
 		private String player;
@@ -53,6 +65,43 @@ public class StatisticsData extends Service
 		return jsonResponse.toString();
 	}
 	
+	private int queryShotData(ParamData paramData, JSONObject jsonResponse)
+	{
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		
+		try
+		{
+			conn = DBUtil.getConnGolfMaster();
+			
+			if(null == conn)
+			{
+				errorResponse(jsonResponse, ERROR_PARAMETER, errorMessage.get(ERROR_PARAMETER));
+				return 0;
+			}
+			stmt = conn.createStatement();
+			if(0 == paramData.type.compareTo("week"))
+			{
+				strSQL = String.format("");
+			}
+			else // month
+			{
+				strSQL = String.format("select year(Date) as 'year',month(Date) as 'month', min(BallSpeed) as 'mix', "
+						+ "round(avg(BallSpeed),4) as 'avg', max(BallSpeed) as 'max' from golf_master.shot_data "
+						+ "where BallSpeed > 10 and Date >= '2022-01-01' and Date <= '2023-08-09' and Player = 'Guest.1' "
+						+ "group by year(Date),month(Date) order by 1");
+			}
+			
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	
 	private boolean requestAndTrimParams(HttpServletRequest request, ParamData paramData, JSONObject jsonResponse)
 	{
 		boolean bResult = false;
@@ -64,24 +113,20 @@ public class StatisticsData extends Service
 		
 		if (StringUtils.isEmpty(paramData.player) || StringUtils.isEmpty(paramData.type)) 
 		{
-			jsonResponse.put("success", false);
-			jsonResponse.put("code", -1);
-			jsonResponse.put("message", "參數不正確");
+			errorResponse(jsonResponse, ERROR_PARAMETER, errorMessage.get(ERROR_PARAMETER));
 		}
 		else
 		{
 			System.out.println("type=" + paramData.type);
 			if( 0 != paramData.type.compareTo("month") && 0 != paramData.type.compareTo("week"))
 			{
-				jsonResponse.put("success", false);
-				jsonResponse.put("code", -1);
-				jsonResponse.put("message", "type參數不正確");
+				errorResponse(jsonResponse, ERROR_PARAMETER, errorMessage.get(ERROR_PARAMETER) + " type錯誤");
 			}
 			else
 			{
 				if(StringUtils.isEmpty(paramData.start_date) || StringUtils.isEmpty(paramData.end_date))
 				{
-					// 取當年
+					// 取目前年
 					Calendar calendar = Calendar.getInstance();
 					paramData.start_date = String.format("%d-01-01",calendar.get(Calendar.YEAR));
 					paramData.end_date = String.format("%d-12-31",calendar.get(Calendar.YEAR));
@@ -89,9 +134,7 @@ public class StatisticsData extends Service
 				
 				if(!isValidDate(paramData.start_date) || !isValidDate(paramData.end_date))
 				{
-					jsonResponse.put("success", false);
-					jsonResponse.put("code", -2);
-					jsonResponse.put("message", "日期格式不正確");
+					errorResponse(jsonResponse, ERROR_PARAMETER_DATE_FORMAT, errorMessage.get(ERROR_PARAMETER_DATE_FORMAT));
 				}
 				else
 					bResult = true;
@@ -101,4 +144,5 @@ public class StatisticsData extends Service
 		return bResult;
 	}
 
+	
 }

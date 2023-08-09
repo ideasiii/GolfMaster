@@ -4,6 +4,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,6 +16,16 @@ import org.json.JSONObject;
 
 public abstract class Service 
 {
+	public static int ERROR_PARAMETER = -1;
+	public static int ERROR_PARAMETER_DATE_FORMAT = -2;
+	public static int ERROR_PARAMETER_DB_CONNECT = -3;
+	public static HashMap<Integer, String> errorMessage  = new HashMap<Integer, String>() {{
+	    put(ERROR_PARAMETER, "參數不正確");
+	    put(ERROR_PARAMETER_DATE_FORMAT, "日期格式不正確");
+	    put(ERROR_PARAMETER_DB_CONNECT, "資料庫連結失敗");
+	}};
+	
+	
 	abstract public String processRequest(HttpServletRequest request);
 	
 	protected void initResponse(JSONObject jsonResponse)
@@ -54,5 +66,12 @@ public abstract class Service
         }
         return true;
     }
+	
+	protected void errorResponse(JSONObject jsonResponse, int nCode, String strMessage)
+	{
+		jsonResponse.put("success", false);
+		jsonResponse.put("code", nCode);
+		jsonResponse.put("message", strMessage);
+	}
 
 }
