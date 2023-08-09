@@ -59,7 +59,7 @@ public class StatisticsData extends Service
 		StatisticsData.ParamData paramData = new StatisticsData.ParamData();
 		if(requestAndTrimParams(request, paramData, jsonResponse))
 		{
-			
+			queryShotData(paramData, jsonResponse);
 		}
 		
 		return jsonResponse.toString();
@@ -82,24 +82,41 @@ public class StatisticsData extends Service
 				return 0;
 			}
 			stmt = conn.createStatement();
-			if(0 == paramData.type.compareTo("week"))
-			{
-				strSQL = String.format("");
-			}
-			else // month
-			{
-				strSQL = String.format("select year(Date) as 'year',month(Date) as 'month', min(BallSpeed) as 'mix', "
-						+ "round(avg(BallSpeed),4) as 'avg', max(BallSpeed) as 'max' from golf_master.shot_data "
-						+ "where BallSpeed > 10 and Date >= '2022-01-01' and Date <= '2023-08-09' and Player = 'Guest.1' "
-						+ "group by year(Date),month(Date) order by 1");
-			}
+			strSQL = getStatisticsSQL(paramData, "BallSpeed", 300, 10);
+			System.out.println("SQL : " + strSQL);
+			rs = stmt.executeQuery(strSQL);
 			
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
+		DBUtil.close(rs, stmt, conn);
 		return 0;
+	}
+	
+	private String getStatisticsSQL(ParamData paramData, String shotField, float maxValue, float minValue)
+	{
+		String strSQL;
+		
+		if(0 == paramData.type.compareTo("week"))
+		{
+			strSQL = String.format("select year(Date) as 'year',week(Date) as 'week', min(%s) as 'mix', "
+					+ "round(avg(%s),4) as 'avg', max(%s) as 'max' from golf_master.shot_data "
+					+ "where %s > %f and %s < %f and Date >= '%s' and Date <= '%s' and Player = '%s' "
+					+ "group by year(Date),week(Date) order by 1", shotField, shotField,shotField,
+					shotField,minValue,shotField,maxValue,paramData.start_date,paramData.end_date, paramData.player);
+		}
+		else // month
+		{
+			strSQL = String.format("select year(Date) as 'year',month(Date) as 'month', min(%s) as 'mix', "
+					+ "round(avg(%s),4) as 'avg', max(%s) as 'max' from golf_master.shot_data "
+					+ "where %s > %f and %s < %f and Date >= '%s' and Date <= '%s' and Player = '%s' "
+					+ "group by year(Date),month(Date) order by 1", shotField, shotField,shotField,
+					shotField,minValue,shotField,maxValue,paramData.start_date,paramData.end_date, paramData.player);
+		}
+		
+		return strSQL;
 	}
 	
 	private boolean requestAndTrimParams(HttpServletRequest request, ParamData paramData, JSONObject jsonResponse)
