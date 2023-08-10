@@ -68,18 +68,7 @@ public class StatisticsData extends Service
 		}
 		
 		// test
-		InitialContext context;
-		try 
-		{
-			context = new InitialContext();
-			Context xmlNode = (Context) context.lookup("java:comp/env");
-			String expert = (String) xmlNode.lookup("expert");
-			System.out.println("expert = " + expert);
-		} 
-		catch (NamingException e) 
-		{
-			e.printStackTrace();
-		}
+		System.out.println("parameter = " + Config.getParameter("expert"));
 		
 		
 		
