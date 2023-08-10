@@ -13,6 +13,8 @@
 		username="wU4bTAacqiCiSvZvQmmJew=="
 		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
 		maxTotal="100" />
+		
+	<Environment name="expert" value="3" type="java.lang.String" override="false"/>
 </Context>
 
 <!-- 內 -->

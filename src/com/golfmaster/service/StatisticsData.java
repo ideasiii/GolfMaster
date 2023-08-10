@@ -14,6 +14,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +26,7 @@ import org.json.JSONObject;
 import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
+
 
 
 public class StatisticsData extends Service
@@ -61,6 +66,23 @@ public class StatisticsData extends Service
 		{
 			queryShotData(paramData, jsonResponse);
 		}
+		
+		// test
+		InitialContext context;
+		try 
+		{
+			context = new InitialContext();
+			Context xmlNode = (Context) context.lookup("java:comp/env");
+			String expert = (String) xmlNode.lookup("expert");
+			System.out.println("expert = " + expert);
+		} 
+		catch (NamingException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		
+		
 		
 		return jsonResponse.toString();
 	}
