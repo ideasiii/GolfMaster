@@ -16,10 +16,11 @@ import org.json.JSONObject;
 
 public abstract class Service 
 {
-	public static int ERROR_PARAMETER = -1;
-	public static int ERROR_PARAMETER_DATE_FORMAT = -2;
-	public static int ERROR_PARAMETER_DB_CONNECT = -3;
-	public static HashMap<Integer, String> errorMessage  = new HashMap<Integer, String>() {{
+	public final static int ERROR_PARAMETER = -1;
+	public final static int ERROR_PARAMETER_DATE_FORMAT = -2;
+	public final static int ERROR_PARAMETER_DB_CONNECT = -3;
+	public final static HashMap<Integer, String> errorMessage  = new HashMap<Integer, String>() 
+	{{
 	    put(ERROR_PARAMETER, "參數不正確");
 	    put(ERROR_PARAMETER_DATE_FORMAT, "日期格式不正確");
 	    put(ERROR_PARAMETER_DB_CONNECT, "資料庫連結失敗");

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -9,7 +9,11 @@
 	<classpathentry kind="src" path="WebContext"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v8.0"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v8.0">
+		<attributes>
+			<attribute name="owner.project.facets" value="jst.web;#system#"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="WebContext/WEB-INF/lib/mysql-connector-j-8.0.31.jar"/>
 	<classpathentry exported="true" kind="lib" path="WebContext/WEB-INF/lib/selenium-server-standalone-3.141.59.jar" sourcepath="WebContext/WEB-INF/lib/selenium-server-standalone-3.141.59.jar">
 		<attributes>
