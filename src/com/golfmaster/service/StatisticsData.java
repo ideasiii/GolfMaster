@@ -221,13 +221,23 @@ public class StatisticsData extends Service
 		for(int i = 0; i < jaRecords.length(); ++i)
 		{
 			JSONObject joRecord = jaRecords.getJSONObject(i);
-			if(joRecord.has("BallSpeed"))
+			for(ShotData shotData : listShotField)
 			{
-				JSONArray jaBallSpeed = joRecord.getJSONArray("BallSpeed");
-				System.out.println("BallSpeed");
-				System.out.println(jaBallSpeed.toString());
+				if(joRecord.has(shotData.fieldName))
+				{
+					JSONArray jaBallSpeed = joRecord.getJSONArray(shotData.fieldName);
+					System.out.println(shotData.fieldName);
+			        Iterator<Object> iterator = jaBallSpeed.iterator();
+			        while (iterator.hasNext()) 
+			        {
+			            JSONObject jsonObject = (JSONObject) iterator.next();
+			            for (String key : jsonObject.keySet()) 
+			            {
+			                System.out.println(key + ":" + jsonObject.get(key));
+			            }
+			        }
+				}
 			}
 		}
-		
 	}
 }
