@@ -13,9 +13,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
@@ -24,6 +26,9 @@ import com.golfmaster.common.Logs;
 
 public class StatisticsData extends Service
 {	
+	/*
+	 * 擊球數據資料結構
+	 */
 	private class ShotData
 	{
 		private String fieldName;
@@ -40,7 +45,8 @@ public class StatisticsData extends Service
 	ArrayList<StatisticsData.ShotData> listShotField = new ArrayList<StatisticsData.ShotData>(
 			Arrays.asList(new ShotData("BallSpeed", 10, 350),
             		new ShotData("TotalDistFt", 10, 350),
-            		new ShotData("LaunchDirection", -90, 90)));
+            		new ShotData("LaunchDirection", -90, 90),
+            		new ShotData("LaunchAngle", 0, 90)));
 	private void printListShot()
 	{
 		for(ShotData shotData : listShotField)
@@ -49,6 +55,9 @@ public class StatisticsData extends Service
 		}
 	}
 	
+	/*
+	 * API參數
+	 */
 	private class ParamData 
 	{
 		private String player;
@@ -78,13 +87,18 @@ public class StatisticsData extends Service
 		StatisticsData.ParamData paramData = new StatisticsData.ParamData();
 		if(requestAndTrimParams(request, paramData, jsonResponse))
 		{
-			queryShotData(paramData, jsonResponse);
+			for(ShotData shotData : listShotField)
+			{
+				//System.out.println(shotData.fieldName + " " + shotData.mix + " " + shotData.max);
+				queryShotData(paramData, jsonResponse, shotData);
+			}
+			dataTest(jsonResponse);
 		}
 			
 		return jsonResponse.toString();
 	}
 	
-	private int queryShotData(ParamData paramData, JSONObject jsonResponse)
+	private int queryShotData(ParamData paramData, JSONObject jsonResponse, ShotData shotData)
 	{
 		Connection conn = null;
 		Statement stmt = null;
@@ -101,11 +115,12 @@ public class StatisticsData extends Service
 				return 0;
 			}
 			stmt = conn.createStatement();
-			strSQL = getStatisticsSQL(paramData, "BallSpeed", 300, 10);
+			strSQL = getStatisticsSQL(paramData, shotData.fieldName, shotData.max, shotData.mix);
 			if(null != strSQL)
 			{
 				System.out.println("SQL : " + strSQL);
 				rs = stmt.executeQuery(strSQL);
+				JSONArray jaRecords = new JSONArray();
 				while (rs.next()) 
 				{
 					JSONObject jsonRecord = new JSONObject();
@@ -117,8 +132,11 @@ public class StatisticsData extends Service
 					jsonRecord.put("mix", rs.getDouble("mix"));
 					jsonRecord.put("avg", rs.getDouble("avg"));
 					jsonRecord.put("max", rs.getDouble("max"));
-					jsonResponse.getJSONArray("result").put(jsonRecord);
+					jaRecords.put(jsonRecord);
 				}
+				JSONObject joField = new JSONObject();
+				joField.put(shotData.fieldName, jaRecords);
+				jsonResponse.getJSONArray("result").put(joField);
 			}
 		}
 		catch(Exception e)
@@ -129,7 +147,7 @@ public class StatisticsData extends Service
 		return 0;
 	}
 	
-	private String getStatisticsSQL(ParamData paramData, String shotField, float maxValue, float minValue)
+	private String getStatisticsSQL(ParamData paramData, String shotField, double maxValue, double minValue)
 	{
 		String strSQL = null;
 		
@@ -196,5 +214,20 @@ public class StatisticsData extends Service
 		return bResult;
 	}
 
-	
+	private void dataTest(JSONObject joResponse)
+	{
+		JSONArray jaRecords = joResponse.getJSONArray("result");
+		
+		for(int i = 0; i < jaRecords.length(); ++i)
+		{
+			JSONObject joRecord = jaRecords.getJSONObject(i);
+			if(joRecord.has("BallSpeed"))
+			{
+				JSONArray jaBallSpeed = joRecord.getJSONArray("BallSpeed");
+				System.out.println("BallSpeed");
+				System.out.println(jaBallSpeed.toString());
+			}
+		}
+		
+	}
 }
