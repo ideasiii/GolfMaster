@@ -18,7 +18,7 @@
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 JSONObject rdResult = rawDataReceive.getJmexRawDataReq(request);
-JSONObject iritResult = rawDataReceive.getIRITRawDataReq(request);
+//JSONObject iritResult = rawDataReceive.getIRITRawDataReq(request);
 Long shot_data_id = result.getLong("shotdata_id");
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
@@ -59,22 +59,21 @@ if (rdResult != null && rdResult.getString("downSwingTime") != null) {
 if (rdResult != null && rdResult.getString("tempo") != null) {
 	tempo = Float.parseFloat(rdResult.getString("tempo"));
 }
-if (iritResult != null && iritResult.getString("BallSpeed") != null) {
-	BallSpeed = Float.parseFloat(iritResult.getString("BallSpeed"));
-}
-if (iritResult != null && iritResult.getString("tempo") != null) {
-	tempo = Float.parseFloat(iritResult.getString("tempo"));
-}
-if (iritResult != null && iritResult.getString("tempo") != null) {
-	tempo = Float.parseFloat(iritResult.getString("tempo"));
-}
-if (iritResult != null && iritResult.getString("tempo") != null) {
-	tempo = Float.parseFloat(iritResult.getString("tempo"));
-}
-if (iritResult != null && iritResult.getString("tempo") != null) {
-	tempo = Float.parseFloat(iritResult.getString("tempo"));
-}
-
+//if (iritResult != null && iritResult.getString("BallSpeed") != null) {
+//	BallSpeed = Float.parseFloat(iritResult.getString("BallSpeed"));
+//}
+//if (iritResult != null && iritResult.getString("tempo") != null) {
+//	tempo = Float.parseFloat(iritResult.getString("tempo"));
+//}
+//if (iritResult != null && iritResult.getString("tempo") != null) {
+//	tempo = Float.parseFloat(iritResult.getString("tempo"));
+//}
+//if (iritResult != null && iritResult.getString("tempo") != null) {
+//	tempo = Float.parseFloat(iritResult.getString("tempo"));
+//}
+//if (iritResult != null && iritResult.getString("tempo") != null) {
+//	tempo = Float.parseFloat(iritResult.getString("tempo"));
+//}
 %>
 
 <!DOCTYPE html>
@@ -288,9 +287,7 @@ if (iritResult != null && iritResult.getString("tempo") != null) {
 			</div>
 			<div class="p2Box__content-right-mid">
 				<div>
-					<%
-
-					%>
+					<frame src="file:///C:/Users/changchungchen/Videos/frontP1_P10v2.mp4"></frame>
 				</div>
 			</div>
 			<div class="p2Box__content-right-lower">

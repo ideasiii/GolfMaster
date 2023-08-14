@@ -25,7 +25,6 @@ public class JWebDriver {
 //		System.setProperty("webdriver.chrome.driver",
 //				"C:\\Users\\P22361\\eclipse-workspace\\GolfMaster\\src\\com\\golfmaster\\driver\\test\\chromedriver.exe");
 
-
 		if (1 == Config.HEADLESS) {
 			chromeOptions.setHeadless(true);
 		} else {
@@ -37,7 +36,7 @@ public class JWebDriver {
 		chromeOptions.addArguments("--no-sandbox");
 		chromeOptions.addArguments("--disable-dev-shm-usage");
 		chromeOptions.addArguments("--disable-extensions");
-		
+
 		wdriver = new ChromeDriver(chromeOptions);
 	}
 
@@ -55,51 +54,47 @@ public class JWebDriver {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 		}
 	}
-	
+
 	public void closeDriver() {
 		try {
-			if(null != wdriver) {				
+			if (null != wdriver) {
 				wdriver.close();
 				wdriver.quit();
 				wdriver.quit();
 				wdriver = null;
 				Logs.log(Logs.RUN_LOG, "Web Driver is quit");
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 		}
 	}
-	
-	public static void ClearChrome()
-    {
-        String cmd = "killall chromedriver";
-        String cmd2 = "killall chrome";
-        Runtime run = Runtime.getRuntime();
-        Process pr;
-        try
-        {
-            pr = run.exec(cmd);
-            pr.waitFor();
-            BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line = "";
-            while ((line=buf.readLine())!=null) {
-                System.out.println(line);
-            }
 
-            pr = run.exec(cmd2);
-            pr.waitFor();
-            buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            line = "";
-            while ((line=buf.readLine())!=null) {
-                System.out.println(line);
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+	public static void ClearChrome() {
+		String cmd = "killall chromedriver";
+		String cmd2 = "killall chrome";
+		Runtime run = Runtime.getRuntime();
+		Process pr;
+		try {
+			pr = run.exec(cmd);
+			pr.waitFor();
+			BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			String line = "";
+			while ((line = buf.readLine()) != null) {
+				System.out.println(line);
+			}
+
+			pr = run.exec(cmd2);
+			pr.waitFor();
+			buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			line = "";
+			while ((line = buf.readLine()) != null) {
+				System.out.println(line);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	public WebDriver getWdriver() {
 		return wdriver;

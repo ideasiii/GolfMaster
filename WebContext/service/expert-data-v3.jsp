@@ -16,7 +16,7 @@
 </style>
 <body class = "p2Box">
 	<div>
-		<img src="../page/img/frontv2.png">
+		<img src="../../page/img/frontv2.png">
 	</div>
 
 </body>
