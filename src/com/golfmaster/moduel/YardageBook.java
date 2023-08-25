@@ -143,7 +143,7 @@ public class YardageBook {
 			sql.append(" where player = '" + paramData.getPlayer() + "' ");
 			
 			if(paramData.getdMin() > 0 && paramData.getdMax() > 0) {
-				sql.append(" and (CarryDistFt > " + paramData.getdMin() +" and CarryDistFt < " + paramData.getdMax() + ") ");
+				sql.append(" and (CarryDistFt > " + (paramData.getdMin() * 3) +" and CarryDistFt < " + (paramData.getdMax() * 3) + ") ");
 			}
 			
 			if((paramData.getStartDate() != null && !paramData.getStartDate().isEmpty()) &&(paramData.getEndDate() != null && !paramData.getEndDate().isEmpty())) {
