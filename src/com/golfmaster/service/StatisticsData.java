@@ -92,7 +92,7 @@ public class StatisticsData extends Service
 				//System.out.println(shotData.fieldName + " " + shotData.mix + " " + shotData.max);
 				queryShotData(paramData, jsonResponse, shotData);
 			}
-			dataTest(jsonResponse);
+			//dataTest(jsonResponse);
 		}
 			
 		return jsonResponse.toString();
@@ -214,6 +214,7 @@ public class StatisticsData extends Service
 		return bResult;
 	}
 
+	@SuppressWarnings("unused")
 	private void dataTest(JSONObject joResponse)
 	{
 		JSONArray jaRecords = joResponse.getJSONArray("result");
