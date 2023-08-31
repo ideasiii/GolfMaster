@@ -27,36 +27,35 @@ public class CourseStrategy extends DeviceData {
 			printParam(request);
 			String player = request.getParameter("player");
 			String gender = request.getParameter("gender");
-			String sleepingTime = request.getParameter("sleepingTime");
+//			String sleepingTime = request.getParameter("sleepingTime");
 			String course = request.getParameter("course");
-			String courseType = request.getParameter("courseType");
+//			String courseType = request.getParameter("courseType");
 			String holeNumber = request.getParameter("holeNumber");
 //			String seniority = request.getParameter("seniority");
 			if (course != null && !course.isEmpty()) {
-				if (courseType != null && !courseType.isEmpty()) {
-					if (holeNumber != null && !holeNumber.isEmpty()) {
-						int coT = Integer.parseInt(course);
-						int hN = Integer.parseInt(holeNumber);
-						int g = Integer.parseInt(gender);
-						JSONObject result = getCourseDistance(coT, hN, g);
-						String par = result.getString("par");
-						String distance = result.getString("distance");
-						String course_name = result.getString("course_name");
-						String gen = result.getString("gender");
-						jsobjParam.put("player", player);
-						jsobjParam.put("distance", distance);
-						jsobjParam.put("par", par);
+				if (holeNumber != null && !holeNumber.isEmpty()) {
+					int coT = Integer.parseInt(course);
+					int hN = Integer.parseInt(holeNumber);
+					int g = Integer.parseInt(gender);
+					JSONObject result = getCourseDistance(coT, hN, g);
+					String par = result.getString("par");
+					String distance = result.getString("distance");
+					String course_name = result.getString("course_name");
+					String gen = result.getString("gender");
+					jsobjParam.put("code", 0);
+					jsobjParam.put("player", player);
+					jsobjParam.put("distance", distance);
+					jsobjParam.put("par", par);
 //						jsobjParam.put("seniority", seniority);
-						jsobjParam.put("sleepingTime", sleepingTime);
-						jsobjParam.put("course_name", course_name);
-						jsobjParam.put("gender", gen);
-					} else {
-						jsobjParam.put("holeNumber", false);
-					}
+//					jsobjParam.put("sleepingTime", sleepingTime);
+					jsobjParam.put("course_name", course_name);
+					jsobjParam.put("gender", gen);
 				} else {
-					jsobjParam.put("courseType", false);
+					jsobjParam.put("code", -1);
+					jsobjParam.put("holeNumber", false);
 				}
 			} else {
+				jsobjParam.put("code", -1);
 				jsobjParam.put("course", false);
 			}
 		} catch (Exception e) {

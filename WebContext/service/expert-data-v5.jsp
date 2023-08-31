@@ -155,15 +155,7 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 
 .p2Box__content-right-upper {
 	width: 100%;
-	height: 30%;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-end;
-}
-
-.p2Box__content-right-mid {
-	width: 100%;
-	height: 40%;
+	height: 50%;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
@@ -171,8 +163,9 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 
 .p2Box__content-right-lower {
 	width: 100%;
-	height: 30%;
+	height: 70%;
 	padding-top: 0%;
+	margin-top: 15%;
 }
 
 .expert_p_system {
@@ -191,35 +184,12 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 	font-size: 25px;
 	line-height: 160%;
 	letter-spacing: 0.1em;
-	color: rgba(45, 45, 45, 0.55);
-}
-
-.expert_cause1 {
-	margin-top: 3%;
-	font-style: normal;
-	font-weight: 500;
-	font-size: 16px;
-	line-height: 160%;
-	letter-spacing: 0.1em;
-	color: rgba(45, 45, 45, 0.55);
+	color: RGB(0, 169, 188);
 }
 
 .canvas {
 	width: 500px;
 	height: 250px;
-}
-
-.content {
-	display: none;
-}
-
-.expert_cause:hover .content {
-	display: block;
-	position: absolute;
-	top: 500px;
-	left: 200px;
-	padding: 5px;
-	border-radius: 5px;
 }
 
 .highlight {
@@ -228,26 +198,36 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 	font-size: 25px;
 	line-height: 160%;
 	letter-spacing: 0.1em;
-	color: rgba(45, 45, 45, 0.55);
+	color: red;
 }
 
-.highlight:hover {
+.highlight:hover .image-container {
 	display: block;
 	position: absolute;
-	top: 500px;
-	left: 200px;
+	top: 350px;
+	left: 650px;
 	padding: 5px;
 	border-radius: 5px;
+	background-color: white;
+}
+
+.highlight:hover .image-container img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.image-container {
+	display: none;
 }
 </style>
 
 </head>
 <body class="p2Box"
-	style="background-image: url('../page/img/background.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
+	style="background-image: url('../page/img/bgwithlogo2.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
 
 
 	<div>
-		<img src="../page/img/logo.756e00c6.png" alt="logo" class="logoImage">
+		<img src="../page/img/logo.png" alt="logo" class="logoImage">
 	</div>
 	<div class="p2Box__content">
 		<div class="p2Box__content-left">
@@ -270,7 +250,17 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 			<div class="p2Box__content-left-lower">
 				<%
 				if (result.getBoolean("result")) {
-					out.print("<img src='../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
+					if ("Draw 小左曲球".equals(trajectory) || "Fade 小右曲球".equals(trajectory) || "Straight 直飛球".equals(trajectory)) {
+						out.print("<img src='../page/gif/" + "Straight" + ".gif' style='width: 500px; height: 336px' />");
+					} else if ("Push Slice 右拉右曲球".equals(trajectory)) {
+						out.print("<img src='../page/gif/" + "Pushs" + ".gif' style='width: 500px; height: 336px' />");
+					} else if ("Pull Hook 左拉左曲球".equals(trajectory)) {
+						out.print("<img src='../page/gif/" + "Pullh" + ".gif' style='width: 500px; height: 336px' />");
+					} else if ("Pull 左飛球".equals(trajectory) || "Pull Slice 左拉右曲球".equals(trajectory)) {
+						out.print("<img src='../page/gif/" + "Pull" + ".gif' style='width: 500px; height: 336px' />");
+					} else if ("Push 右飛球".equals(trajectory) || "(Push)Hook 左曲球".equals(trajectory)) {
+						out.print("<img src='../page/gif/" + "Push" + ".gif' style='width: 500px; height: 336px' />");
+					}
 				} else {
 					out.print("");
 				}
@@ -278,21 +268,17 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 			</div>
 		</div>
 		<div class="p2Box__content-right">
-			<div class="p2Box__content-right-upper">
-				<%="節奏 Tempo"%>
-				<div><%="上桿時間 下桿時間 節奏"%></div>
-				<div><%=backSwingTime%>
-					<%=downSwingTime%>
-					<%=tempo%></div>
-			</div>
-			<div class="p2Box__content-right-mid">
-				<div>
-					<frame src="file:///C:/Users/changchungchen/Videos/frontP1_P10v2.mp4"></frame>
+			<div class="p2Box__content-right-upper" style="border-width:3px;border-style:solid;border-color:RGB(0, 169, 188);padding:5px;">
+				<div class="expert_cause" style='height: 240px'><%="節奏 Tempo"%>
+					<div class="expert_cause"><%="上桿時間 下桿時間 節奏"%></div>
+					<div class="expert_cause"><%=backSwingTime%>
+						<%=downSwingTime%>
+						<%=tempo%></div>
 				</div>
 			</div>
-			<div class="p2Box__content-right-lower">
+			<div class="p2Box__content-right-lower" style="border-width:3px;border-style:solid;border-color:RGB(0, 169, 188);padding:5px;">
 				<div class="expert_cause"><%="彈道:" + trajectory%></div>
-				<div class="expert_cause1"><%="建議:" + suggestion%></div>
+				<div class="expert_cause"><%="建議:" + suggestion%></div>
 			</div>
 		</div>
 	</div>
