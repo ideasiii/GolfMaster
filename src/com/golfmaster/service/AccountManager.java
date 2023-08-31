@@ -94,20 +94,21 @@ public class AccountManager extends Service
 				return 0;
 			}
 			stmt = conn.createStatement();
-			strSQL = String.format("SELECT count(1) as player FROM golf_master.shot_data WHERE Player = '%s'", paramData.player);
+			strSQL = String.format("SELECT count(1) as count FROM golf_master.shot_data WHERE Player = '%s'", paramData.player);
 			if(null != strSQL)
 			{
 				Logs.log(Logs.RUN_LOG, "SQL : " + strSQL);
 				rs = stmt.executeQuery(strSQL);
 				
 				JSONObject jsonRecord = new JSONObject();
+				jsonRecord.put("player", paramData.player);
 				if (rs.next()) 
 				{
-					jsonRecord.put("player", rs.getInt("player"));
+					jsonRecord.put("count", rs.getInt("count"));
 				}
 				else
 				{
-					jsonRecord.put("player", 0);
+					jsonRecord.put("count", 0);
 				}
 				
 				jsonResponse.getJSONArray("result").put(jsonRecord);
