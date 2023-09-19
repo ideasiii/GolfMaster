@@ -26,23 +26,14 @@ import com.golfmaster.moduel.DeviceData;
 
 public class ExpertData extends DeviceData{
 	
+	@SuppressWarnings("unused")
 	private class Expert {
-		@SuppressWarnings("unused")
+		
 		public Long shot_data_id;
-		
-		@SuppressWarnings("unused")
 		public String expert_trajectory;
-		
-		@SuppressWarnings("unused")
 		public String expert_p_system;
-		
-		@SuppressWarnings("unused")
 		public String expert_suggestion;
-		
-		@SuppressWarnings("unused")
 		public String expert_cause;
-		
-		@SuppressWarnings("unused")
 		public String expert_update_time;
 	}
 	

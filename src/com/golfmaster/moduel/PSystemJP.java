@@ -1,33 +1,16 @@
-/**
- * P System專家分析模組
- * 1公尺等於1.09361碼，你可以直接將公尺數乘以 1.09361 就可以得到碼數
- * 1碼相等於3英尺
- */
 package com.golfmaster.moduel;
 
 import org.json.JSONObject;
 import com.golfmaster.common.Logs;
 
-public class PSystem extends DeviceData
+
+public class PSystemJP extends DeviceDataJP
 {
-	public PSystem() 
+	public PSystemJP() 
 	{
 
 	}
 
-	@Override
-	protected void finalize() throws Throwable
-	{
-		
-	}
-
-	@Override
-	public String toString()
-	{
-		return super.toString();
-	}
-
-	// 中文
 	public String expertAnalysis(float BallSpeed, float ClubAnglePath, float ClubAngleFace, float TotalDistFt, float CarryDistFt,
 			float LaunchAngle, float SmashFactor, float BackSpin, float SideSpin, float ClubHeadSpeed, float LaunchDirection,
 			float DistToPinFt)
@@ -36,7 +19,7 @@ public class PSystem extends DeviceData
 		JSONObject jsonExpert = new JSONObject();
 		jsonExpert.put("success", true);
 
-		DeviceData.WrgData wrgData = new DeviceData.WrgData();
+		DeviceDataJP.WrgData wrgData = new DeviceDataJP.WrgData();
 		WrgExpert wrgExpert = new WrgExpert();
 
 		wrgData.BallSpeed = BallSpeed; // 球速
@@ -83,7 +66,7 @@ public class PSystem extends DeviceData
 		if (wrgData.ClubAngleFace > 15 || wrgData.ClubAngleFace < -15)
 		{
 			// 球桿面和高爾夫球接觸中心點的水平球桿面方向
-			wrgExpert.expert_suggestion = "球桿面和高爾夫球接觸中心點的水平球桿面方向超出正常範圍";
+			wrgExpert.expert_suggestion = "クラブフェースとゴルフボールの接触中心点におけるクラブフェースの水平方向が正常範囲外である";
 			wrgExpert.expert_cause = SHOT_FAIL_BODY;
 			wrgExpert.expert_p_system = SHOT_FAIL;
 			wrgExpert.expert_trajectory = SHOT_FAIL;
@@ -94,7 +77,7 @@ public class PSystem extends DeviceData
 		{
 			// 高爾夫擊球的預期曲率(旋轉軸)的關鍵因素。假設中心接觸，球應該朝向面角彎曲並遠離球桿路徑(+5、0、-5)技術定義：FACE
 			// ANGLE 和 CLUB PATH 定義的角度差（FACE ANGLE 減去 CLUB PATH）。
-			wrgExpert.expert_suggestion = "高爾夫擊球的預期曲率超出正常範圍";
+			wrgExpert.expert_suggestion = "ゴルフショットの予想される曲率が通常の範囲外です";
 			wrgExpert.expert_cause = SHOT_FAIL_BODY;
 			wrgExpert.expert_p_system = SHOT_FAIL;
 			wrgExpert.expert_trajectory = SHOT_FAIL;
@@ -114,27 +97,27 @@ public class PSystem extends DeviceData
 			bValid = true;
 			if (wrgData.BallSpeed >= 150)
 			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到職業級水準 ";
+				wrgExpert.expert_suggestion = "ボールの配置点からインパクトポイントまでの距離はプロレベルに達します ";
 			}
 			else if (wrgData.BallSpeed >= 140 && wrgData.BallSpeed < 150)
 			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到教練水準 ";
+				wrgExpert.expert_suggestion = "ボールの配置点からインパクト点までの距離がコーチレベルに達する ";
 			}
 			else if (wrgData.BallSpeed >= 130 && wrgData.BallSpeed < 140)
 			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到專業水準 ";
+				wrgExpert.expert_suggestion = "ボールの設置点からインパクトポイントまでの距離がプロレベルに達する ";
 			}
 			else if (wrgData.BallSpeed >= 120 && wrgData.BallSpeed < 130)
 			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到專業水準 ";
+				wrgExpert.expert_suggestion = "ボールの設置点からインパクトポイントまでの距離がプロレベルに達する ";
 			}
 			else if (wrgData.BallSpeed >= 100 && wrgData.BallSpeed < 120)
 			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到標準水準 ";
+				wrgExpert.expert_suggestion = "ボールの配置点から打点までの距離が標準レベルに達している ";
 			}
 			else if (wrgData.BallSpeed >= 80 && wrgData.BallSpeed < 100)
 			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離一般水準 ";
+				wrgExpert.expert_suggestion = "ボールの配置点からインパクトポイントまでの距離は平均的です ";
 			}
 			else
 			{
@@ -151,7 +134,7 @@ public class PSystem extends DeviceData
 
 		if (wrgData.LaunchAngle < LAUNCH_ANGLE_MIN)
 		{
-			wrgExpert.expert_suggestion = "擊球發射角度超出正常範圍";
+			wrgExpert.expert_suggestion = "ボールの打ち出し角が正常範囲外です";
 			wrgExpert.expert_cause = SHOT_FAIL_BODY;
 			wrgExpert.expert_p_system = SHOT_FAIL;
 			wrgExpert.expert_trajectory = SHOT_FAIL;
@@ -310,7 +293,7 @@ public class PSystem extends DeviceData
 		bValid = true;
 		if (!getCarryDistFt(wrgData, wrgExpert))
 		{
-			wrgExpert.expert_suggestion = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+			wrgExpert.expert_suggestion = "ダウンスイングでは膝を伸ばし、腰を伸ばし、肩をすくめ、頭を上げ、上腕にかかる力で肘を曲げ、体の重心をかかとに移します";
 			wrgExpert.expert_p_system = P5_6;
 		}
 		else
@@ -456,7 +439,7 @@ public class PSystem extends DeviceData
 
 		wrgExpert.expert_p_system = p2_9;
 		wrgExpert.expert_suggestion = SHOT_FAIL_BODY;
-		wrgExpert.expert_cause = "擊球角度過小 ";
+		wrgExpert.expert_cause = "打球角度が小さすぎる ";
 
 		int nYt = Math.round(wrgData.CarryDistFt / 10);
 
@@ -467,13 +450,13 @@ public class PSystem extends DeviceData
 		{
 			if (60 <= wrgData.BallSpeed)
 			{
-				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，揮動手臂下杆或者下杆時肩膀太過主動，這些動作都無法形成強大的力量";
-				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_suggestion += "バンカーにボールが入らない場合は、ダウンスイング中に体の回転や腕の振り、ダウンスイング中に肩の力が入りすぎるなどの動作が強い力を生みません。";
+				wrgExpert.expert_cause = "ダウンスイングでは膝を伸ばし、腰を伸ばし、肩をすくめ、頭を上げ、上腕にかかる力で肘を曲げ、体の重心をかかとに移します。";
 			}
 			else
 			{
-				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，而不是依靠手臂的力量。身體旋轉地速度越快，擊球力量就會越大";
-				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_suggestion += "バンカーにボールが入らない場合は、腕の力に頼るのではなく、体の回転を利用することをお勧めします。 体の回転が速いほどボールの威力は大きくなります";
+				wrgExpert.expert_cause = "ダウンスイングでは膝を伸ばし、腰を伸ばし、肩をすくめ、頭を上げ、上腕にかかる力で肘を曲げ、体の重心をかかとに移します。";
 			}
 		}
 		else
@@ -487,33 +470,33 @@ public class PSystem extends DeviceData
 					wrgExpert.expert_trajectory = THE_TOP;
 					break;
 				case 1:
-					wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭";
-					wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+					wrgExpert.expert_cause += "ダウンスイングのときは、膝を伸ばし、腰を伸ばし、肩をすくめ、頭を上げます";
+					wrgExpert.expert_suggestion += " インパクト中は左手首を真っ直ぐにし、シャフトを前傾させてください。";
 					break;
 				case 2:
-					wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
-					wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+					wrgExpert.expert_cause += "ダウンスイングでは膝関節が真っ直ぐになり、上腕の力で肘が曲がり、体の重心がかかとに移動します。";
+					wrgExpert.expert_suggestion += " インパクト中は左手首を真っ直ぐにし、シャフトを前傾させてください。";
 					break;
 				case 3:
 				case 4:
 				case 5:
-					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
-					wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+					wrgExpert.expert_cause += "ダウンスイング中、クラブのリリースとクラブの加速が早すぎる";
+					wrgExpert.expert_suggestion += " バックスイングのプロセス中、体の重心を右に移動しすぎないでください。できれば右足の内側までに移動してください。";
 					break;
 				case 6:
 				case 7:
 				case 8:
-					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
-					wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+					wrgExpert.expert_cause += "ダウンスイング中、クラブのリリースとクラブの加速が早すぎる";
+					wrgExpert.expert_suggestion += " バックスイングのプロセス中、体の重心を右に移動しすぎないでください。できれば右足の内側までに移動してください。";
 					break;
 				case 9:
-					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
-					wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+					wrgExpert.expert_cause += "ダウンスイング中、クラブのリリースとクラブの加速が早すぎる";
+					wrgExpert.expert_suggestion += " ウッドクラブはボールの中心線に平行にスイープし、アイアンクラブはボールの中心に向かって下方向に打ちます。";
 					break;
 				case 10:
 				case 11:
-					wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
-					wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+					wrgExpert.expert_cause += "ダウンスイングでは膝関節が真っ直ぐになり、上腕の力で肘が曲がり、体の重心がかかとに移動します。";
+					wrgExpert.expert_suggestion += " ウッドクラブはボールの中心線に平行にスイープし、アイアンクラブはボールの中心に向かって下方向に打ちます。";
 					break;
 				default:
 					bValid = false;
@@ -577,30 +560,5 @@ public class PSystem extends DeviceData
 
 		return bValid;
 	}
+	
 }
-
-/*
- * 
- * 
- * jsonProject.put("BallSpeed", rs.getDouble("BallSpeed"));
- * //高爾夫球在撞擊後立即的速度，球速是由球桿速度和衝擊力決定的。*技術定義：球速係指高爾夫球重心與桿面分離後的速度\n單位: mph
- * jsonProject.put("LaunchAngle", rs.getDouble("LaunchAngle"));
- * //隨著球速的降低，最佳發射角度必須增加，後旋也必須增加。單位: degree jsonProject.put("LaunchDirection",
- * rs.getDouble("LaunchDirection"));
- * //發射方向是球相對於目標線開始的初始方向。正發射方向表示球從目標右側開始，負發射方向......單位: degree
- * jsonProject.put("ClubHeadSpeed", rs.getDouble("ClubHeadSpeed"));
- * //從身體設置，到上桿頂點身體旋轉，讓手臂和身體將保持連接，保持在正確的揮桿平面上，並使用大肌肉來創造擊球過程。(握壓/Swing/釋放/節奏)，單位:
- * mph jsonProject.put("ClubAngleFace", rs.getDouble("ClubAngleFace"));
- * //高爾夫球手將此稱為具有“開放”或“封閉”桿面。*技術定義：在高爾夫球最大壓縮時，球桿面和高爾夫球接觸中心點的水平球桿面方向，單位: degree
- * jsonProject.put("ClubAnglePath", rs.getDouble("ClubAnglePath"));
- * //高爾夫擊球的預期曲率(旋轉軸)的關鍵因素。假設中心接觸，球應該朝向面角彎曲並遠離球桿路徑(+5、0、-5)\\\\n技術定義：FACE ANGLE 和
- * CLUB PATH 定義的角度差（FACE ANGLE 減去 CLUB PATH）。單位: degree'
- * jsonProject.put("BackSpin", rs.getInt("BackSpin")); //高爾夫球迴旋是高爾夫球的反向旋轉
- * jsonProject.put("SideSpin", rs.getInt("SideSpin")); //高爾夫球側旋是橫向發生的旋轉
- * jsonProject.put("SmashFactor", rs.getDouble("SmashFactor")); //球桿速度除以球速
- * jsonProject.put("ClubType", rs.getString("ClubType")); //幾號球桿、材質
- * jsonProject.put("DistToPinFt", rs.getDouble("DistToPinFt")); //擊球後與目標的距離，單位:
- * ft 呎 jsonProject.put("CarryDistFt", rs.getDouble("CarryDistFt"));
- * //置球點到擊球落點的距離，單位: ft 呎 jsonProject.put("TotalDistFt",
- * rs.getDouble("TotalDistFt")); //置球點到擊球後停止滾動的距離，單位: ft 呎
- */

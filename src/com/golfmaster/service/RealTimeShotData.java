@@ -27,30 +27,24 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.DeviceData;
 import com.golfmaster.moduel.PSystem;
-import com.golfmaster.service.Config;
+import com.golfmaster.moduel.PSystemJP;
 
 public class RealTimeShotData extends DeviceData{
 	
-	private class BasicInfo {
-		@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
+	private class BasicInfo 
+	{	
 		public String idx;
-		
-		@SuppressWarnings("unused")
 		public String LID;
-		
-		@SuppressWarnings("unused")
 		public String Player;
-		
-		@SuppressWarnings("unused")
 		public String Date;
-		
-		@SuppressWarnings("unused")
 		public String Token;
-		
 		public ShotData shotData;
 	}
 	
-	private class ShotData {
+	@SuppressWarnings("unused")
+	private class ShotData 
+	{
 		public float BallSpeed;
 		public float ClubAnglePath;
 		public float ClubAngleFace;
@@ -63,62 +57,61 @@ public class RealTimeShotData extends DeviceData{
 		public float ClubHeadSpeed;
 		public float LaunchDirection;
 		public float DistToPinFt;
-		
-		@SuppressWarnings("unused")
 		public String ClubType;
 	}
 	
-	private class Expert {
-		@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
+	private class Expert 
+	{
 		public Long shot_data_id;
-		
-		@SuppressWarnings("unused")
 		public String expert_trajectory;
-		
-		@SuppressWarnings("unused")
 		public String expert_p_system;
-		
-		@SuppressWarnings("unused")
 		public String expert_suggestion;
-		
-		@SuppressWarnings("unused")
 		public String expert_cause;
-		
-		@SuppressWarnings("unused")
 		public String expert_update_time;
 	}
 	
-	
-	
-	public String processRequest(HttpServletRequest request) {
+	public String processRequest(HttpServletRequest request) 
+	{
 		JSONObject jsonResponse = null;
-//		String strResponse = "{\"success\": true,\"result\": []}";
 		
-		try {
+		try 
+		{
 			printParam(request);
 			
 			String port = "";
-			if(request.getServerPort() != 80) {
+			if(request.getServerPort() != 80) 
+			{
 				port = ":" + String.valueOf(request.getServerPort());
 			}	
 			String basePath = request.getScheme() + "://" + request.getServerName() + port + request.getContextPath() + "/";
 //			String redirectUrl = basePath + "service/expert-data.jsp";//original
 //			String redirectUrl = basePath + "service/expert-data-v2.jsp";//for demo 1.0version
 //			String redirectUrl = basePath + "service/expert-data-v3.jsp";//for demo 2.0version
-			Config config = new Config();
-			String value = config.getParameter("expert");
-			String redirectUrl = basePath + "service/expert-data-v"+value+".jsp";
+			String redirectUrl = basePath + "service/expert-data-v" + Config.getParameter("expert") + ".jsp";
 			
 			String shotData = request.getParameter("shotData");
 			jsonResponse = this.checkParam(shotData);
-			if (null != jsonResponse) {
+			if (null != jsonResponse) 
+			{
 				return jsonResponse.toString();
 			}
 			
 			BasicInfo info = this.getShotData(shotData);
-			String result = new PSystem().expertAnalysis(info.shotData.BallSpeed, info.shotData.ClubAnglePath, info.shotData.ClubAngleFace, info.shotData.TotalDistFt, 
+			String result;
+			if(0 < info.Player.lastIndexOf(".jp"))
+			{
+				result = new PSystemJP().expertAnalysis(info.shotData.BallSpeed, info.shotData.ClubAnglePath, info.shotData.ClubAngleFace, info.shotData.TotalDistFt, 
+						info.shotData.CarryDistFt, info.shotData.LaunchAngle, info.shotData.SmashFactor, info.shotData.BackSpin, info.shotData.SideSpin, 
+						info.shotData.ClubHeadSpeed, info.shotData.LaunchDirection, info.shotData.DistToPinFt);
+			}
+			else
+			{
+			    result = new PSystem().expertAnalysis(info.shotData.BallSpeed, info.shotData.ClubAnglePath, info.shotData.ClubAngleFace, info.shotData.TotalDistFt, 
 					info.shotData.CarryDistFt, info.shotData.LaunchAngle, info.shotData.SmashFactor, info.shotData.BackSpin, info.shotData.SideSpin, 
 					info.shotData.ClubHeadSpeed, info.shotData.LaunchDirection, info.shotData.DistToPinFt);
+			}
+			
 			if(result != null && !result.isEmpty()) {
 				long shotDataId = this.saveShotData(info);
 				if(shotDataId > 0) {
@@ -162,23 +155,33 @@ public class RealTimeShotData extends DeviceData{
 		return jsonResponse.toString();
 	}
 	
-	private JSONObject checkParam(String shotData) throws Exception{
+	private JSONObject checkParam(String shotData) throws Exception
+	{
 		JSONObject result = null;
-		try {
-			if(shotData == null || StringUtils.trimToEmpty(shotData).isEmpty()) {
+		try 
+		{
+			if(shotData == null || StringUtils.trimToEmpty(shotData).isEmpty()) 
+			{
 				result = ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
-			}else {
+			}
+			else 
+			{
 				JSONObject main = new JSONObject(shotData);
 				String [] keys = {"idx", "LID", "Player", "Date", "Token", "ShotData"};
-				for(int i = 0;i<keys.length;i++) {
-					if(!main.has(keys[i])) {
+				for(int i = 0;i<keys.length;++i) 
+				{
+					if(!main.has(keys[i])) 
+					{
 						result = ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
 						break;
 					}
 				}
-				if(result == null) {
-					for(String key : main.keySet()) {
-						if(main.get(key) == null || main.get(key).toString().isEmpty()) {
+				if(result == null) 
+				{
+					for(String key : main.keySet()) 
+					{
+						if(main.get(key) == null || main.get(key).toString().isEmpty()) 
+						{
 							result = ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
 							break;
 						}
@@ -188,7 +191,8 @@ public class RealTimeShotData extends DeviceData{
 					ShotData shd = new ShotData();
 					Field [] fields = shd.getClass().getDeclaredFields();
 					
-					for(int i=0;i<fields.length;i++) {
+					for(int i=0;i<fields.length;++i) 
+					{
 						String fieldName = fields[i].getName();
 						if("this$0".equals(fieldName)) {
 							continue;

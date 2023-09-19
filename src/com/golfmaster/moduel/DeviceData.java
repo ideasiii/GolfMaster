@@ -1,6 +1,7 @@
 package com.golfmaster.moduel;
 
-public abstract class DeviceData {
+public abstract class DeviceData 
+{
 	public static final String SHOT_FAIL = "擊球失敗,無法判定";
 	public static final String SHOT_FAIL_BODY = "擊球姿勢嚴重錯誤";
 
