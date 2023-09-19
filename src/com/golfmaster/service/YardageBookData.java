@@ -2,6 +2,7 @@
  * 個人碼數表API
  * 參數: player(必填)
  * http://localhost/GolfMaster/service/yardage.jsp?player=Guest.1&type=month&start_date=2023-01-01&end_date=2023-08-02
+ * http://61.216.149.161/GolfMaster/service/yardage.jsp?player=Guest.1&type=month&start_date=2023-01-01&end_date=2023-08-02
  *
  */
 
