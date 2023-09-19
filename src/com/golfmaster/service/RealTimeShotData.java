@@ -27,6 +27,7 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.DeviceData;
 import com.golfmaster.moduel.PSystem;
+import com.golfmaster.service.Config;
 
 public class RealTimeShotData extends DeviceData{
 	
@@ -103,8 +104,10 @@ public class RealTimeShotData extends DeviceData{
 			String basePath = request.getScheme() + "://" + request.getServerName() + port + request.getContextPath() + "/";
 //			String redirectUrl = basePath + "service/expert-data.jsp";//original
 //			String redirectUrl = basePath + "service/expert-data-v2.jsp";//for demo 1.0version
-			String redirectUrl = basePath + "service/expert-data-v3.jsp";//for demo 2.0version
-//			String redirectUrl = basePath + "service/expert-data-v4.jsp";
+//			String redirectUrl = basePath + "service/expert-data-v3.jsp";//for demo 2.0version
+			Config config = new Config();
+			String value = config.getParameter("expert");
+			String redirectUrl = basePath + "service/expert-data-v"+value+".jsp";
 			
 			String shotData = request.getParameter("shotData");
 			jsonResponse = this.checkParam(shotData);

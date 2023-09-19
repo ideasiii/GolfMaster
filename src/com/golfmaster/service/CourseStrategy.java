@@ -27,11 +27,10 @@ public class CourseStrategy extends DeviceData {
 			printParam(request);
 			String player = request.getParameter("player");
 			String gender = request.getParameter("gender");
-//			String sleepingTime = request.getParameter("sleepingTime");
 			String course = request.getParameter("course");
-//			String courseType = request.getParameter("courseType");
 			String holeNumber = request.getParameter("holeNumber");
-//			String seniority = request.getParameter("seniority");
+			String clubParam  = request.getParameter("club");
+			JSONObject club = new JSONObject(clubParam);
 			if (course != null && !course.isEmpty()) {
 				if (holeNumber != null && !holeNumber.isEmpty()) {
 					int coT = Integer.parseInt(course);
@@ -46,10 +45,9 @@ public class CourseStrategy extends DeviceData {
 					jsobjParam.put("player", player);
 					jsobjParam.put("distance", distance);
 					jsobjParam.put("par", par);
-//						jsobjParam.put("seniority", seniority);
-//					jsobjParam.put("sleepingTime", sleepingTime);
 					jsobjParam.put("course_name", course_name);
 					jsobjParam.put("gender", gen);
+					jsobjParam.put("club", club);
 				} else {
 					jsobjParam.put("code", -1);
 					jsobjParam.put("holeNumber", false);

@@ -138,32 +138,6 @@ public class AnalysisNetwork extends DeviceData {
 		return strResult;
 	}
 
-//	public int querryCountPlayerPlay(String player) {
-//		Connection conn = null;
-//		Statement stmt = null;
-//		ResultSet rs = null;
-//		String strSQL;
-//		int countNum = 0;
-//		strSQL = String.format("SELECT COUNT(*) FROM golf_master.shot_data WHERE Player = '%s';", player);
-//		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
-//
-//		try {
-//			conn = DBUtil.getConnGolfMaster();
-//			stmt = conn.createStatement();
-//			rs = stmt.executeQuery(strSQL);
-//			while (rs.next()) {
-//				countNum = rs.getInt("COUNT(*)");
-//
-//			}
-//			System.out.println("total times:"+countNum);
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			Logs.log(Logs.EXCEPTION_LOG, e.toString());
-//			e.printStackTrace();
-//		}
-//		DBUtil.close(rs, stmt, conn);
-//		return countNum;
-//	}
 	private String formatExpertJSON(WrgExpert wrgExpert, JSONObject jsonExpert) {
 		jsonExpert.put("expert_suggestion", wrgExpert.expert_suggestion);
 		jsonExpert.put("expert_cause", wrgExpert.expert_cause);
