@@ -27,26 +27,30 @@ public class RandomData {
 			Random random = new Random();
 
 			// 初始日期時間
-			LocalDate startDate = LocalDate.of(2023, 5, 1);
+			LocalDate startDate = LocalDate.of(2023, 9, 1);
+			LocalDate endDate = LocalDate.now();
 			LocalTime startTime = LocalTime.of(9, 0); // 起始時間為早上 9 點
 			LocalTime endTime = LocalTime.of(18, 0); // 結束時間為下午 6 點
 			LocalDateTime currentDateTime = LocalDateTime.of(startDate, startTime);
 
 			for (int i = 0; i < numInserts; i++) {
 				// 生成隨機秒數在 30 到 90 之間
-				int randomSeconds = random.nextInt(61) + 30; // 30 到 90 之間的隨機秒數
+				int randomSeconds = random.nextInt(600) + 300; // 30 到 90 之間的隨機秒數
 
 				// 計算下一筆日期時間
 				currentDateTime = currentDateTime.plusSeconds(randomSeconds);
 
-				// 確保日期時間在工作日 (非六日) 且在 9 點到 18 點之間
-				while (currentDateTime.getDayOfWeek() == DayOfWeek.SATURDAY
-						|| currentDateTime.getDayOfWeek() == DayOfWeek.SUNDAY
-						|| currentDateTime.toLocalTime().isBefore(startTime)
-						|| currentDateTime.toLocalTime().isAfter(endTime)) {
-					// 如果是六日或在時間範圍外，則加一天
-					currentDateTime = currentDateTime.plusDays(1);
-				}
+				 // 如果超過結束時間，則加一天
+	            if (currentDateTime.toLocalTime().isAfter(endTime)) {
+	                currentDateTime = currentDateTime.plusDays(1).with(startTime);
+	            }
+	            
+	            // 確保日期時間在工作日 (非六日)
+	            while (currentDateTime.getDayOfWeek() == DayOfWeek.SATURDAY ||
+	                   currentDateTime.getDayOfWeek() == DayOfWeek.SUNDAY) {
+	                // 如果是六日，則加一天
+	                currentDateTime = currentDateTime.plusDays(1).with(startTime);
+	            }
 
 				double maxBall = 120.99;
 				double minBall = 0.00;
@@ -72,6 +76,7 @@ public class RandomData {
 
 				// 執行插入操作
 				stmtRs = stmt.executeUpdate(strSQL);
+				System.out.println(i);
 			}
 		} catch (Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());

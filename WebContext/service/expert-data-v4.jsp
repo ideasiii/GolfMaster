@@ -8,9 +8,13 @@
 <%@ page import="java.util.ArrayList"%>
 <%@ page import="com.golfmaster.service.ExpertData"%>
 <%@ page import="com.golfmaster.service.ShotData"%>
+<%@ page import="com.golfmaster.moduel.PSystem"%>
+<%@ page import="com.golfmaster.moduel.PSystemJP"%>
 
 <%!ExpertData expertData = new ExpertData();%>
 <%!ShotData shotData = new ShotData();%>
+<%!PSystem pSystem= new PSystem();%>
+<%!PSystemJP pSystemJP= new PSystemJP();%>
 
 <%
 request.setCharacterEncoding("UTF-8");
@@ -220,7 +224,25 @@ if(result != null && result.getString("img_name") != null){
 			<div class="p2Box__content-left-lower">
 				<%
 				if (result.getBoolean("result")) {
-					out.print("<img src='../../page/gif/" + trajectory + ".gif' style='width: 500px; height: 336px' />");
+					if(trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystemJP.DRAW)){
+						out.print("<img src='../../page/gif/"+"Draw 小左曲球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystemJP.STRAIGHT)){
+						out.print("<img src='../../page/gif/"+"Straight 直飛球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.FADE) || trajectory.equals(pSystemJP.FADE)){
+						out.print("<img src='../../page/gif/"+"Fade 小右曲球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)){
+						out.print("<img src='../../page/gif/"+"Pull 左飛球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)){
+						out.print("<img src='../../page/gif/"+"Pull Hook 左拉左曲球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)){
+						out.print("<img src='../../page/gif/"+"Pull Slice 左拉右曲球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)){
+						out.print("<img src='../../page/gif/"+"Push 右飛球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)){
+						out.print("<img src='../../page/gif/"+"(Push)Hook 左曲球"+".gif' style='width: 500px; height: 336px' />");
+					}else if(trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)){
+						out.print("<img src='../../page/gif/"+"Push Slice 右拉右曲球"+".gif' style='width: 500px; height: 336px' />");
+					}
 				} else {
 					out.print("");
 				}

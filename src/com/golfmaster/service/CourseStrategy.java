@@ -25,12 +25,13 @@ public class CourseStrategy extends DeviceData {
 		JSONObject jsobjParam = new JSONObject();
 		try {
 			printParam(request);
+//			String playData = 
 			String player = request.getParameter("player");
 			String gender = request.getParameter("gender");
 			String course = request.getParameter("course");
 			String holeNumber = request.getParameter("holeNumber");
-			String clubParam  = request.getParameter("club");
-			JSONObject club = new JSONObject(clubParam);
+			String club  = request.getParameter("club");
+//			JSONObject club = new JSONObject(clubParam);
 			if (course != null && !course.isEmpty()) {
 				if (holeNumber != null && !holeNumber.isEmpty()) {
 					int coT = Integer.parseInt(course);
@@ -75,10 +76,10 @@ public class CourseStrategy extends DeviceData {
 		String gen = null;
 		if (gender == 0) {
 			sex = "red";
-			gen = "female";
+			gen = "Women";
 		} else if (gender == 1) {
 			sex = "white";
-			gen = "male";
+			gen = "Men";
 		} else {
 			sex = "red";
 		}

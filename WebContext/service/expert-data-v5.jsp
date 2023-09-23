@@ -9,15 +9,19 @@
 <%@ page import="com.golfmaster.service.ExpertData"%>
 <%@ page import="com.golfmaster.service.ShotData"%>
 <%@ page import="com.golfmaster.service.RawDataReceive"%>
+<%@ page import="com.golfmaster.moduel.PSystem"%>
+<%@ page import="com.golfmaster.moduel.PSystemJP"%>
 
 <%!ExpertData expertData = new ExpertData();%>
 <%!ShotData shotData = new ShotData();%>
 <%!RawDataReceive rawDataReceive = new RawDataReceive();%>
+<%!PSystem pSystem = new PSystem();%>
+<%!PSystemJP pSystemJP = new PSystemJP();%>
 
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
-JSONObject rdResult = rawDataReceive.getJmexRawDataReq(request);
+//JSONObject rdResult = rawDataReceive.getJmexRawDataReq(request);
 //JSONObject iritResult = rawDataReceive.getIRITRawDataReq(request);
 Long shot_data_id = result.getLong("shotdata_id");
 
@@ -50,15 +54,15 @@ if (result != null && result.getString("expert_suggestion") != null) {
 	suggestion = result.getString("expert_suggestion");
 }
 
-if (rdResult != null && rdResult.getString("backSwingTime") != null) {
-	backSwingTime = Float.parseFloat(rdResult.getString("backSwingTime"));
-}
-if (rdResult != null && rdResult.getString("downSwingTime") != null) {
-	downSwingTime = Float.parseFloat(rdResult.getString("downSwingTime"));
-}
-if (rdResult != null && rdResult.getString("tempo") != null) {
-	tempo = Float.parseFloat(rdResult.getString("tempo"));
-}
+//if (rdResult != null && rdResult.getString("backSwingTime") != null) {
+//	backSwingTime = Float.parseFloat(rdResult.getString("backSwingTime"));
+//}
+//if (rdResult != null && rdResult.getString("downSwingTime") != null) {
+//	downSwingTime = Float.parseFloat(rdResult.getString("downSwingTime"));
+//}
+//if (rdResult != null && rdResult.getString("tempo") != null) {
+//	tempo = Float.parseFloat(rdResult.getString("tempo"));
+//}
 //if (iritResult != null && iritResult.getString("BallSpeed") != null) {
 //	BallSpeed = Float.parseFloat(iritResult.getString("BallSpeed"));
 //}
@@ -183,7 +187,7 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 	font-weight: 500;
 	font-size: 25px;
 	line-height: 160%;
-	letter-spacing: 0.1em;
+	letter-spacing: 0.05em;
 	color: RGB(0, 169, 188);
 }
 
@@ -223,11 +227,11 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 
 </head>
 <body class="p2Box"
-	style="background-image: url('../page/img/bgwithlogo2.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
+	style="background-image: url('../../page/img/bgwithlogo2.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
 
 
 	<div>
-		<img src="../page/img/logo.png" alt="logo" class="logoImage">
+		<img src="../../page/img/logo.png" alt="logo" class="logoImage">
 	</div>
 	<div class="p2Box__content">
 		<div class="p2Box__content-left">
@@ -235,14 +239,14 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 				<%
 				if (result.getBoolean("result")) {
 					String video = result.getString("video");
-					out.print("<video style='width:500px;height:400px' autoplay loop muted><source src='../page/video/" + video
+					out.print("<video style='width:500px;height:400px' autoplay loop muted><source src='../../page/video/" + video
 					+ "' type='video/mp4'></video>");
 				} else {
 					if (result != null && result.getString("img_name") != null) {
 						img = result.getString("img_name");
 					}
 					if (img != null && !img.isEmpty()) {
-						out.print("<img src='../page/img/" + img + "' style='width:50%' />");
+						out.print("<img src='../../page/img/" + img + "' style='width:50%' />");
 					}
 				}
 				%>
@@ -250,16 +254,20 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 			<div class="p2Box__content-left-lower">
 				<%
 				if (result.getBoolean("result")) {
-					if ("Draw 小左曲球".equals(trajectory) || "Fade 小右曲球".equals(trajectory) || "Straight 直飛球".equals(trajectory)) {
-						out.print("<img src='../page/gif/" + "Straight" + ".gif' style='width: 500px; height: 336px' />");
-					} else if ("Push Slice 右拉右曲球".equals(trajectory)) {
-						out.print("<img src='../page/gif/" + "Pushs" + ".gif' style='width: 500px; height: 336px' />");
-					} else if ("Pull Hook 左拉左曲球".equals(trajectory)) {
-						out.print("<img src='../page/gif/" + "Pullh" + ".gif' style='width: 500px; height: 336px' />");
-					} else if ("Pull 左飛球".equals(trajectory) || "Pull Slice 左拉右曲球".equals(trajectory)) {
-						out.print("<img src='../page/gif/" + "Pull" + ".gif' style='width: 500px; height: 336px' />");
-					} else if ("Push 右飛球".equals(trajectory) || "(Push)Hook 左曲球".equals(trajectory)) {
-						out.print("<img src='../page/gif/" + "Push" + ".gif' style='width: 500px; height: 336px' />");
+					if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
+					|| trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
+					|| trajectory.equals(pSystemJP.FADE)) {
+						out.print("<img src='../../page/gif/" + "Straight" + ".gif' style='width: 500px; height: 336px' />");
+					} else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
+						out.print("<img src='../../page/gif/" + "Pushs" + ".gif' style='width: 500px; height: 336px' />");
+					} else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
+						out.print("<img src='../../page/gif/" + "Pullh" + ".gif' style='width: 500px; height: 336px' />");
+					} else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)
+					|| trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)) {
+						out.print("<img src='../../page/gif/" + "Pull" + ".gif' style='width: 500px; height: 336px' />");
+					} else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)
+					|| trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
+						out.print("<img src='../../page/gif/" + "Push" + ".gif' style='width: 500px; height: 336px' />");
 					}
 				} else {
 					out.print("");
@@ -268,24 +276,130 @@ if (rdResult != null && rdResult.getString("tempo") != null) {
 			</div>
 		</div>
 		<div class="p2Box__content-right">
-			<div class="p2Box__content-right-upper" style="border-width:3px;border-style:solid;border-color:RGB(0, 169, 188);padding:5px;">
-				<div class="expert_cause" style='height: 240px'><%="節奏 Tempo"%>
-					<div class="expert_cause"><%="上桿時間 下桿時間 節奏"%></div>
-					<div class="expert_cause"><%=backSwingTime%>
-						<%=downSwingTime%>
-						<%=tempo%></div>
-				</div>
+			<div class="p2Box__content-right-upper">
+				<canvas id="canvas" style='height: 240px'></canvas>
 			</div>
-			<div class="p2Box__content-right-lower" style="border-width:3px;border-style:solid;border-color:RGB(0, 169, 188);padding:5px;">
-				<div class="expert_cause"><%="彈道:" + trajectory%></div>
-				<div class="expert_cause"><%="建議:" + suggestion%></div>
+			<div class="p2Box__content-right-lower"
+				style="border-width: 3px; border-style: solid; border-color: RGB(0, 169, 188); padding: 5px; border-radius: 30px;">
+				<div class="expert_cause">
+					<%
+					out.print("<img src='../../page/img/" + "pic_coach" + ".png' style='width: 83px; height: 82px' />");
+					%><%="彈道:" + trajectory%></div>
+				<div class="expert_cause">
+					<div id="textContainer">
+						建議:<span id="suggestionText"><%=suggestion%></span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 
 </body>
 <script>
+	var ballspeed = [];
+	var clubheadspeed = [];
+<%for (int i = 0; i < shotResult[0].length; i++) {%>
+	ballspeed.push(
+<%=shotResult[0][i]%>
+	);
+	clubheadspeed.push(
+<%=shotResult[1][i]%>
+	);
+<%}%>
+	var lineChartData = {
+		labels : [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" ], //顯示區間名稱
+		datasets : [ {
+			label : '球速', // tootip 出現的名稱
+			lineTension : 0, // 曲線的彎度，設0 表示直線
+			backgroundColor : "#ea464d",
+			borderColor : "#ea464d",
+			borderWidth : 5,
+			data : ballspeed,
+			fill : false, // 是否填滿色彩
+		}, {
+			label : '桿頭速度', // tootip 出現的名稱
+			lineTension : 0, // 曲線的彎度，設0 表示直線
+			backgroundColor : "#29b288",
+			borderColor : "#29b288",
+			borderWidth : 5,
+			data : clubheadspeed,
+			fill : false, // 是否填滿色彩
+		}, ]
+	};
+	function drawLineCanvas(ctx, data) {
+		window.myLine = new Chart(ctx, { //先建立一個 chart
+			type : 'line', // 型態
+			data : data,
+			options : {
+
+				responsive : true,
+				legend : { //是否要顯示圖示
+					display : true,
+					align : 'center'
+				},
+				tooltips : { //是否要顯示 tooltip
+					enabled : true,
+					bodyFontColor: "#00A9BC",
+				},
+				scales : { //是否要顯示 x、y 軸
+					xAxes : [ {
+						scaleLabel : {
+							display : true,
+							labelString : "次數",
+							fontSize : 16,
+						},
+						gridLines: {
+							color :"#00A9BC"
+						},
+						ticks: {
+							fontColor: "#00A9BC",
+						}
+					} ],
+					yAxes : [ {
+						scaleLabel : {
+							display : true,
+							labelString : "速度(mph)",
+							fontSize : 16,
+						},
+						gridLines: {
+							color : "#00A9BC"
+						},
+						ticks: {
+							fontColor: "#00A9BC",
+						}
+					} ]
+				},
+			}
+		});
+	};
 	
+	window.onload = function() {
+		var ctx = document.getElementById("canvas").getContext("2d");
+		drawLineCanvas(ctx, lineChartData);
+		
+		const textContainer = document.getElementById('textContainer');
+	    const suggestionContent = document.getElementById('suggestionText').textContent;
+	    const wordImageMap = {
+	        'P2': '../../page/img/frontP2.png',
+	        'P3': '../../page/img/frontP3.png',
+	        'P4': '../../page/img/frontP4.png',
+	        'P5': '../../page/img/frontP5.png',
+	        'P5.5': '../../page/img/frontP5.png',
+	        'P6': '../../page/img/frontP6.png',
+	        'P7': '../../page/img/frontP7.png',
+	        'P8': '../../page/img/frontP8.png',
+	        'P9': '../../page/img/frontP9.png',
+	        'P10': '../../page/img/frontP10.png'
+	    };
+
+	    let updatedContent = suggestionContent;
+	    Object.keys(wordImageMap).forEach(word => {
+	        const regex = new RegExp(word, 'gi');
+	        updatedContent = updatedContent.replace(regex, '<span class="highlight" data-word="' + word + '">' + word + '<div class="image-container"><img src="' + wordImageMap[word] + '"></div></span>');
+	    });
+	    textContainer.innerHTML = updatedContent;
+	    
+	};
 </script>
 </html>
 
