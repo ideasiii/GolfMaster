@@ -11,6 +11,9 @@ import com.golfmaster.common.DBUtil;
 
 public class YardageBook {
 	
+	/*
+	 * 模組參數
+	 */
 	public class ParamData {
 		
 		private String player;
@@ -49,6 +52,9 @@ public class YardageBook {
 		}
 	}
 	
+	/*
+	 * 碼數表數據資料結構
+	 */
 	public class YardageData {
 		
 		private String clubType;
@@ -142,10 +148,15 @@ public class YardageBook {
 			sql.append("select ClubType, min(CarryDistFt) as 'mix', round(avg(CarryDistFt),4) as 'avg', max(CarryDistFt) as 'max' from golf_master.shot_data");
 			sql.append(" where player = '" + paramData.getPlayer() + "' ");
 			
+			/*
 			if(paramData.getdMin() > 0 && paramData.getdMax() > 0) {
 				sql.append(" and (CarryDistFt > " + (paramData.getdMin() * 3) +" and CarryDistFt < " + (paramData.getdMax() * 3) + ") ");
 			}
+			*/
 			
+			if(paramData.getdMin() > 0) {
+				sql.append(" and (CarryDistFt >= " + paramData.getdMin() + ") ");
+			}
 			if((paramData.getStartDate() != null && !paramData.getStartDate().isEmpty()) &&(paramData.getEndDate() != null && !paramData.getEndDate().isEmpty())) {
 				sql.append(" and (Date >= '" + paramData.getStartDate() + "' and Date <= '" + paramData.getEndDate() + "') " );
 			}

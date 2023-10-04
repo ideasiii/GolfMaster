@@ -34,7 +34,7 @@ public class YardageBookData extends Service
 			Map<String, Object> reqData = this.getRequestMap(request);
 			if(this.checkParams(reqData, jsonResponse)) {
 				YardageBook ydb = new YardageBook();
-				YardageBook.ParamData paramData = ydb.new ParamData(reqData.get("player").toString(), (reqData.get("start_date") == null ? "":reqData.get("start_date").toString()), (reqData.get("end_date") == null ? "":reqData.get("end_date").toString()), 100.0, 650.0);
+				YardageBook.ParamData paramData = ydb.new ParamData(reqData.get("player").toString(), (reqData.get("start_date") == null ? "":reqData.get("start_date").toString()), (reqData.get("end_date") == null ? "":reqData.get("end_date").toString()), 30.0, 650.0);
 				List<YardageBook.YardageData> list = ydb.getYardageBook(paramData);
 				
 				if(!list.isEmpty()) {
