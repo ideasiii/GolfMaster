@@ -27,7 +27,7 @@ public class CourseStrategy extends DeviceData {
 			printParam(request);
 //			String playData = 
 			String player = request.getParameter("player");
-			String gender = request.getParameter("gender");
+			String tee = request.getParameter("tee");
 			String course = request.getParameter("course");
 			String holeNumber = request.getParameter("holeNumber");
 			String club  = request.getParameter("club");
@@ -36,7 +36,7 @@ public class CourseStrategy extends DeviceData {
 				if (holeNumber != null && !holeNumber.isEmpty()) {
 					int coT = Integer.parseInt(course);
 					int hN = Integer.parseInt(holeNumber);
-					int g = Integer.parseInt(gender);
+					int g = Integer.parseInt(tee);
 					JSONObject result = getCourseDistance(coT, hN, g);
 					String par = result.getString("par");
 					String distance = result.getString("distance");

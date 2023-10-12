@@ -103,7 +103,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 .p2Box {
 	width: 98%;
 	/*min-height: 710px;*/
-	max-height: 850px;
+	max-height: 1250px;
 	display: flex;
 	flex-direction: column;
 	background-color: #F7F7F7;
@@ -139,7 +139,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 	display: flex;
 	margin-left: 50px;
 	position: absolute;
-	top: 500px;
+	top: 450px;
 	/*     justify-content: flex-end;*/
 }
 
@@ -230,9 +230,9 @@ if (result != null && result.getString("expert_suggestion") != null) {
 	style="background-image: url('../../page/img/bgwithlogo2.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
 
 
-	<div>
+	<!-- <div>
 		<img src="../../page/img/logo.png" alt="logo" class="logoImage">
-	</div>
+	</div> -->
 	<div class="p2Box__content">
 		<div class="p2Box__content-left">
 			<div class="p2Box__content-left-upper">

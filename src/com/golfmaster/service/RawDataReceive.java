@@ -43,7 +43,7 @@ public class RawDataReceive extends DeviceData {
 			String IRITid = req.getParameter("IRIT");
 			if (IRITid != null) {
 				Long iritID = Long.parseLong(IRITid);
-				jsobjParam = this.JMEXshotData(iritID, job);
+				jsobjParam = this.IRITshotData(iritID, job);
 				
 				jsobjParam.put("result", true);
 			}
