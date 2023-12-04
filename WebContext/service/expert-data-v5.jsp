@@ -335,7 +335,10 @@ if (result != null && result.getString("expert_suggestion") != null) {
 				responsive : true,
 				legend : { //是否要顯示圖示
 					display : true,
-					align : 'center'
+					align : 'center',
+					labels: {
+						fontColor: "#00A9BC"
+					}
 				},
 				tooltips : { //是否要顯示 tooltip
 					enabled : true,
@@ -346,6 +349,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 						scaleLabel : {
 							display : true,
 							labelString : "次數",
+							fontColor:"#00A9BC",
 							fontSize : 16,
 						},
 						gridLines: {
@@ -359,6 +363,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 						scaleLabel : {
 							display : true,
 							labelString : "速度(mph)",
+							fontColor:"#00A9BC",
 							fontSize : 16,
 						},
 						gridLines: {
