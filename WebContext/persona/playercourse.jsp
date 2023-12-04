@@ -12,8 +12,8 @@
 request.setCharacterEncoding("UTF-8");
 //out.print(shotData.processRequest(request));
 String player = request.getParameter("Player");
-out.println(shotData.playerDistanceAVG(player));
-out.print(shotData.playerHistory(player));
+//out.println(shotData.playerDistanceAVG(player));
+//out.print(shotData.playerHistory(player));
 System.gc();
 Runtime.getRuntime().gc();
 

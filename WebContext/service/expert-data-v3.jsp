@@ -22,10 +22,11 @@
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 //JSONObject rdResult = rawDataReceive.getJmexRawDataReq(request);
-JSONObject iritResult = rawDataReceive.getIRITRawDataReq(request);
+//JSONObject iritResult = rawDataReceive.getIRITRawDataReq(request);
 Long shot_data_id = result.getLong("shotdata_id");
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
+JSONObject iritData = shotData.processIRITData(shot_data_id);
 
 String psystem = "";
 String trajectory = "";
@@ -63,384 +64,118 @@ if (result != null && result.getString("expert_suggestion") != null) {
 //if (rdResult != null && rdResult.getString("tempo") != null) {
 //	tempo = Float.parseFloat(rdResult.getString("tempo"));
 //}
-if (iritResult != null && iritResult.getString("BallSpeed") != null) {
-	BallSpeed = Float.parseFloat(iritResult.getString("BallSpeed"));
-}
-if (iritResult != null && iritResult.getString("BackSpin") != null) {
-	BackSpin = Float.parseFloat(iritResult.getString("BackSpin"));
-}
-if (iritResult != null && iritResult.getString("SideSpin") != null) {
-	SideSpin = Float.parseFloat(iritResult.getString("SideSpin"));
-}
-if (iritResult != null && iritResult.getString("LaunchAngle") != null) {
-	LaunchAngle = Float.parseFloat(iritResult.getString("LaunchAngle"));
-}
-if (iritResult != null && iritResult.getString("Angle") != null) {
-	Angle = Float.parseFloat(iritResult.getString("Angle"));
-}
+//if (iritResult != null && iritResult.getString("BallSpeed") != null) {
+//	BallSpeed = Float.parseFloat(iritResult.getString("BallSpeed"));
+//}
+//if (iritResult != null && iritResult.getString("BackSpin") != null) {
+//	BackSpin = Float.parseFloat(iritResult.getString("BackSpin"));
+//}
+//if (iritResult != null && iritResult.getString("SideSpin") != null) {
+//	SideSpin = Float.parseFloat(iritResult.getString("SideSpin"));
+//}
+//if (iritResult != null && iritResult.getString("LaunchAngle") != null) {
+//	LaunchAngle = Float.parseFloat(iritResult.getString("LaunchAngle"));
+//}
+//if (iritResult != null && iritResult.getString("Angle") != null) {
+//	Angle = Float.parseFloat(iritResult.getString("Angle"));
+//}
 %>
 
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expert Data</title>
-<script
-	src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.js"></script>
-<style>
-.main {
-	display: block;
-	flex: 1;
-	flex-basis: auto;
-	overflow: auto;
-	box-sizing: border-box;
-	padding: 0;
-	height: 100%;
-	margin-left: 0
-}
-
-.p2Box {
-	width: 98%;
-	/*min-height: 710px;*/
-	height: 850px;
-	display: flex;
-	flex-direction: center;
-	background-color: #F7F7F7;
-}
-
-.logoImage {
-	position: absolute;
-	margin-left: 3.8%;
-	height: 32px;
-	margin-top: 24px;
-	margin-bottom: 24px;
-}
-
-.p2Box__content {
-	width: 100%;
-	display: grid;
-	/*margin: 170px 0%;*/
-	margin: 50px 0%;
-}
-
-.p2Box__content-upper {
-	width: 90%;
-	display: flex;
-	margin-left: 50px;
-	position: absolute;
-	button: 0px;
-	justify-content: space-between;
-	/*     justify-content: flex-end;*/
-}
-
-.p2Box_content-upper-inside {
-	width: 15%;
-	padding: 10px;
-	border: 3px solid #00A9BC;
-	border-radius: 30px;
-	text-align: center;
-}
-
-.p2Box__content-lower {
-	width: 90%;
-	display: flex;
-	margin-left: 50px;
-	position: absolute;
-	button: 0px;
-	/*     justify-content: flex-end;*/
-}
-
-.p2Box__content-left-lower {
-	width: 40%;
-	display: flex;
-	margin-left: 0px;
-	position: absolute;
-	top: 205px;
-	/*     justify-content: flex-end;*/
-}
-
-.p2Box__content-left {
-	width: 50%;
-	display: flex;
-	justify-content: center;
-	/*     justify-content: flex-end;*/
-}
-
-.p2Box__content-right {
-	width: 50%;
-	display: flex;
-	flex-direction: column;
-	margin-left: 0%;
-}
-
-.p2Box__content-right-upper {
-	width: 100%;
-	height: 50%;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-end;
-}
-
-.p2Box__content-right-lower {
-	width: 50%;
-	height: 70%;
-	padding-top: 0%;
-	margin-top: 18%;
-	margin-left: 600px;
-}
-
-.expert_p_system {
-	font-style: normal;
-	font-weight: 500;
-	font-size: 30px;
-	line-height: 35px;
-	letter-spacing: 0.02em;
-	color: #2D2D2D;
-}
-
-.expert_cause {
-	margin-top: 3%;
-	font-style: normal;
-	font-weight: 500;
-	font-size: 25px;
-	line-height: 160%;
-	letter-spacing: 0.05em;
-	color: RGB(0, 169, 188);
-}
-
-.canvas {
-	width: 500px;
-	height: 250px;
-}
-
-.highlight {
-	font-style: normal;
-	font-weight: 500;
-	font-size: 25px;
-	line-height: 160%;
-	letter-spacing: 0.1em;
-	color: red;
-}
-
-.highlight:hover .image-container {
-	display: block;
-	position: absolute;
-	top: 350px;
-	left: 650px;
-	padding: 5px;
-	border-radius: 5px;
-	background-color: white;
-}
-
-.highlight:hover .image-container img {
-	max-width: 100%;
-	max-height: 100%;
-}
-
-.image-container {
-	display: none;
-}
-</style>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="../../page/css/GM01.css" rel="stylesheet" type="text/css">
+<style></style>
 
 </head>
-<body class="p2Box"
-	style="background-image: url('../page/img/bgwithlogo2.png'); background-size: cover; background-position: center center; background-repeat: no-repeat">
 
 
-	<!-- <div>
-		<img src="../page/img/logo.png" alt="logo" class="logoImage">
-	</div> -->
-	<div class="p2Box__content">
-		<div class="p2Box__content-upper">
-			<div class="p2Box_content-upper-inside">
-				<p
-					style="font-size: 25px; font-weight: 900; font-style: bold; color: #00A9BC;">球速</p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;"><%=55.02%></p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;">mph</p>
+<div class="header">
+	<img src="../../page/img/logo_1.png" alt="Your Logo" class="logo">
+</div>
+<div class="content">
+	<div class="row">
+		<div class="custom-div">
+			<video width=500px; autoplay loop muted class="images"><source src="../../page/video/P1_P10v5.mp4" type="video/mp4"></video>
+		</div>
+		<!-- <div class="custom-div2">
+			<div class="steps">
+				<div class="step">
+					<span class="step_title">Swing</span><br> <span class="step_4">4
+						Steps</span>
+				</div>
+				<div class="step">
+					<div class="stepbutton_selected">A</div>
+				</div>
+				<div class="step">
+					<div class="stepbutton">T</div>
+				</div>
+				<div class="step">
+					<div class="stepbutton">I</div>
+				</div>
+				<div class="step">
+					<div class="stepbutton">F</div>
+				</div>
 			</div>
-			<div class="p2Box_content-upper-inside">
-				<p
-					style="font-size: 25px; font-weight: 900; font-style: bold; color: #00A9BC;">倒旋</p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;"><%=777%></p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;">rpm</p>
-			</div>
-			<div class="p2Box_content-upper-inside">
-				<p
-					style="font-size: 25px; font-weight: 900; font-style: bold; color: #00A9BC;">側旋</p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;"><%=2168%></p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;">rpm</p>
-			</div>
-			<div class="p2Box_content-upper-inside">
-				<p
-					style="font-size: 25px; font-weight: 900; font-style: bold; color: #00A9BC;">仰角</p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;"><%=7.413%></p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;">degree</p>
-			</div>
-			<div class="p2Box_content-upper-inside">
-				<p
-					style="font-size: 25px; font-weight: 900; font-style: bold; color: #00A9BC;">水平角度</p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;"><%=-18.464%></p>
-				<p
-					style="font-size: 18px; font-weight: 500; font-style: normal; color: #00A9BC;">degree</p>
+		</div> -->
+		<div class="custom-div">
+			<img src="../../page/img/path_straight_5.png" class="image"
+				alt="Image 3">
+		</div>
+	</div>
+	<div class="row">
+		<div class="vertical-div" style="display: flex; align-items: center;">
+			<div class="cards">
+				<div class="card">
+					<div class="title">球速</div>
+					<div class="unit">mph</div>
+					<div class="number"><%=iritData.getFloat("BallSpeed") %></div>
+				</div>
+				<div class="card">
+					<div class="title">倒旋</div>
+					<div class="unit">rpm</div>
+					<div class="number"><%=iritData.getFloat("BackSpin") %></div>
+				</div>
+				<div class="card">
+					<div class="title">側旋</div>
+					<div class="unit">rpm</div>
+					<div class="number"><%=iritData.getFloat("SideSpin") %></div>
+				</div>
+				<div class="card">
+					<div class="title">仰角</div>
+					<div class="unit">°</div>
+					<div class="number"><%=iritData.getFloat("LaunchAngle") %></div>
+				</div>
+				<div class="card">
+					<div class="title">水平角度</div>
+					<div class="unit">°</div>
+					<div class="number"><%=iritData.getFloat("LaunchDirection") %></div>
+				</div>
 			</div>
 		</div>
-		<div class="p2Box__content-lower">
-			<div class="p2Box__content-left-lower">
-				<%
-				if (result.getBoolean("result")) {
-					if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
-					|| trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
-					|| trajectory.equals(pSystemJP.FADE)) {
-						out.print("<img src='../page/gif/" + "Straight" + ".gif' style='width: 500px; height: 336px' />");
-					} else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
-						out.print("<img src='../page/gif/" + "Pushs" + ".gif' style='width: 500px; height: 336px' />");
-					} else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
-						out.print("<img src='../page/gif/" + "Pullh" + ".gif' style='width: 500px; height: 336px' />");
-					} else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)
-					|| trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)) {
-						out.print("<img src='../page/gif/" + "Pull" + ".gif' style='width: 500px; height: 336px' />");
-					} else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)
-					|| trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
-						out.print("<img src='../page/gif/" + "Push" + ".gif' style='width: 500px; height: 336px' />");
-					}
-				} else {
-					out.print("");
-				}
-				%>
-			</div>
-
-			<div class="p2Box__content-right-lower"
-				style="border-width: 3px; border-style: solid; border-color: RGB(0, 169, 188); padding: 5px; border-radius: 30px;">
-				<div class="expert_cause">
-					<%
-					out.print("<img src='../page/img/" + "pic_coach" + ".png' style='width: 83px; height: 82px' />");
-					%><%="彈道:" + trajectory%></div>
-				<div class="expert_cause">
-					<div id="textContainer">
-						建議:<span id="suggestionText"><%=suggestion%></span>
+		<div class="vertical-div"
+			style="display: flex; align-items: flex-end;">
+			<div class="suggestion">
+				<div class="vertical-image" style="width: 100%">
+					<img src="../../page/img/pic_coach.png" alt="Image">
+					<div class="inner-text">
+						<p class="title"><%="彈道:" + trajectory%></p>
+						<p class="s_content">建議：<%=suggestion%></p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+</div>
+
+
 
 </body>
-<script>
-	var ballspeed = [];
-	var clubheadspeed = [];
-<%for (int i = 0; i < shotResult[0].length; i++) {%>
-	ballspeed.push(
-<%=shotResult[0][i]%>
-	);
-	clubheadspeed.push(
-<%=shotResult[1][i]%>
-	);
-<%}%>
-	var lineChartData = {
-		labels : [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" ], //顯示區間名稱
-		datasets : [ {
-			label : '球速', // tootip 出現的名稱
-			lineTension : 0, // 曲線的彎度，設0 表示直線
-			backgroundColor : "#ea464d",
-			borderColor : "#ea464d",
-			borderWidth : 5,
-			data : ballspeed,
-			fill : false, // 是否填滿色彩
-		}, {
-			label : '桿頭速度', // tootip 出現的名稱
-			lineTension : 0, // 曲線的彎度，設0 表示直線
-			backgroundColor : "#29b288",
-			borderColor : "#29b288",
-			borderWidth : 5,
-			data : clubheadspeed,
-			fill : false, // 是否填滿色彩
-		}, ]
-	};
-	function drawLineCanvas(ctx, data) {
-		window.myLine = new Chart(ctx, { //先建立一個 chart
-			type : 'line', // 型態
-			data : data,
-			options : {
 
-				responsive : true,
-				legend : { //是否要顯示圖示
-					display : true,
-					align : 'center'
-				},
-				tooltips : { //是否要顯示 tooltip
-					enabled : true,
-					bodyFontColor: "#00A9BC",
-				},
-				scales : { //是否要顯示 x、y 軸
-					xAxes : [ {
-						scaleLabel : {
-							display : true,
-							labelString : "次數",
-							fontSize : 16,
-						},
-						gridLines: {
-							color :"#00A9BC"
-						},
-						ticks: {
-							fontColor: "#00A9BC",
-						}
-					} ],
-					yAxes : [ {
-						scaleLabel : {
-							display : true,
-							labelString : "速度(mph)",
-							fontSize : 16,
-						},
-						gridLines: {
-							color : "#00A9BC"
-						},
-						ticks: {
-							fontColor: "#00A9BC",
-						}
-					} ]
-				},
-			}
-		});
-	};
-	
-	window.onload = function() {
-		var ctx = document.getElementById("canvas").getContext("2d");
-		drawLineCanvas(ctx, lineChartData);
-		
-		const textContainer = document.getElementById('textContainer');
-	    const suggestionContent = document.getElementById('suggestionText').textContent;
-	    const wordImageMap = {
-	        'P2': '../page/img/frontP2.png',
-	        'P3': '../page/img/frontP3.png',
-	        'P4': '../page/img/frontP4.png',
-	        'P5': '../page/img/frontP5.png',
-	        'P5.5': '../page/img/frontP5.png',
-	        'P6': '../page/img/frontP6.png',
-	        'P7': '../page/img/frontP7.png',
-	        'P8': '../page/img/frontP8.png',
-	        'P9': '../page/img/frontP9.png',
-	        'P10': '../page/img/frontP10.png'
-	    };
-
-	    let updatedContent = suggestionContent;
-	    Object.keys(wordImageMap).forEach(word => {
-	        const regex = new RegExp(word, 'gi');
-	        updatedContent = updatedContent.replace(regex, '<span class="highlight" data-word="' + word + '">' + word + '<div class="image-container"><img src="' + wordImageMap[word] + '"></div></span>');
-	    });
-	    textContainer.innerHTML = updatedContent;
-	    
-	};
-</script>
 </html>
 
 <%

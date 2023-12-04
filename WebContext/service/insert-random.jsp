@@ -6,7 +6,7 @@
 <%!RandomData randomData = new RandomData();%>
 <%
 request.setCharacterEncoding("UTF-8");
-out.print(randomData.insertD(request));
+out.print(randomData.insertBodyData(request));
 System.gc();
 Runtime.getRuntime().gc();
 %>

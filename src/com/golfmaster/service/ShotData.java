@@ -51,6 +51,15 @@ public class ShotData {
 		Logs.log(Logs.RUN_LOG, "Response : " + strResponse);
 		return strResponse;
 	}
+	
+	public JSONObject processIRITData(Long shot_data_id) {
+		String player = queryPlayer(shot_data_id);
+		JSONObject jsonObject = null;
+		if(player != null || !player.isEmpty()) {
+			jsonObject = queryIRITData(player);
+		}
+		return jsonObject;
+	}
 
 	public float[][] processPlayerReq(Long shot_data_id) {
 		String player = queryPlayer(shot_data_id);
@@ -123,75 +132,38 @@ public class ShotData {
 		return BSAndCHS;
 	}
 
-	// 球員平均擊球距離,後旋,桿頭速度
-	public float playerDistanceAVG(String player) {
+	private JSONObject queryIRITData(String player) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
-		float avgNum = 0;
-		JSONArray jsonArray = new JSONArray();
+		JSONObject jsonProject = null;
 		strSQL = String.format(
-				"SELECT ROUND(AVG(CarryDistFt),1) AS distAVG,ROUND(AVG(BackSpin),2) AS BSAVG,ROUND(AVG(ClubHeadSpeed),2) AS CHSAVG "
-				+ "FROM golf_master.shot_data WHERE Player = '%s';",player);
+				"SELECT BallSpeed,LaunchAngle,BackSpin,LaunchDirection,SideSpin FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 1;",
+				player);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(strSQL);
+			int i = 0;
 			while (rs.next()) {
-				JSONObject jsonObject = new JSONObject();
-				avgNum = rs.getFloat("distAVG");
-				jsonObject.put("BackSpin",rs.getFloat("BSAVG"));
-				jsonObject.put("ClubHeadSpeed",rs.getFloat("CHSAVG"));
-				jsonObject.put("distAVG",rs.getFloat("distAVG"));
+				jsonProject = new JSONObject();
+				jsonProject.put("BallSpeed", rs.getFloat("BallSpeed"));
+				jsonProject.put("LaunchAngle", rs.getFloat("LaunchAngle"));
+				jsonProject.put("BackSpin", rs.getFloat("BackSpin"));
+				jsonProject.put("LaunchDirection", rs.getFloat("LaunchDirection"));
+				jsonProject.put("SideSpin", rs.getFloat("SideSpin"));
 			}
-			System.out.println("Player's history has distances average:" + avgNum);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 			e.printStackTrace();
 		}
 		DBUtil.close(rs, stmt, conn);
-		return avgNum;
+		return jsonProject;
 	}
-	
-	// 球員該輪平均擊球距離,後旋,桿頭速度
-	public float playerHistory(String player) {
-			Connection conn = null;
-			Statement stmt = null;
-			ResultSet rs = null;
-			String strSQL;
-			float avgNum = 0;
-			JSONArray jsonArray = new JSONArray();
-			
-			strSQL = String.format(
-					"SELECT ROUND(AVG(CarryDistFt),1) AS distAVG,ROUND(AVG(BackSpin),2) AS BSAVG,ROUND(AVG(ClubHeadSpeed),2) AS CHSAVG "
-					+ "FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 12;",player);
-			Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
-
-			try {
-				conn = DBUtil.getConnGolfMaster();
-				stmt = conn.createStatement();
-				rs = stmt.executeQuery(strSQL);
-				while (rs.next()) {
-					JSONObject jsonObject = new JSONObject();
-					avgNum = rs.getFloat("distAVG");
-					jsonObject.put("BackSpin",rs.getFloat("BSAVG"));
-					jsonObject.put("ClubHeadSpeed",rs.getFloat("CHSAVG"));
-					jsonObject.put("distAVG",rs.getFloat("distAVG"));
-
-				}
-				System.out.println("This round distances average:" + avgNum);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				Logs.log(Logs.EXCEPTION_LOG, e.toString());
-				e.printStackTrace();
-			}
-			DBUtil.close(rs, stmt, conn);
-			return avgNum;
-		}
 
 	private int queryShotData(ParamData paramData, JSONObject jsonResponse) {
 		Connection conn = null;

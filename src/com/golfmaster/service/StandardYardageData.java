@@ -26,6 +26,7 @@ public class StandardYardageData {
 		try {
 			printParam(request);
 			String PeopleType = request.getParameter("PeopleType");
+			String Gender = request.getParameter("gender");
 			result = querryStandardYardage(PeopleType);
 			jsonResponse.put("success", result);
 			jsonResponse.put("code", 0);
@@ -37,7 +38,7 @@ public class StandardYardageData {
 		return result;
 	}
 
-	public String querryStandardYardage(String PeopleType) {
+	public String querryStandardYardage(String gender) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -45,7 +46,7 @@ public class StandardYardageData {
 		JSONArray jarrProjects = new JSONArray();
 		JSONObject jsResp = new JSONObject();
 		jsResp.put("result", jarrProjects);
-		strSQL = String.format("SELECT * FROM golf_master.yardage_book WHERE PeopleType = '%s';", PeopleType);
+		strSQL = String.format("SELECT * FROM golf_master.yardage_book WHERE gender = '%s';", gender);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try {
