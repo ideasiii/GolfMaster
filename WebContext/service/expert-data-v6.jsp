@@ -88,7 +88,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 <title>Expert Data</title>
 <head>
 <script>
-	setInterval('window.location.reload();', 10000);
+	//setInterval('window.location.reload();', 10000);
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="../../page/css/GM01.css" rel="stylesheet" type="text/css">

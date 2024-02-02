@@ -253,4 +253,12 @@ public abstract class DeviceData
 		public String expert_p_system;
 		public String expert_trajectory;
 	}
+	
+	public class CourseData{
+		public String Course_Name;
+		public String Course_Hole;
+		public String Course_Player;
+		public String Course_Current_Distopin;
+		public String Course_gender;
+	}
 }

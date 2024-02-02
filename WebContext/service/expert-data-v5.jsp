@@ -162,7 +162,9 @@ if (result != null && result.getString("expert_suggestion") != null) {
 	height: 50%;
 	display: flex;
 	flex-direction: column;
+	margin-top: 5%;
 	justify-content: flex-end;
+	
 }
 
 .p2Box__content-right-lower {

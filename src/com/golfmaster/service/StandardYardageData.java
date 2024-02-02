@@ -1,4 +1,5 @@
 package com.golfmaster.service;
+
 /*
  * 通用球桿距離API
  * 參數: PeopleType(必填)
@@ -23,11 +24,18 @@ public class StandardYardageData {
 	public String processRequest(HttpServletRequest request) {
 		JSONObject jsonResponse = new JSONObject();
 		String result = null;
+		String playerData = null;
 		try {
 			printParam(request);
-			String PeopleType = request.getParameter("PeopleType");
+//			String PeopleType = request.getParameter("PeopleType");
+			String playerName = request.getParameter("Player");
 			String Gender = request.getParameter("gender");
-			result = querryStandardYardage(PeopleType);
+			String courseName = request.getParameter("courseName");
+			String courseHole = request.getParameter("courseHole");
+//			result = querryStandardYardage(PeopleType);
+			int holeNum = Integer.parseInt(courseHole);
+			result = getCourseAndPlayer(Gender, courseName, holeNum);
+			playerData = querryStandardYardage(Gender, playerName);
 			jsonResponse.put("success", result);
 			jsonResponse.put("code", 0);
 		} catch (Exception e) {
@@ -38,7 +46,7 @@ public class StandardYardageData {
 		return result;
 	}
 
-	public String querryStandardYardage(String gender) {
+	public String querryStandardYardage(String gender, String player) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -60,6 +68,46 @@ public class StandardYardageData {
 				jsonObject.put("BeginnerDistance", rs.getString("BeginnerDistance"));
 				jsonObject.put("AverageDistance", rs.getString("AverageDistance"));
 				jsonObject.put("GoodDistance", rs.getString("GoodDistance"));
+
+				jarrProjects.put(jsonObject);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		}
+		DBUtil.close(rs, stmt, conn);
+		return jsResp.toString();
+	}
+
+	public String getCourseAndPlayer(String gender, String courseName, int courseHole) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		JSONArray jarrProjects = new JSONArray();
+		JSONObject jsResp = new JSONObject();
+		jsResp.put("result", jarrProjects);
+		String teeType = null;
+		if (!gender.isEmpty() && gender == "man") {
+			teeType = "white";
+		} else if (!gender.isEmpty() && gender == "women") {
+			teeType = "red";
+		}
+		strSQL = String.format("SELECT * FROM golf_master.course_data WHERE course_name = '%s' AND '%s'_tee_'%d';",
+				courseName, teeType, courseHole);
+		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while (rs.next()) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("courseName", rs.getString("course_name"));
+				jsonObject.put("par", rs.getString("courseHole"));
+				jsonObject.put("gender", rs.getString("gender"));
+				jsonObject.put("distance", "");
 
 				jarrProjects.put(jsonObject);
 			}
