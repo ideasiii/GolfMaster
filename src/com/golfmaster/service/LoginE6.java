@@ -1,6 +1,6 @@
 /*
  * http://localhost:8080/GolfMaster/service/logintest.jsp
- * http://localhost:8080/GolfMaster/service/logintest.jsp?account=uwk51642@nezid.com&password=as45770437&nickname=Sam&dexterity=1
+ * http://localhost:8080/GolfMaster/service/logintest.jsp?account=uwk51642@nezid.com&password=as45770437&nickname=Sam&dexterity=1 1
  * */
 
 package com.golfmaster.service;
