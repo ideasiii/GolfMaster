@@ -65,7 +65,7 @@ public abstract class DeviceData
 	public static final String PUSH_CAUSE = "上桿時P2位置過於內側，且下桿時揮桿路徑由內向外，桿面角度與揮桿路徑垂直所致。";
 	public static final String PUSH_SUGGEST = "上桿時維持軸心，P2時桿頭不要往內側，桿面不要翻開，P2至P4胸椎充分旋轉，下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
 
-	public static final String PUSH_HOOK = "(Push)Hook 左曲球";
+	public static final String PUSH_HOOK = "(Push)Hook 右拉左曲球";
 	public static final String PUSH_HOOK_TRAJECTORY = "出球方向往目標線右側之後再往左曲之左曲球(P7 觸球時桿面打開軌跡由內向外，但桿面角度小於揮桿路徑)";
 	public static final String PUSH_HOOK_CAUSE = "上桿往內側，然後再由內側透過手腕的翻轉使球往左旋。有時為了修正由外往內的揮桿路徑會刻意打出這種球來調整感覺，但做過頭的話很難控球，因為球落地會滾動太多，不容易控制距離。";
 	public static final String PUSH_HOOK_SUGGEST = "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
