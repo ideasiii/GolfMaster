@@ -7,6 +7,7 @@ package com.golfmaster.service;
  * http://61.216.149.161/GolfMaster/service/coursestrategy.jsp?player=guest&gender=0&course=1&courseType=1&holeNumber=14
  */
 import java.sql.Connection;
+
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -76,12 +77,8 @@ public class CourseStrategy extends DeviceData {
 
 							resultWord.append(wedgeTemp.get(mutilSelect.nextInt(wedgeTemp.size()))).append("-Putter");
 							String rw = resultWord.toString();
-//							String[] clubSelected = rw.split("-");
-//							if (clubSelected.length == 4 && coT == 1 && hN == 1) {
-//								strikeMethod.append("球道屬於直線球道，第一桿推薦使用" + clubSelected[0] + "，球道中避免左右沙坑，第二桿選擇"
-//										+ clubSelected[1] + "朝果嶺方向擊球，若尚未on上果嶺則使用" + clubSelected[2] + "，最後使用"
-//										+ clubSelected[3] + "完成球洞。");
-//							}
+
+							System.out.println(rw);
 							jsobjParam.put("code", 0);
 							jsobjParam.put("strategy", rw);
 							jsobjParam.put("Standard", true);
@@ -93,6 +90,7 @@ public class CourseStrategy extends DeviceData {
 							jsobjParam.put("code", 0);
 							jsobjParam.put("strategy", strategy);
 							jsobjParam.put("Standard", false);
+
 						}
 					}
 				} else {
@@ -267,6 +265,7 @@ public class CourseStrategy extends DeviceData {
 				wedgeTemp.add(clubType);
 			}
 		}
+
 	}
 
 	// 距離判斷
@@ -288,6 +287,9 @@ public class CourseStrategy extends DeviceData {
 			resultWord.append("1Wood-");
 			suggestClubFromList(woodTemp, clubTypes, resultWord);
 			suggestClubFromList(ironTemp, clubTypes, resultWord);
+			if (PART_5.equals(par)) {
+				resultWord.append("1Wood-");
+			}
 			break;
 		}
 	}
@@ -305,83 +307,83 @@ public class CourseStrategy extends DeviceData {
 	}
 
 	private String calculateStrategy(double distance, JSONArray clubArray, int par, String[] clubTypes) {
-	    Map<String, List<String>> clubCategories = categorizeClubs(clubArray, clubTypes);
-	    List<String> strategy = new ArrayList<>();
+		Map<String, List<String>> clubCategories = categorizeClubs(clubArray, clubTypes);
+		List<String> strategy = new ArrayList<>();
 
-	    // 根據par值添加球桿
-	    if (par >= 3) {
-	        // 添加至少一個iron和一個wedge
-	        strategy.add(selectRandomClub(clubCategories.get("Iron")));
-	        strategy.add(selectRandomClub(clubCategories.get("Wedge")));
-	    }
-	    if (par >= 4) {
-	        // 添加至少一個wood
-	        strategy.add(0, selectRandomClub(clubCategories.get("Wood")));
-	    }
-	    if (par == 5) {
-	        // 對於par 5，再添加一個wood或iron
-	        strategy.add(1, selectRandomClub(
-	                mutilSelect.nextBoolean() ? clubCategories.get("Wood") : clubCategories.get("Iron")));
-	    }
-	    // 總是在最後添加putter
-	    strategy.add("Putter");
+		// 根據par值添加球桿
+		if (par >= 3) {
+			// 添加至少一個iron和一個wedge
+			strategy.add(selectRandomClub(clubCategories.get("Iron")));
+			strategy.add(selectRandomClub(clubCategories.get("Wedge")));
+		}
+		if (par >= 4) {
+			// 添加至少一個wood
+			strategy.add(0, selectRandomClub(clubCategories.get("Wood")));
+		}
+		if (par == 5) {
+			// 對於par 5，再添加一個wood或iron
+			strategy.add(1, selectRandomClub(
+					mutilSelect.nextBoolean() ? clubCategories.get("Wood") : clubCategories.get("Iron")));
+		}
+		// 總是在最後添加putter
+		strategy.add("Putter");
 
-	    // 按照wood, iron, wedge, putter的順序排列
-	    strategy.sort((a, b) -> {
-	        int orderA = getOrder(a);
-	        int orderB = getOrder(b);
-	        return Integer.compare(orderA, orderB);
-	    });
+		// 按照wood, iron, wedge, putter的順序排列
+		strategy.sort((a, b) -> {
+			int orderA = getOrder(a);
+			int orderB = getOrder(b);
+			return Integer.compare(orderA, orderB);
+		});
 
-	    return String.join("-", strategy);
+		return String.join("-", strategy);
 	}
 
 	private int getOrder(String clubType) {
-	    if (clubType.contains("Wood"))
-	        return 1;
-	    if (clubType.contains("Iron"))
-	        return 2;
-	    if (clubType.contains("Wedge"))
-	        return 3;
-	    if (clubType.equals("Putter"))
-	        return 4;
-	    return 5; // 未知類型的球桿
+		if (clubType.contains("Wood"))
+			return 1;
+		if (clubType.contains("Iron"))
+			return 2;
+		if (clubType.contains("Wedge"))
+			return 3;
+		if (clubType.equals("Putter"))
+			return 4;
+		return 5; // 未知類型的球桿
 	}
 
 	private Map<String, List<String>> categorizeClubs(JSONArray clubArray, String[] clubTypes) {
-	    Map<String, List<String>> clubCategories = new HashMap<>();
-	    clubCategories.put("Wood", new ArrayList<>());
-	    clubCategories.put("Iron", new ArrayList<>());
-	    clubCategories.put("Wedge", new ArrayList<>());
-	    List<String> availableClubs = Arrays.asList(clubTypes);
+		Map<String, List<String>> clubCategories = new HashMap<>();
+		clubCategories.put("Wood", new ArrayList<>());
+		clubCategories.put("Iron", new ArrayList<>());
+		clubCategories.put("Wedge", new ArrayList<>());
+		List<String> availableClubs = Arrays.asList(clubTypes);
 
-	    for (int i = 0; i < clubArray.length(); i++) {
-	        JSONObject club = clubArray.getJSONObject(i);
-	        String clubType = club.getString("ClubType");
-	        if (availableClubs.contains(clubType)) {
-	            if (clubType.contains("Wood")) {
-	                clubCategories.get("Wood").add(clubType);
-	            } else if (clubType.contains("Iron")) {
-	                clubCategories.get("Iron").add(clubType);
-	            } else if (clubType.contains("Wedge")) {
-	                clubCategories.get("Wedge").add(clubType);
-	            }
-	        }
-	    }
-	    // 對每個類別內的球桿進行排序，特別注意Iron類別的排序
-	    for (Map.Entry<String, List<String>> entry : clubCategories.entrySet()) {
-	        if (entry.getKey().equals("Iron")) {
-	            entry.getValue().sort((a, b) -> extractNumber(a) - extractNumber(b));
-	        } else {
-	            entry.getValue().sort(Comparator.naturalOrder());
-	        }
-	    }
-	    return clubCategories;
+		for (int i = 0; i < clubArray.length(); i++) {
+			JSONObject club = clubArray.getJSONObject(i);
+			String clubType = club.getString("ClubType");
+			if (availableClubs.contains(clubType)) {
+				if (clubType.contains("Wood")) {
+					clubCategories.get("Wood").add(clubType);
+				} else if (clubType.contains("Iron")) {
+					clubCategories.get("Iron").add(clubType);
+				} else if (clubType.contains("Wedge")) {
+					clubCategories.get("Wedge").add(clubType);
+				}
+			}
+		}
+		// 對每個類別內的球桿進行排序，特別注意Iron類別的排序
+		for (Map.Entry<String, List<String>> entry : clubCategories.entrySet()) {
+			if (entry.getKey().equals("Iron")) {
+				entry.getValue().sort((a, b) -> extractNumber(a) - extractNumber(b));
+			} else {
+				entry.getValue().sort(Comparator.naturalOrder());
+			}
+		}
+		return clubCategories;
 	}
-	
+
 	private int extractNumber(String club) {
-	    String number = club.replaceAll("\\D+", "");
-	    return number.isEmpty() ? 0 : Integer.parseInt(number);
+		String number = club.replaceAll("\\D+", "");
+		return number.isEmpty() ? 0 : Integer.parseInt(number);
 	}
 
 	private String selectRandomClub(List<String> clubs) {
