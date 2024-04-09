@@ -1,12 +1,13 @@
+<%@page import="com.golfmaster.service.ShotVideo"%>
 <%@ page language="java" contentType="application/json; charset=UTF-8"
 	pageEncoding="UTF-8" session="false" trimDirectiveWhitespaces="true"%>
 
-<%@ page import="com.golfmaster.service.StandardYardageData"%>
+<%@ page import="com.golfmaster.service.ShotData"%>
 
-<%!StandardYardageData standardYardageData = new StandardYardageData();%>
+<%!ShotVideo shotVideo = new ShotVideo();%>
 <%
 request.setCharacterEncoding("UTF-8");
-out.print(standardYardageData.processRequest(request));
+out.print(shotVideo.processRequest(request));
 System.gc();
 Runtime.getRuntime().gc();
 

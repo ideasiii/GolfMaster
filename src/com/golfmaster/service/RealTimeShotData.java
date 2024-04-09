@@ -71,6 +71,12 @@ public class RealTimeShotData extends DeviceData{
 		public String expert_update_time;
 	}
 	
+	@SuppressWarnings("unused")
+	private class ShotVideo
+	{
+		public Long shot_data_id;
+	}
+	
 	public String processRequest(HttpServletRequest request) 
 	{
 		JSONObject jsonResponse = null;
@@ -116,10 +122,14 @@ public class RealTimeShotData extends DeviceData{
 				long shotDataId = this.saveShotData(info);
 				if(shotDataId > 0) {
 					JSONObject jsonExpert = new JSONObject(result);
+					JSONObject jsonShotVideo = new JSONObject(result);
 					Expert expert = new Expert();
+					ShotVideo shotVideo = new ShotVideo();
 					expert.shot_data_id = shotDataId;
+					shotVideo.shot_data_id = shotDataId;
 					
 					Field [] fields = expert.getClass().getDeclaredFields();
+					Field [] fields2 = shotVideo.getClass().getDeclaredFields();
 					for(int i=0;i<fields.length;i++) {
 						if("this$0".equals(fields[i].getName())) {
 							continue;
@@ -129,8 +139,16 @@ public class RealTimeShotData extends DeviceData{
 						}
 					}
 					
-					long expertId = this.saveExpertData(expert);
+					for(int i=0;i<fields2.length;i++) {
+						if("this$0".equals(fields2[i].getName())) {
+							continue;
+						}
+						if(jsonExpert.has(fields2[i].getName())){
+							fields2[i].set(shotVideo, jsonShotVideo.get(fields2[i].getName()));
+						}
+					}
 					
+					long expertId = this.saveExpertData(expert);
 					redirectUrl = redirectUrl + "?expert=" + expertId;
 				}
 			}
@@ -396,6 +414,7 @@ public class RealTimeShotData extends DeviceData{
 		
 		return id;
 	}
+	
 
 	private void printParam(HttpServletRequest request)
 	{

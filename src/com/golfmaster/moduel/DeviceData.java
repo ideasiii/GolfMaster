@@ -1,7 +1,6 @@
 package com.golfmaster.moduel;
 
-public abstract class DeviceData 
-{
+public abstract class DeviceData {
 	public static final String SHOT_FAIL = "擊球失敗,無法判定";
 	public static final String SHOT_FAIL_BODY = "擊球姿勢嚴重錯誤";
 
@@ -65,7 +64,7 @@ public abstract class DeviceData
 	public static final String PUSH_CAUSE = "上桿時P2位置過於內側，且下桿時揮桿路徑由內向外，桿面角度與揮桿路徑垂直所致。";
 	public static final String PUSH_SUGGEST = "上桿時維持軸心，P2時桿頭不要往內側，桿面不要翻開，P2至P4胸椎充分旋轉，下桿時重心往左，左半身帶領，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
 
-	public static final String PUSH_HOOK = "(Push)Hook 左曲球";
+	public static final String PUSH_HOOK = "(Push)Hook 右拉左曲球";
 	public static final String PUSH_HOOK_TRAJECTORY = "出球方向往目標線右側之後再往左曲之左曲球(P7 觸球時桿面打開軌跡由內向外，但桿面角度小於揮桿路徑)";
 	public static final String PUSH_HOOK_CAUSE = "上桿往內側，然後再由內側透過手腕的翻轉使球往左旋。有時為了修正由外往內的揮桿路徑會刻意打出這種球來調整感覺，但做過頭的話很難控球，因為球落地會滾動太多，不容易控制距離。";
 	public static final String PUSH_HOOK_SUGGEST = "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
@@ -100,68 +99,6 @@ public abstract class DeviceData
 	public static final String PULL_SLICE_TRAJECTORY = "出球方向往目標左側之後再向右曲之右曲球(P7觸球時桿面角度關閉，但桿面角度小於揮桿軌跡)";
 	public static final String PULL_SLICE_CAUSE = "通常是因為上桿時P2過於內側，手臂和身體過於靠近卡住之後，反而在下桿時由外側下桿、或是軸心偏移太多導致右手必須補償所致，最容易出現雞翅膀的問題。";
 	public static final String PULL_SLICE_SUGGEST = "上桿時維持軸心，P2時桿身平行於雙腳之平行線，保持桿面角度，P2至P4胸椎充分旋轉，下桿時於P3重心往左，左半身帶領的同時，P5至P6右肩和右手肘維持外旋，左手腕在P5.5時屈曲，維持手腕角度過球，轉身至P10收桿。";
-
-	// 不同LEVEL的原因
-	public static final String PULL_TRAJECTORY_LEVEL1 = "";
-	public static final String PULL_HOOK_TRAJECTORY_LEVEL1 = "";
-	public static final String PULL_SLICE_TRAJECTORY_LEVEL1 = "";
-	public static final String PUSH_TRAJECTORY_LEVEL1 = "";
-	public static final String PUSH_HOOK_TRAJECTORY_LEVEL1 = "";
-	public static final String PUSH_SLICE_TRAJECTORY_LEVEL1 = "";
-	public static final String DRAW_TRAJECTORY_LEVEL1 = "";
-	public static final String STRAIGHT_TRAJECTORY_LEVEL1 = "";
-	public static final String FADE_TRAJECTORY_LEVEL1 = "";
-
-	public static final String PULL_TRAJECTORY_LEVEL2 = "";
-	public static final String PULL_HOOK_TRAJECTORY_LEVEL2 = "";
-	public static final String PULL_SLICE_TRAJECTORY_LEVEL2 = "";
-	public static final String PUSH_TRAJECTORY_LEVEL2 = "";
-	public static final String PUSH_HOOK_TRAJECTORY_LEVEL2 = "";
-	public static final String PUSH_SLICE_TRAJECTORY_LEVEL2 = "";
-	public static final String DRAW_TRAJECTORY_LEVEL2 = "";
-	public static final String STRAIGHT_TRAJECTORY_LEVEL2 = "";
-	public static final String FADE_TRAJECTORY_LEVEL2 = "";
-
-	public static final String PULL_TRAJECTORY_LEVEL3 = "";
-	public static final String PULL_HOOK_TRAJECTORY_LEVEL3 = "";
-	public static final String PULL_SLICE_TRAJECTORY_LEVEL3 = "";
-	public static final String PUSH_TRAJECTORY_LEVEL3 = "";
-	public static final String PUSH_HOOK_TRAJECTORY_LEVEL3 = "";
-	public static final String PUSH_SLICE_TRAJECTORY_LEVEL3 = "";
-	public static final String DRAW_TRAJECTORY_LEVEL3 = "";
-	public static final String STRAIGHT_TRAJECTORY_LEVEL3 = "";
-	public static final String FADE_TRAJECTORY_LEVEL3 = "";
-
-	// 不同LEVEL建議
-	public static final String PULL_SUGGEST_LEVEL1 = "";
-	public static final String PULL_HOOK_SUGGEST_LEVEL1 = "";
-	public static final String PULL_SLICE_SUGGEST_LEVEL1 = "";
-	public static final String PUSH_SUGGEST_LEVEL1 = "";
-	public static final String PUSH_HOOK_SUGGEST_LEVEL1 = "";
-	public static final String PUSH_SLICE_SUGGEST_LEVEL1 = "";
-	public static final String DRAW_SUGGEST_LEVEL1 = "";
-	public static final String STRAIGHT_SUGGEST_LEVEL1 = "";
-	public static final String FADE_SUGGEST_LEVEL1 = "";
-
-	public static final String PULL_SUGGEST_LEVEL2 = "";
-	public static final String PULL_HOOK_SUGGEST_LEVEL2 = "";
-	public static final String PULL_SLICE_SUGGEST_LEVEL2 = "";
-	public static final String PUSH_SUGGEST_LEVEL2 = "";
-	public static final String PUSH_HOOK_SUGGEST_LEVEL2 = "";
-	public static final String PUSH_SLICE_SUGGEST_LEVEL2 = "";
-	public static final String DRAW_SUGGEST_LEVEL2 = "";
-	public static final String STRAIGHT_SUGGEST_LEVEL2 = "";
-	public static final String FADE_SUGGEST_LEVEL2 = "";
-
-	public static final String PULL_SUGGEST_LEVEL3 = "";
-	public static final String PULL_HOOK_SUGGEST_LEVEL3 = "";
-	public static final String PULL_SLICE_SUGGEST_LEVEL3 = "";
-	public static final String PUSH_SUGGEST_LEVEL3 = "";
-	public static final String PUSH_HOOK_SUGGEST_LEVEL3 = "";
-	public static final String PUSH_SLICE_SUGGEST_LEVEL3 = "";
-	public static final String DRAW_SUGGEST_LEVEL3 = "";
-	public static final String STRAIGHT_SUGGEST_LEVEL3 = "";
-	public static final String FADE_SUGGEST_LEVEL3 = "";
 
 	public static final float LONG_PUTT = 10; // 長推桿距離30英尺,約為10碼
 	public static final float SHORT_PUTT = 2; // 短推桿距離6英尺,約2碼
@@ -218,7 +155,7 @@ public abstract class DeviceData
 		public String topFlatShoulder;
 		public String impactHipTurn;
 	}
-	
+
 	public class ITRIData {
 		public float BallSpeed;
 		public float BackSpin;
@@ -228,7 +165,7 @@ public abstract class DeviceData
 	}
 
 	public class spaceCapuleParamData {
-		
+
 	}
 
 	public class WrgData {
@@ -253,12 +190,55 @@ public abstract class DeviceData
 		public String expert_p_system;
 		public String expert_trajectory;
 	}
-	
-	public class CourseData{
-		public String Course_Name;
-		public String Course_Hole;
-		public String Course_Player;
-		public String Course_Current_Distopin;
-		public String Course_gender;
-	}
+
+	public static final String Par3_FirstStrike = "";
+	public static final String AllStatusGood = "各項數據表象良好，請繼續保持";
+	public static final String BallSpeedExpl = "球速為擊球時初始速度";
+	public static final String ClubHeadSpeedExpl = "桿頭速度為球桿頭在擊球瞬間的移動速度";
+	public static final String BackSpinExpl = "後旋為高爾夫球在飛行中繞自身軸心的旋轉";
+	public static final String LauchAngleExpl = "發射角度為高爾夫球離開球桿面時與地面的夾角";
+	public static final String DistanceExpl = "距離為高爾夫球從擊球點到停止滾動的直線距離";
+	public static final String LackBallSpeed1 = "力量不足";
+	public static final String LackBallSpeed2 = "擊球位置不佳";
+	public static final String LackClubHeadSpeed = "擊球節奏不佳";
+	public static final String LackDistance = "";
+	public static final String LackBackSpin = "";
+	public static final String LackLaunchAngle = "";
+	public static final String AllStatusFail = "各項數據表現異常顯示擊球失誤，需要教練輔助和多加練習。";
+
+	// 距離
+	public final double GreatLevelTopDist = 139.10;
+	public final double GreatLevelLowDist = 128.27;
+	public final double GoodLevelLowDist = 114.69;
+	public final double NormalLevelLowDist = 98.94;
+	public final double BadLevelLowDist = 77.89;
+	public final double WorseLevelLowDist = 60.15;
+	// 桿頭速度
+	public final double GreatLevelTopCS = 79.07;
+	public final double GreatLevelLowCS = 75.01;
+	public final double GoodLevelLowCS = 70.79;
+	public final double NormalLevelLowCS = 66.33;
+	public final double BadLevelLowCS = 59.47;
+	public final double WorseLevelLowCS = 54.01;
+	// 球速
+	public final double GreatLevelTopBS = 100.15;
+	public final double GreatLevelLowBS = 94.71;
+	public final double GoodLevelLowBS = 89.06;
+	public final double NormalLevelLowBS = 81.22;
+	public final double BadLevelLowBS = 73.05;
+	public final double WorseLevelLowBS = 63.14;
+	// 發射角
+	public final double GreatLevelTopLA = 25.30;
+	public final double GreatLevelLowLA = 22.29;
+	public final double GoodLevelLowLA = 19.52;
+	public final double NormalLevelLowLA = 16.61;
+	public final double BadLevelLowLA = 12.55;
+	public final double WorseLevelLowLA = 5.09;
+	// 後旋
+	public final double GreatLevelTopBsp = 7570.40;
+	public final double GreatLevelLowBsp = 6632.20;
+	public final double GoodLevelLowBsp = 5633.40;
+	public final double NormalLevelLowBsp = 4659.00;
+	public final double BadLevelLowBsp = 3276.00;
+	public final double WorseLevelLowBsp = 1194.08;
 }

@@ -24,7 +24,6 @@ import org.json.JSONObject;
 import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
-import com.golfmaster.moduel.AnalysisNetwork;
 import com.golfmaster.moduel.PSystem;
 
 public class ShotData {
@@ -51,11 +50,11 @@ public class ShotData {
 		Logs.log(Logs.RUN_LOG, "Response : " + strResponse);
 		return strResponse;
 	}
-	
+
 	public JSONObject processIRITData(Long shot_data_id) {
 		String player = queryPlayer(shot_data_id);
 		JSONObject jsonObject = null;
-		if(player != null || !player.isEmpty()) {
+		if (player != null || !player.isEmpty()) {
 			jsonObject = queryIRITData(player);
 		}
 		return jsonObject;
@@ -105,10 +104,9 @@ public class ShotData {
 		ResultSet rs = null;
 		String strSQL;
 		// BallSpeed and ClubHeadSpeed
-		float[][] BSAndCHS = new float[2][10];
+		float[][] BSAndCHS = new float[5][10];
 		// 取最近的10筆
-		strSQL = String.format(
-				"SELECT BallSpeed,ClubHeadSpeed FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10",
+		strSQL = String.format("SELECT * FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10",
 				player);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
@@ -120,7 +118,9 @@ public class ShotData {
 			while (rs.next()) {
 				BSAndCHS[0][i] = rs.getFloat("BallSpeed");
 				BSAndCHS[1][i] = rs.getFloat("ClubHeadSpeed");
-//				System.out.println("BallSpeed:" + BSAndCHS[0][i] + " ClubHeadSpeed:" + BSAndCHS[1][i]);
+				BSAndCHS[2][i] = rs.getFloat("TotalDistFt");
+				BSAndCHS[3][i] = rs.getFloat("LaunchAngle");
+				BSAndCHS[4][i] = rs.getFloat("BackSpin");
 				i++;
 			}
 		} catch (Exception e) {
@@ -147,7 +147,6 @@ public class ShotData {
 			conn = DBUtil.getConnGolfMaster();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(strSQL);
-			int i = 0;
 			while (rs.next()) {
 				jsonProject = new JSONObject();
 				jsonProject.put("BallSpeed", rs.getFloat("BallSpeed"));
