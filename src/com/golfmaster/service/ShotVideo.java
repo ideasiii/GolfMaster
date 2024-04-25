@@ -20,6 +20,7 @@ public class ShotVideo {
 	private class ParamData {
 		private String video_id;
 		private String player;
+		private String maxLimit;
 		private String raw_shotVideo_front;
 		private String raw_shotVideo_side;
 		private boolean callMotionApi = false;
@@ -40,7 +41,7 @@ public class ShotVideo {
 		if (0 < queryShotVideo(paramData, jsonResponse))
 			strResponse = jsonResponse.toString();
 		try {
-			//callMotionApi.requestApi(jsonResponse);
+			callMotionApi.requestApi(jsonResponse);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
@@ -60,17 +61,22 @@ public class ShotVideo {
 		jsonResponse.put("result", jarrProjects);
 		// 無日期就取最近的10筆
 		if (paramData.video_id != null && !paramData.video_id.isEmpty()) {
-			strSQL = String.format("SELECT * FROM shot_video WHERE id = '%s'", paramData.video_id);
-		} else {
-			strSQL = String.format("SELECT * FROM shot_video WHERE Player = '%s' order by Date DESC LIMIT 1",
-					paramData.player);
-		}
+			strSQL = String.format("SELECT * FROM shot_video WHERE Player = '%s' AND id = '%s' ORDER BY Date Desc", paramData.player,
+					paramData.video_id);
+		} 
+//		else {
+//			strSQL = String.format("SELECT * FROM shot_video WHERE Player = '%s' order by Date DESC LIMIT 1",
+//					paramData.player);
+//		}
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
 		try {
 			conn = DBUtil.getConnGolfMaster();
+			Logs.log(Logs.RUN_LOG, "conn: " + conn.toString());
 			stmt = conn.createStatement();
+			Logs.log(Logs.RUN_LOG, "conn stmt: " + stmt.toString());
 			rs = stmt.executeQuery(strSQL);
+			Logs.log(Logs.RUN_LOG, "rs: " + rs.toString());
 			while (rs.next()) {
 				JSONObject jsonProject = new JSONObject();
 				jsonProject.put("id", rs.getInt("id"));
@@ -86,16 +92,20 @@ public class ShotVideo {
 				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
 				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
 				jsonProject.put("id_analyzeVideo", rs.getString("id_analyzeVideo"));
+				jsonProject.put("ClubType", rs.getString("ClubType"));
 				jarrProjects.put(jsonProject);
 			}
 			jsonResponse.put("success", true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 			e.printStackTrace();
 			jsonResponse.put("success", false);
 			jsonResponse.put("message", e.getMessage());
 		}
+		Logs.log(Logs.RUN_LOG, "DB Closing");
 		DBUtil.close(rs, stmt, conn);
+		Logs.log(Logs.RUN_LOG, "DB Close");
 		jsonResponse.put("result", jarrProjects);
 		return jarrProjects.length();
 	}

@@ -56,7 +56,7 @@ public class YardageBookData extends Service
 			e.printStackTrace();
 			errorResponse(jsonResponse, -10, "processing failed");
 		}
-		
+		Logs.log(Logs.RUN_LOG, "Response : " + jsonResponse.toString());
 		return jsonResponse.toString();
 	}
 	

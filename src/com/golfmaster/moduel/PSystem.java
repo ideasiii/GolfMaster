@@ -5,33 +5,34 @@
  */
 package com.golfmaster.moduel;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import org.json.JSONObject;
 import com.golfmaster.common.Logs;
 
-public class PSystem extends DeviceData
-{
-	public PSystem() 
-	{
+public class PSystem extends DeviceData {
+	public PSystem() {
 
 	}
 
 	@Override
-	protected void finalize() throws Throwable
-	{
-		
+	protected void finalize() throws Throwable {
+
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return super.toString();
 	}
 
 	// 中文
-	public String expertAnalysis(float BallSpeed, float ClubAnglePath, float ClubAngleFace, float TotalDistFt, float CarryDistFt,
-			float LaunchAngle, float SmashFactor, float BackSpin, float SideSpin, float ClubHeadSpeed, float LaunchDirection,
-			float DistToPinFt)
-	{
+	public String expertAnalysis(float BallSpeed, float ClubAnglePath, float ClubAngleFace, float TotalDistFt,
+			float CarryDistFt, float LaunchAngle, float SmashFactor, float BackSpin, float SideSpin,
+			float ClubHeadSpeed, float LaunchDirection, float DistToPinFt) {
 		String strResult;
 		JSONObject jsonExpert = new JSONObject();
 		jsonExpert.put("success", true);
@@ -52,12 +53,9 @@ public class PSystem extends DeviceData
 		wrgData.SideSpin = SideSpin; // 側旋
 		wrgData.ClubHeadSpeed = ClubHeadSpeed; // 桿頭速度
 
-		if (!pSystemCheck(wrgData, wrgExpert))
-		{
-			if (!clubValid(wrgData, wrgExpert))
-			{
-				if (!launchAngleValid(wrgData, wrgExpert))
-				{
+		if (!pSystemCheck(wrgData, wrgExpert)) {
+			if (!clubValid(wrgData, wrgExpert)) {
+				if (!launchAngleValid(wrgData, wrgExpert)) {
 
 				}
 			}
@@ -68,8 +66,7 @@ public class PSystem extends DeviceData
 		return strResult;
 	}
 
-	private String formatExpertJSON(WrgExpert wrgExpert, JSONObject jsonExpert)
-	{
+	private String formatExpertJSON(WrgExpert wrgExpert, JSONObject jsonExpert) {
 		jsonExpert.put("expert_suggestion", wrgExpert.expert_suggestion);
 		jsonExpert.put("expert_cause", wrgExpert.expert_cause);
 		jsonExpert.put("expert_trajectory", wrgExpert.expert_trajectory);
@@ -77,11 +74,9 @@ public class PSystem extends DeviceData
 		return jsonExpert.toString();
 	}
 
-	private boolean clubValid(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean clubValid(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bResult = false;
-		if (wrgData.ClubAngleFace > 15 || wrgData.ClubAngleFace < -15)
-		{
+		if (wrgData.ClubAngleFace >= 15 || wrgData.ClubAngleFace <= -15) {
 			// 球桿面和高爾夫球接觸中心點的水平球桿面方向
 			wrgExpert.expert_suggestion = "球桿面和高爾夫球接觸中心點的水平球桿面方向超出正常範圍";
 			wrgExpert.expert_cause = SHOT_FAIL_BODY;
@@ -90,8 +85,7 @@ public class PSystem extends DeviceData
 			bResult = true;
 		}
 
-		if (wrgData.ClubAnglePath > 15 || wrgData.ClubAnglePath < -15)
-		{
+		if (wrgData.ClubAnglePath >= 15 || wrgData.ClubAnglePath <= -15) {
 			// 高爾夫擊球的預期曲率(旋轉軸)的關鍵因素。假設中心接觸，球應該朝向面角彎曲並遠離球桿路徑(+5、0、-5)技術定義：FACE
 			// ANGLE 和 CLUB PATH 定義的角度差（FACE ANGLE 減去 CLUB PATH）。
 			wrgExpert.expert_suggestion = "高爾夫擊球的預期曲率超出正常範圍";
@@ -104,53 +98,66 @@ public class PSystem extends DeviceData
 		return bResult;
 	}
 
-	private boolean getCarryDistFt(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getCarryDistFt(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
 		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
-		if (wrgData.CarryDistFt >= CARRY_DIST_FT_MIN)
-		{
+		if (wrgData.CarryDistFt >= CARRY_DIST_FT_MIN) {
 			bValid = true;
-			if (wrgData.BallSpeed >= 150)
-			{
+			if (wrgData.CarryDistFt >= 450) {
 				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到職業級水準 ";
-			}
-			else if (wrgData.BallSpeed >= 140 && wrgData.BallSpeed < 150)
-			{
+			} else if (wrgData.CarryDistFt >= 420 && wrgData.CarryDistFt < 450) {
 				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到教練水準 ";
-			}
-			else if (wrgData.BallSpeed >= 130 && wrgData.BallSpeed < 140)
-			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到專業水準 ";
-			}
-			else if (wrgData.BallSpeed >= 120 && wrgData.BallSpeed < 130)
-			{
-				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到專業水準 ";
-			}
-			else if (wrgData.BallSpeed >= 100 && wrgData.BallSpeed < 120)
-			{
+			} else if (wrgData.CarryDistFt >= 390 && wrgData.CarryDistFt < 420) {
+				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到進階水準 ";
+			} else if (wrgData.CarryDistFt >= 360 && wrgData.CarryDistFt < 390) {
+				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到進階水準 ";
+			} else if (wrgData.CarryDistFt >= 300 && wrgData.CarryDistFt < 360) {
 				wrgExpert.expert_suggestion = "置球點到擊球落點的距離達到標準水準 ";
-			}
-			else if (wrgData.BallSpeed >= 80 && wrgData.BallSpeed < 100)
-			{
+			} else if (wrgData.CarryDistFt >= 240 && wrgData.CarryDistFt < 300) {
 				wrgExpert.expert_suggestion = "置球點到擊球落點的距離一般水準 ";
-			}
-			else
-			{
+			} else {
 				bValid = false;
 			}
 		}
 		return bValid;
+//		boolean bValid = false;
+//	    String newSuggestion = null;
+//
+//	    if (wrgData.CarryDistFt >= CARRY_DIST_FT_MIN) {
+//	        bValid = true;
+//	        if (wrgData.CarryDistFt >= 450) {
+//	            newSuggestion = "置球點到擊球落點的距離達到職業級水準 ";
+//	        } else if (wrgData.CarryDistFt >= 420 && wrgData.CarryDistFt < 450) {
+//	            newSuggestion = "置球點到擊球落點的距離達到教練水準 ";
+//	        } else if (wrgData.CarryDistFt >= 390 && wrgData.CarryDistFt < 420) {
+//	            newSuggestion = "置球點到擊球落點的距離達到進階水準 ";
+//	        } else if (wrgData.CarryDistFt >= 360 && wrgData.CarryDistFt < 390) {
+//	            newSuggestion = "置球點到擊球落點的距離達到進階水準 ";
+//	        } else if (wrgData.CarryDistFt >= 300 && wrgData.CarryDistFt < 360) {
+//	            newSuggestion = "置球點到擊球落點的距離達到標準水準 ";
+//	        } else if (wrgData.CarryDistFt >= 240 && wrgData.CarryDistFt < 300) {
+//	            newSuggestion = "置球點到擊球落點的距離一般水準 ";
+//	        } else {
+//	            bValid = false;
+//	        }
+//	    }
+//
+//	    if (bValid && newSuggestion != null) {
+//	        if (wrgExpert.expert_suggestion == null || wrgExpert.expert_suggestion.isEmpty()) {
+//	            wrgExpert.expert_suggestion = newSuggestion;
+//	        } else {
+//	            wrgExpert.expert_suggestion += newSuggestion;
+//	        }
+//	    }
+//	    return bValid;
 	}
 
-	private boolean launchAngleValid(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean launchAngleValid(WrgData wrgData, WrgExpert wrgExpert) {
 		// 隨著球速的降低，最佳發射角度必須增加，後旋也必須增加
 		boolean bResult = false;
 
-		if (wrgData.LaunchAngle < LAUNCH_ANGLE_MIN)
-		{
+		if (wrgData.LaunchAngle < LAUNCH_ANGLE_MIN) {
 			wrgExpert.expert_suggestion = "擊球發射角度超出正常範圍";
 			wrgExpert.expert_cause = SHOT_FAIL_BODY;
 			wrgExpert.expert_p_system = SHOT_FAIL;
@@ -160,58 +167,45 @@ public class PSystem extends DeviceData
 		return bResult;
 	}
 
-	private String getTrajectory(WrgData wrgData)
-	{
+	private String getTrajectory(WrgData wrgData) {
 		String strTrajectory = null;
 		float fPathFace = wrgData.ClubAnglePath - wrgData.ClubAngleFace;
 
 		// 1.桿面(clubFace)是關的(Closed):
-		if (wrgData.ClubAngleFace < FACE_SQUARE_MIN)
-		{
-			if (fPathFace > 0)
-			{
+		if (wrgData.ClubAngleFace < FACE_SQUARE_MIN) {
+			if (fPathFace > 0) {
 				strTrajectory = PULL_HOOK;
 			}
-			if (fPathFace == 0)
-			{
+			if (fPathFace == 0) {
 				strTrajectory = PULL;
 			}
-			if (fPathFace < 0)
-			{
+			if (fPathFace < 0) {
 				strTrajectory = PULL_SLICE;
 			}
 		}
 
 		// 2.桿面(clubFace)是正的(Square):
-		if (wrgData.ClubAngleFace >= FACE_SQUARE_MIN && wrgData.ClubAngleFace <= FACE_SQUARE_MAX)
-		{
-			if (fPathFace > 0)
-			{
+		if (wrgData.ClubAngleFace >= FACE_SQUARE_MIN && wrgData.ClubAngleFace <= FACE_SQUARE_MAX) {
+			if (fPathFace > 0) {
 				strTrajectory = DRAW;
 			}
-			if (fPathFace == 0)
-			{
+			if (fPathFace == 0) {
 				strTrajectory = STRAIGHT;
 			}
-			if (fPathFace < 0)
-			{
+			if (fPathFace < 0) {
 				strTrajectory = FADE;
 			}
 		}
 
 		// 3.桿面(clubFace)是開的(Open):
-		if (wrgData.ClubAngleFace > FACE_SQUARE_MAX)
-		{
-			if (fPathFace > 0)
-			{
+		if (wrgData.ClubAngleFace > FACE_SQUARE_MAX) {
+			if (fPathFace > 0) {
 				strTrajectory = PUSH_HOOK;
 			}
-			if (fPathFace == 0)
-			{
+			if (fPathFace == 0) {
 				strTrajectory = PUSH;
 			}
-			if (fPathFace < 0)
-			{
+			if (fPathFace < 0) {
 				strTrajectory = PUSH_SLICE;
 			}
 		}
@@ -219,239 +213,166 @@ public class PSystem extends DeviceData
 		return strTrajectory;
 	}
 
-	private boolean getSliceTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getSliceTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bIsSlice = false;
 		float fPathFace = wrgData.ClubAnglePath - wrgData.ClubAngleFace;
 
 		// 1.桿面(clubFace)是關的(Closed):
-		if (wrgData.ClubAngleFace < FACE_SQUARE_MIN)
-		{
-			if (fPathFace > 0)
-			{
+		if (wrgData.ClubAngleFace < FACE_SQUARE_MIN) {
+			if (fPathFace > 0) {
 				wrgExpert.expert_trajectory = PULL_HOOK;
 			}
-			if (fPathFace == 0)
-			{
+			if (fPathFace == 0) {
 				wrgExpert.expert_trajectory = PULL;
 			}
-			if (fPathFace < 0)
-			{
+			if (fPathFace < 0) {
 //				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
-				wrgExpert.expert_trajectory = PULL_SLICE;
-				wrgExpert.expert_cause = PULL_SLICE_CAUSE;
-				wrgExpert.expert_suggestion = PULL_SLICE_SUGGEST;
-//				wrgExpert.expert_p_system = P2_3;
-				wrgExpert.expert_p_system = P2;
+				setRandomPSystem(wrgExpert, PULL_SLICE);
+				String originalSuggestion = wrgExpert.expert_suggestion;
+				if (!getCarryDistFt(wrgData, wrgExpert)) {
+					wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+				} else
+					wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 				bIsSlice = true;
 			}
 		}
 
 		// 2.桿面(clubFace)是正的(Square):
-		if (wrgData.ClubAngleFace >= FACE_SQUARE_MIN && wrgData.ClubAngleFace <= FACE_SQUARE_MAX)
-		{
-			if (fPathFace > 0)
-			{
+		if (wrgData.ClubAngleFace >= FACE_SQUARE_MIN && wrgData.ClubAngleFace <= FACE_SQUARE_MAX) {
+			if (fPathFace > 0) {
 				wrgExpert.expert_trajectory = DRAW;
 			}
-			if (fPathFace == 0)
-			{
+			if (fPathFace == 0) {
 				wrgExpert.expert_trajectory = STRAIGHT;
 			}
-			if (fPathFace < 0)
-			{
+			if (fPathFace < 0) {
 //				wrgExpert.expert_trajectory = STRAIGHT_SLICE_TRAJECTORY;
-				wrgExpert.expert_trajectory = FADE;
-//				wrgExpert.expert_cause = STRAIGHT_SLICE_CAUSE;
-				wrgExpert.expert_cause = FADE_CAUSE;
-//				wrgExpert.expert_suggestion = STRAIGHT_SLICE_SUGGEST;
-				wrgExpert.expert_suggestion = FADE_SUGGEST;
-				wrgExpert.expert_p_system = P2_3;
+				setRandomPSystem(wrgExpert, FADE);
+				String originalSuggestion = wrgExpert.expert_suggestion;
+				if (!getCarryDistFt(wrgData, wrgExpert)) {
+					wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+				} else
+					wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 				bIsSlice = true;
 			}
 		}
 
 		// 3.桿面(clubFace)是開的(Open):
-		if (wrgData.ClubAngleFace > FACE_SQUARE_MAX)
-		{
-			if (fPathFace > 0)
-			{
+		if (wrgData.ClubAngleFace > FACE_SQUARE_MAX) {
+			if (fPathFace > 0) {
 				wrgExpert.expert_trajectory = PUSH_HOOK;
 			}
-			if (fPathFace == 0)
-			{
+			if (fPathFace == 0) {
 				wrgExpert.expert_trajectory = PUSH;
 			}
-			if (fPathFace < 0)
-			{
+			if (fPathFace < 0) {
 //				wrgExpert.expert_trajectory = PUSH_SLICE_TRAJECTORY;
-				wrgExpert.expert_trajectory = PUSH_SLICE;
-				wrgExpert.expert_cause = PUSH_SLICE_CAUSE;
-				wrgExpert.expert_suggestion = PUSH_SLICE_SUGGEST;
-				wrgExpert.expert_p_system = P2_3;
+
+				setRandomPSystem(wrgExpert, PUSH_SLICE);
+				String originalSuggestion = wrgExpert.expert_suggestion;
+				if (!getCarryDistFt(wrgData, wrgExpert)) {
+					wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+				} else
+					wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 				bIsSlice = true;
 			}
 		}
 		return bIsSlice;
 	}
 
-	private boolean getDrawTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getDrawTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		// 常為技術純熟球員所刻意擊出的球路，一個過度的Draw通常會形成為一個大左曲球(左勾球)
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = DRAW_TRAJECTORY;
-		wrgExpert.expert_trajectory = DRAW;
-		wrgExpert.expert_cause = DRAW_CAUSE;
-//		wrgExpert.expert_p_system = P2_3;
-		wrgExpert.expert_p_system = P7;
-
-		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
+		setRandomPSystem(wrgExpert, DRAW);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-			wrgExpert.expert_suggestion = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
-			wrgExpert.expert_p_system = P5_6;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + DRAW_SUGGEST;
-
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getStraightTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getStraightTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = STRAIGHT_TRAJECTORY;
-		wrgExpert.expert_trajectory = STRAIGHT;
-		wrgExpert.expert_cause = STRAIGHT_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
-
-		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
+		setRandomPSystem(wrgExpert, STRAIGHT);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-//			wrgExpert.expert_suggestion = "優秀的高爾夫球手往往非常擅長在球落地之前保持收尾，此擊球它看起來不錯但置球點到擊球落點的距離不佳。 如果你的後腳沒有轉動，你肯定有時間在你完成並將它帶到下一個擊球時注意到並糾正它。 我堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
-			wrgExpert.expert_suggestion = STRAIGHT_SUGGEST;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + STRAIGHT_SUGGEST;
-
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getFadeTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getFadeTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = FADE_TRAJECTORY;
-		wrgExpert.expert_trajectory = FADE;
-		wrgExpert.expert_cause = FADE_CAUSE;
-//		wrgExpert.expert_p_system = P2_3;
-		wrgExpert.expert_p_system = P7;
-
-		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
+		setRandomPSystem(wrgExpert, FADE);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
-			wrgExpert.expert_suggestion = FADE_SUGGEST;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + FADE_SUGGEST;
-
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getPushHookTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getPushHookTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = PUSH_HOOK_TRAJECTORY;
-		wrgExpert.expert_trajectory = PUSH_HOOK;
-		wrgExpert.expert_cause = PUSH_HOOK_CAUSE;
-		wrgExpert.expert_p_system = P2_3;
-
-		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
+		setRandomPSystem(wrgExpert, PUSH_HOOK);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
-			wrgExpert.expert_suggestion = PUSH_HOOK_SUGGEST;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PUSH_HOOK_SUGGEST;
-
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getPushTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getPushTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = PUSH_TRAJECTORY;
-		wrgExpert.expert_trajectory = PUSH;
-		wrgExpert.expert_cause = PUSH_CAUSE;
-//		wrgExpert.expert_p_system = P2_3;
-		wrgExpert.expert_p_system = P2;
-
-		// 要限定至少要打多遠 CARRY_DIST_FT_MIN置球點到擊球落點的距離(ft)。
+		setRandomPSystem(wrgExpert, PUSH);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
-			wrgExpert.expert_suggestion = PUSH_SUGGEST;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PUSH_SUGGEST;
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getPullTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getPullTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = PULL_TRAJECTORY;
-		wrgExpert.expert_trajectory = PULL;
-		wrgExpert.expert_cause = PULL_CAUSE;
-//		wrgExpert.expert_p_system = P2_3;
-		wrgExpert.expert_p_system = P3;
-
+		setRandomPSystem(wrgExpert, PULL);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
-			wrgExpert.expert_suggestion = PULL_SUGGEST;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_SUGGEST;
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getPullHookTrajectory(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getPullHookTrajectory(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
-//		wrgExpert.expert_trajectory = PULL_HOOK_TRAJECTORY;
-		wrgExpert.expert_trajectory = PULL_HOOK;
-		wrgExpert.expert_cause = PULL_HOOK_CAUSE;
-//		wrgExpert.expert_p_system = P2_3;
-		wrgExpert.expert_p_system = P7;
-
+		setRandomPSystem(wrgExpert, PULL_HOOK);
+		String originalSuggestion = wrgExpert.expert_suggestion;
 		bValid = true;
-		if (!getCarryDistFt(wrgData, wrgExpert))
-		{
-//			wrgExpert.expert_suggestion = "此擊球它看起來不錯但置球點到擊球落點的距離不佳。堅信你的揮桿要保持良好的平衡，如果你能保持收杆，那是你能得到更好的擊球";
-			wrgExpert.expert_suggestion = PULL_HOOK_SUGGEST;
-		}
-		else
-			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion + PULL_HOOK_SUGGEST;
+		if (!getCarryDistFt(wrgData, wrgExpert)) {
+			wrgExpert.expert_suggestion = wrgExpert.expert_suggestion;
+		} else
+			wrgExpert.expert_suggestion = originalSuggestion + "，" + wrgExpert.expert_suggestion;
 		return bValid;
 	}
 
-	private boolean getHitFail(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean getHitFail(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
 		wrgExpert.expert_p_system = p2_9;
@@ -463,120 +384,205 @@ public class PSystem extends DeviceData
 		if (0 < nYt)
 			bValid = true;
 
-		if (4 <= wrgData.LaunchAngle && 70 <= wrgData.CarryDistFt)
-		{
-			if (60 <= wrgData.BallSpeed)
-			{
+		if (4 <= wrgData.LaunchAngle && 70 <= wrgData.CarryDistFt) {
+			if (60 <= wrgData.BallSpeed) {
 				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，揮動手臂下杆或者下杆時肩膀太過主動，這些動作都無法形成強大的力量";
 				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
-			}
-			else
-			{
+			} else {
 				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，而不是依靠手臂的力量。身體旋轉地速度越快，擊球力量就會越大";
 				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
 			}
-		}
-		else
-		{
-			switch (nYt)
-			{
-				case 0:
-					wrgExpert.expert_suggestion = SHOT_FAIL;
-					wrgExpert.expert_cause = SHOT_FAIL;
-					wrgExpert.expert_p_system = SHOT_FAIL;
-					wrgExpert.expert_trajectory = THE_TOP;
-					break;
-				case 1:
-					wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭";
-					wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
-					break;
-				case 2:
-					wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
-					wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
-					break;
-				case 3:
-				case 4:
-				case 5:
-					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
-					wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
-					break;
-				case 6:
-				case 7:
-				case 8:
-					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
-					wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
-					break;
-				case 9:
-					wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
-					wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
-					break;
-				case 10:
-				case 11:
-					wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
-					wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
-					break;
-				default:
-					bValid = false;
-					break;
+		} else {
+			switch (nYt) {
+			case 0:
+				wrgExpert.expert_suggestion = SHOT_FAIL;
+				wrgExpert.expert_cause = SHOT_FAIL;
+				wrgExpert.expert_p_system = SHOT_FAIL;
+				wrgExpert.expert_trajectory = THE_TOP;
+				break;
+			case 1:
+				wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭";
+				wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+				break;
+			case 2:
+				wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+				break;
+			case 3:
+			case 4:
+			case 5:
+				wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
+				wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+				break;
+			case 6:
+			case 7:
+			case 8:
+				wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
+				wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+				break;
+			case 9:
+				wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
+				wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+				break;
+			case 10:
+			case 11:
+				wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+				break;
+			default:
+				bValid = false;
+				break;
 			}
 		}
 
 		return bValid;
 	}
 
-	private boolean pSystemCheck(WrgData wrgData, WrgExpert wrgExpert)
-	{
+	private boolean pSystemCheck(WrgData wrgData, WrgExpert wrgExpert) {
 		boolean bValid = false;
 
 		wrgExpert.expert_trajectory = getTrajectory(wrgData); // 取得彈道
 
-		if (wrgData.CarryDistFt < CARRY_DIST_FT_MIN && wrgData.LaunchAngle < LAUNCH_ANGLE_MIN)
-		{
+		if (wrgData.CarryDistFt < CARRY_DIST_FT_MIN && wrgData.LaunchAngle < LAUNCH_ANGLE_MIN) {
 			bValid = getHitFail(wrgData, wrgExpert);
-		}
-		else
-		{
-			if (PULL_SLICE.equals(wrgExpert.expert_trajectory) || STRAIGHT_SLICE_TRAJECTORY.equals(wrgExpert.expert_trajectory)
-					|| PUSH_SLICE.equals(wrgExpert.expert_trajectory))
-			{
+		} else {
+			if (PULL_SLICE.equals(wrgExpert.expert_trajectory) || PUSH_SLICE.equals(wrgExpert.expert_trajectory)) {
 				bValid = getSliceTrajectory(wrgData, wrgExpert);
-			}
-			else if (DRAW.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (DRAW.equals(wrgExpert.expert_trajectory)) {
 				bValid = getDrawTrajectory(wrgData, wrgExpert);
-			}
-			else if (STRAIGHT.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (STRAIGHT.equals(wrgExpert.expert_trajectory)) {
 				bValid = getStraightTrajectory(wrgData, wrgExpert);
-			}
-			else if (FADE.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (FADE.equals(wrgExpert.expert_trajectory)) {
 				bValid = getFadeTrajectory(wrgData, wrgExpert);
-			}
-			else if (PUSH_HOOK.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (PUSH_HOOK.equals(wrgExpert.expert_trajectory)) {
 				bValid = getPushHookTrajectory(wrgData, wrgExpert);
-			}
-			else if (PUSH.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (PUSH.equals(wrgExpert.expert_trajectory)) {
 				bValid = getPushTrajectory(wrgData, wrgExpert);
-			}
-			else if (PULL.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (PULL.equals(wrgExpert.expert_trajectory)) {
 				bValid = getPullTrajectory(wrgData, wrgExpert);
-			}
-			else if (PULL_HOOK.equals(wrgExpert.expert_trajectory))
-			{
+			} else if (PULL_HOOK.equals(wrgExpert.expert_trajectory)) {
 				bValid = getPullHookTrajectory(wrgData, wrgExpert);
-			}
-			else
-			{
+			} else {
 				bValid = false;
 			}
 		}
 
 		return bValid;
 	}
+
+	private void setRandomPSystem(WrgExpert wrgExpert, String trajectory) {
+		Map<String, List<String[]>> pSystemMap = new HashMap<>();
+		pSystemMap.put(PULL,
+				Arrays.asList(new String[] { P2_3, PULL_CAUSE_P2_3, PULL_SUGGEST_P2_3 },
+						new String[] { P4, PULL_CAUSE_P4, PULL_SUGGEST_P4 },
+						new String[] { P5_6, PULL_CAUSE_P5_6, PULL_SUGGEST_P5_6 },
+						new String[] { P7, PULL_CAUSE_P7, PULL_SUGGEST_P7 }));
+		pSystemMap.put(PULL_HOOK,
+				Arrays.asList(new String[] { P2_3, PULL_HOOK_CAUSE_P2_3, PULL_HOOK_SUGGEST_P2_3 },
+						new String[] { P4, PULL_HOOK_CAUSE_P4, PULL_HOOK_SUGGEST_P4 },
+						new String[] { P5_6, PULL_HOOK_CAUSE_P5_6, PULL_HOOK_SUGGEST_P5_6 },
+						new String[] { P7, PULL_HOOK_CAUSE_P7, PULL_HOOK_SUGGEST_P7 }));
+		pSystemMap.put(PULL_SLICE,
+				Arrays.asList(new String[] { P2_3, PULL_SLICE_CAUSE_P2_3, PULL_SLICE_SUGGEST_P2_3 },
+						new String[] { P4, PULL_SLICE_CAUSE_P4, PULL_SLICE_SUGGEST_P4 },
+						new String[] { P5_6, PULL_SLICE_CAUSE_P5_6, PULL_SLICE_SUGGEST_P5_6 },
+						new String[] { P7, PULL_SLICE_CAUSE_P7, PULL_SLICE_SUGGEST_P7 }));
+		pSystemMap.put(DRAW,
+				Arrays.asList(new String[] { P2_3, DRAW_CAUSE_P2_3, DRAW_SUGGEST_P2_3 },
+						new String[] { P4, DRAW_CAUSE_P4, DRAW_SUGGEST_P4 },
+						new String[] { P5_6, DRAW_CAUSE_P5_6, DRAW_SUGGEST_P5_6 }));
+
+		pSystemMap.put(PUSH,
+				Arrays.asList(new String[] { P2_3, PUSH_CAUSE_P2_3, PUSH_SUGGEST_P2_3 },
+						new String[] { P4, PUSH_CAUSE_P4, PUSH_SUGGEST_P4 },
+						new String[] { P5_6, PUSH_CAUSE_P5_6, PUSH_SUGGEST_P5_6 },
+						new String[] { P7, PUSH_CAUSE_P7, PUSH_SUGGEST_P7 }));
+		pSystemMap.put(PUSH_SLICE,
+				Arrays.asList(new String[] { P2_3, PUSH_SLICE_CAUSE_P2_3, PUSH_SLICE_SUGGEST_P2_3 },
+						new String[] { P4, PUSH_SLICE_CAUSE_P4, PUSH_SLICE_SUGGEST_P4 },
+						new String[] { P5_6, PUSH_SLICE_CAUSE_P5_6, PUSH_SLICE_SUGGEST_P5_6 },
+						new String[] { P7, PUSH_SLICE_CAUSE_P7, PUSH_SLICE_SUGGEST_P7 }));
+		pSystemMap.put(PUSH_HOOK,
+				Arrays.asList(new String[] { P2_3, PUSH_HOOK_CAUSE_P2_3, PUSH_HOOK_SUGGEST_P2_3 },
+						new String[] { P4, PUSH_HOOK_CAUSE_P4, PUSH_HOOK_SUGGEST_P4 },
+						new String[] { P5_6, PUSH_HOOK_CAUSE_P5_6, PUSH_HOOK_SUGGEST_P5_6 },
+						new String[] { P7, PUSH_HOOK_CAUSE_P7, PUSH_HOOK_SUGGEST_P7 }));
+		pSystemMap.put(FADE,
+				Arrays.asList(new String[] { P2_3, FADE_CAUSE_P2_3, FADE_SUGGEST_P2_3 },
+						new String[] { P4, FADE_CAUSE_P4, FADE_SUGGEST_P4 },
+						new String[] { P5_6, FADE_CAUSE_P5_6, FADE_SUGGEST_P5_6 }));
+
+		pSystemMap.put(STRAIGHT,
+				Arrays.asList(new String[] { P2_3, STRAIGHT_CAUSE_P2_3, STRAIGHT_SUGGEST_P2_3 },
+						new String[] { P4, STRAIGHT_CAUSE_P4, STRAIGHT_SUGGEST_P4 },
+						new String[] { P5_6, STRAIGHT_CAUSE_P5_6, STRAIGHT_SUGGEST_P5_6 }));
+
+		List<String[]> options = pSystemMap.getOrDefault(trajectory, Arrays
+				.asList(new String[] { p2_9, "擊球失誤", "需要教練協助姿勢校正" }, new String[] { P2_3, "擊球失誤", "需要教練協助姿勢校正" }));
+		Random rand = new Random();
+		String[] selectedPSystem = options.get(rand.nextInt(options.size()));
+		wrgExpert.expert_p_system = selectedPSystem[0];
+		wrgExpert.expert_cause = selectedPSystem[1];
+		wrgExpert.expert_suggestion = selectedPSystem[2];
+	}
+
+	public static void main(String[] args) {
+		// 創建 PSystem 對象
+		PSystem pSystem = new PSystem();
+
+		// 生成隨機參數來模擬高爾夫球擊球
+		float ballSpeed = 30 + (float) Math.random() * 20; // 140至160之間的球速
+		float clubAnglePath = -15 + (float) Math.random() * 30; // -5至5之間的桿面路徑角度
+		float clubAngleFace = -15 + (float) Math.random() * 15; // -2至2之間的桿面角度
+		float totalDistFt = 300 + (float) Math.random() * 100; // 300至400英尺的總距離
+		float carryDistFt = 240 + (float) Math.random() * 210; // 280至330英尺的攜帶距離
+		float launchAngle = 0 + (float) Math.random() * 30; // 10至15度的發射角度
+		float backSpin = 300 + (float) Math.random() * 10000; // 2000至3000的後旋
+		float sideSpin = -200 + (float) Math.random() * 400; // -200至200的側旋
+		float clubHeadSpeed = 100 + (float) Math.random() * 20; // 100至120的桿頭速度
+		float smashFactor = ballSpeed / clubHeadSpeed;
+		float launchDirection = -15 + (float) Math.random() * 30; // -1至1的發射方向
+		float distToPinFt = 50 + (float) Math.random() * 50; // 50至100英尺的到旗杆距離
+
+		// 執行分析並印出結果
+		String result = pSystem.expertAnalysis(ballSpeed, clubAnglePath, clubAngleFace, totalDistFt, carryDistFt,
+				launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed, launchDirection, distToPinFt);
+
+		// 輸出結果
+		System.out.println("分析結果: " + result);
+		// 調用生成所有分析結果的方法
+//	    pSystem.generateAllResults();
+	}
+
+	// 假設 PSystem 類中已經包含 generateAllResults 方法，該方法如前所述
+//	public void generateAllResults() {
+//	    for (float ballSpeed = 100; ballSpeed <= 200; ballSpeed += 10) {
+//	        for (float clubAnglePath = -20; clubAnglePath <= 20; clubAnglePath += 5) {
+//	            for (float clubAngleFace = -20; clubAngleFace <= 20; clubAngleFace += 5) {
+//	                for (float carryDistFt = 120; carryDistFt <= 400; carryDistFt += 30) {
+//	                    for (float launchAngle = 6; launchAngle <= 20; launchAngle += 1) {
+//	                        for (float clubHeadSpeed = 80; clubHeadSpeed <= 120; clubHeadSpeed += 5) {
+//	                            // 模擬其他固定值，例如 TotalDistFt, SmashFactor 等，根據需要添加
+//	                            float totalDistFt = carryDistFt + 50; // 例如，總距離為攜帶距離加上一個固定值
+//	                            float smashFactor = ballSpeed / clubHeadSpeed; // 算出擊球係數
+//	                            float sideSpin = 0; // 側旋，根據需求可能需要調整
+//	                            float backSpin = 1000; // 後旋，示例值
+//	                            float launchDirection = 0; // 發射方向，示例值
+//	                            float distToPinFt = 100; // 到旗杆的距離，示例值
+//
+//	                            String result = expertAnalysis(
+//	                                ballSpeed, clubAnglePath, clubAngleFace, totalDistFt, carryDistFt,
+//	                                launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed,
+//	                                launchDirection, distToPinFt);
+//	                            System.out.println("分析結果: " + result);
+//	                        }
+//	                    }
+//	                }
+//	            }
+//	        }
+//	    }
+//	}
+
 }
 
 /*

@@ -25,7 +25,7 @@ JSONObject result = expertData.processRequest(request);
 //JSONObject iritResult = rawDataReceive.getIRITRawDataReq(request);
 Long shot_data_id = result.getLong("shotdata_id");
 
-float[][] shotResult = shotData.processPlayerReq(shot_data_id);
+float[][] shotResult = shotData.processPlayerReqOld(shot_data_id);
 
 String psystem = "";
 String trajectory = "";

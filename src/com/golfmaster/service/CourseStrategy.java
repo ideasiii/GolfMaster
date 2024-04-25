@@ -39,6 +39,8 @@ public class CourseStrategy extends DeviceData {
 
 	public JSONObject processStrategy(HttpServletRequest request) {
 		JSONObject jsobjParam = new JSONObject();
+		YardageBookData bookData = new YardageBookData();
+		GolfClubSelection golfClubSelection = new GolfClubSelection();
 		try {
 			printParam(request);
 			String player = request.getParameter("player");
@@ -57,7 +59,11 @@ public class CourseStrategy extends DeviceData {
 						jsobjParam.put("code", -1);
 						jsobjParam.put("distance", false);
 					} else if (result.get("success").equals(true)) {
-						JSONArray clubArray = getDatas(player);
+						String clubRS = bookData.processRequest(request);
+						System.out.println("Debugging clubRS: " + clubRS);
+						JSONObject clubObj = new JSONObject(clubRS);
+//						JSONArray clubArray = getDatas(player);
+						JSONArray clubArray = clubObj.getJSONArray("result");
 						JSONArray standClubArray = getStandDatas(g);
 						String[] wedge = { "PitchingWedge", "LobWedge", "GapWedge", "ApproachWedge" };
 						double distc = result.getDouble("distance");
@@ -85,10 +91,12 @@ public class CourseStrategy extends DeviceData {
 						} else {
 							// 使用動態規劃來計算策略
 							int p = Integer.parseInt(par);
-							String strategy = calculateStrategy(distc, clubArray, p, clubTypes);
+							String strategy2 = calculateStrategy(distc, clubArray, p, clubTypes);
+							String strategy = golfClubSelection.selectClubsForHole(distc, clubArray, p, clubTypes);
 							System.out.println(strategy);
 							jsobjParam.put("code", 0);
 							jsobjParam.put("strategy", strategy);
+							jsobjParam.put("strategy2", strategy2);
 							jsobjParam.put("Standard", false);
 
 						}
@@ -155,51 +163,6 @@ public class CourseStrategy extends DeviceData {
 		Logs.log(Logs.RUN_LOG, jsonResp.toString());
 		Logs.log(Logs.RUN_LOG, jsonProject.toString());
 		return jsonProject;
-	}
-
-	private JSONArray getDatas(String player) throws Exception {
-		JSONArray array = new JSONArray();
-		JSONObject jsonProject = null;
-		JSONObject jsonResp = new JSONObject();
-
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		String strSQL;
-
-		strSQL = String.format(
-				"select ClubType, min(CarryDistFt) as 'min', round(avg(CarryDistFt)/3.0,4) as 'avg', max(CarryDistFt) as 'max'"
-						+ " from golf_master.shot_data where player = '%s' group by ClubType order by 1;",
-				player);
-		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
-		try {
-			conn = DBUtil.getConnGolfMaster();
-			stmt = conn.createStatement();
-
-			rs = stmt.executeQuery(strSQL);
-			while (rs.next()) {
-
-				jsonProject = new JSONObject();
-				jsonProject.put("ClubType", rs.getString("ClubType"));
-				jsonProject.put("avg", rs.getDouble("avg"));
-
-				array.put(jsonProject);
-
-			}
-			if (array.length() == 0) {
-				array = new JSONArray();
-			}
-			jsonResp.put("success", true);
-		} catch (Exception e) {
-			Logs.log(Logs.EXCEPTION_LOG, e.toString());
-			e.printStackTrace();
-			jsonResp.put("success", false);
-			jsonResp.put("message", e.getMessage());
-		}
-		DBUtil.close(rs, stmt, conn);
-		Logs.log(Logs.RUN_LOG, jsonResp.toString());
-		return array;
-
 	}
 
 	private JSONArray getStandDatas(int tee) throws Exception {

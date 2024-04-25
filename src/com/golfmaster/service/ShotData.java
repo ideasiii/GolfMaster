@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
+import com.golfmaster.moduel.LevelSystem;
 import com.golfmaster.moduel.PSystem;
 
 public class ShotData {
@@ -52,7 +53,8 @@ public class ShotData {
 	}
 
 	public JSONObject processIRITData(Long shot_data_id) {
-		String player = queryPlayer(shot_data_id);
+		JSONObject jsb = queryPlayer(shot_data_id);
+		String player = jsb.getString("player");
 		JSONObject jsonObject = null;
 		if (player != null || !player.isEmpty()) {
 			jsonObject = queryIRITData(player);
@@ -61,22 +63,35 @@ public class ShotData {
 	}
 
 	public float[][] processPlayerReq(Long shot_data_id) {
-		String player = queryPlayer(shot_data_id);
+		JSONObject jsb = queryPlayer(shot_data_id);
+		String player = jsb.getString("player");
+		String ClubType = jsb.getString("ClubType");
 		float[][] playerBallSpeed = null;
 		if (player != null || !player.isEmpty()) {
-			playerBallSpeed = queryBallSpeed(player);
+			playerBallSpeed = queryBallSpeed(player, shot_data_id, ClubType);
 		}
 
 		return playerBallSpeed;
 	}
 
-	private String queryPlayer(Long shot_data_id) {
+	public float[][] processPlayerReqOld(Long shot_data_id) {
+		JSONObject jsb = queryPlayer(shot_data_id);
+		String player = jsb.getString("player");
+		float[][] playerBallSpeed = null;
+		if (player != null || !player.isEmpty()) {
+			playerBallSpeed = queryBallSpeedLastTen(player);
+		}
+
+		return playerBallSpeed;
+	}
+
+	private JSONObject queryPlayer(Long shot_data_id) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String strSQL;
 		String player = null;
-
+		JSONObject jsb = new JSONObject();
 		strSQL = String.format("SELECT * FROM golf_master.shot_data WHERE id = '%d'", shot_data_id);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
@@ -85,8 +100,8 @@ public class ShotData {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(strSQL);
 			while (rs.next()) {
-				player = rs.getString("Player");
-
+				jsb.put("player", rs.getString("Player"));
+				jsb.put("ClubType", rs.getString("ClubType"));
 			}
 			System.out.println(player);
 		} catch (Exception e) {
@@ -95,10 +110,10 @@ public class ShotData {
 			e.printStackTrace();
 		}
 		DBUtil.close(rs, stmt, conn);
-		return player;
+		return jsb;
 	}
 
-	private float[][] queryBallSpeed(String player) {
+	private float[][] queryBallSpeed(String player, Long shot_data_id, String ClubType) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -106,7 +121,47 @@ public class ShotData {
 		// BallSpeed and ClubHeadSpeed
 		float[][] BSAndCHS = new float[5][10];
 		// 取最近的10筆
-		strSQL = String.format("SELECT * FROM golf_master.shot_data WHERE Player = '%s' order by Date DESC LIMIT 10",
+		strSQL = String.format(
+				"(SELECT 'Last' AS RecordType, BallSpeed, ClubHeadSpeed, round((TotalDistFt/3), 2) AS TotalDistFt, LaunchAngle, BackSpin "
+						+ " FROM golf_master.shot_data " + " WHERE Player = '%s' " + " AND id = '%d' " + " LIMIT 1) "
+						+ "UNION ALL "
+						+ "(SELECT 'Average' AS RecordType, AVG(BallSpeed), AVG(ClubHeadSpeed), AVG(round((TotalDistFt/3), 2)), AVG(LaunchAngle), AVG(BackSpin) "
+						+ " FROM golf_master.shot_data " + " WHERE Player = '%s' " + "AND ClubType = '%s')",
+				player, shot_data_id, player, ClubType);
+		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+			while (rs.next()) {
+				String recordType = rs.getString("RecordType");
+				int colIndex = recordType.equals("Last") ? 0 : 1;
+
+				BSAndCHS[0][colIndex] = rs.getFloat("BallSpeed");
+				BSAndCHS[1][colIndex] = rs.getFloat("ClubHeadSpeed");
+				BSAndCHS[2][colIndex] = rs.getFloat("TotalDistFt");
+				BSAndCHS[3][colIndex] = rs.getFloat("LaunchAngle");
+				BSAndCHS[4][colIndex] = rs.getFloat("BackSpin");
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		}
+		DBUtil.close(rs, stmt, conn);
+		return BSAndCHS;
+	}
+
+	private float[][] queryBallSpeedLastTen(String player) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL;
+		// BallSpeed and ClubHeadSpeed
+		float[][] BSAndCHS = new float[5][10];
+		// 取最近的10筆
+		strSQL = String.format("SELECT * FROM golf_master.shot_data WHERE Player = '%s' ORDER BY Date DESC limit 10",
 				player);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
 
@@ -170,9 +225,10 @@ public class ShotData {
 		ResultSet rs = null;
 		String strSQL;
 		String strExpert;
+		String strLevel;
 		JSONArray jarrProjects = new JSONArray();
 		PSystem psystem = new PSystem();
-
+		LevelSystem levelSystem = new LevelSystem();
 		jsonResponse.put("result", jarrProjects);
 		// 無日期就取最近的10筆
 		if (StringUtils.isEmpty(paramData.start_date) || StringUtils.isEmpty(paramData.end_date)) {
@@ -216,11 +272,6 @@ public class ShotData {
 				jsonProject.put("DistToPinFt", rs.getDouble("DistToPinFt")); // 擊球後與目標的距離，單位: ft 呎
 				jsonProject.put("CarryDistFt", rs.getDouble("CarryDistFt")); // 置球點到擊球落點的距離，單位: ft 呎
 				jsonProject.put("TotalDistFt", rs.getDouble("TotalDistFt")); // 置球點到擊球後停止滾動的距離，單位: ft 呎
-				// jsonProject.put("expert_note", rs.getString("expert_note"));
-				// jsonProject.put("expert_trajectory", rs.getString("expert_trajectory"));
-				// jsonProject.put("expert_p_system", rs.getString("expert_p-system"));
-				// jsonProject.put("expert_suggestion", rs.getString("expert_suggestion"));
-				// jsonProject.put("expert_cause", rs.getString("expert_cause"));
 				strExpert = psystem.expertAnalysis((float) rs.getDouble("BallSpeed"),
 						(float) rs.getDouble("ClubAnglePath"), (float) rs.getDouble("ClubAngleFace"),
 						(float) rs.getDouble("TotalDistFt"), (float) rs.getDouble("CarryDistFt"),
@@ -229,6 +280,13 @@ public class ShotData {
 						(float) rs.getDouble("ClubHeadSpeed"), (float) rs.getDouble("LaunchDirection"),
 						(float) rs.getDouble("DistToPinFt"));
 
+				strLevel = levelSystem.expertAnalysis((float) rs.getDouble("BallSpeed"),
+						(float) rs.getDouble("ClubAnglePath"), (float) rs.getDouble("ClubAngleFace"),
+						(float) rs.getDouble("TotalDistFt"), (float) rs.getDouble("CarryDistFt"),
+						(float) rs.getDouble("LaunchAngle"), (float) rs.getDouble("SmashFactor"),
+						(float) rs.getInt("BackSpin"), (float) rs.getInt("SideSpin"),
+						(float) rs.getDouble("ClubHeadSpeed"), (float) rs.getDouble("LaunchDirection"),
+						(float) rs.getDouble("DistToPinFt"), (String) rs.getString("ClubType"));
 				// 分析網路測試 ==============================
 				// AnalysisNetwork analysisNetWork = new AnalysisNetwork();
 				// analysisNetWork.expertAnalysis((float)rs.getDouble("BallSpeed"),

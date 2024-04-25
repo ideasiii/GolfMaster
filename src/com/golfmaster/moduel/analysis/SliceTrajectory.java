@@ -40,8 +40,8 @@ public class SliceTrajectory extends AnalysisRunner
 			if (fPathFace < 0)
 			{
 				wrgExpert.expert_trajectory = PULL_SLICE_TRAJECTORY;
-				wrgExpert.expert_cause = PULL_SLICE_CAUSE;
-				wrgExpert.expert_suggestion = PULL_SLICE_SUGGEST;
+//				wrgExpert.expert_cause = PULL_SLICE_CAUSE;
+//				wrgExpert.expert_suggestion = PULL_SLICE_SUGGEST;
 				wrgExpert.expert_p_system = P2_3;
 				bIsSlice = true;
 				setWeight(1);
@@ -61,9 +61,9 @@ public class SliceTrajectory extends AnalysisRunner
 			}
 			if (fPathFace < 0)
 			{
-				wrgExpert.expert_trajectory = STRAIGHT_SLICE_TRAJECTORY;
-				wrgExpert.expert_cause = STRAIGHT_SLICE_CAUSE;
-				wrgExpert.expert_suggestion = STRAIGHT_SLICE_SUGGEST;
+//				wrgExpert.expert_trajectory = STRAIGHT_SLICE_TRAJECTORY;
+//				wrgExpert.expert_cause = STRAIGHT_SLICE_CAUSE;
+//				wrgExpert.expert_suggestion = STRAIGHT_SLICE_SUGGEST;
 				wrgExpert.expert_p_system = P2_3;
 				bIsSlice = true;
 				setWeight(3);
@@ -84,8 +84,8 @@ public class SliceTrajectory extends AnalysisRunner
 			if (fPathFace < 0)
 			{
 				wrgExpert.expert_trajectory = PUSH_SLICE_TRAJECTORY;
-				wrgExpert.expert_cause = PUSH_SLICE_CAUSE;
-				wrgExpert.expert_suggestion = PUSH_SLICE_SUGGEST;
+//				wrgExpert.expert_cause = PUSH_SLICE_CAUSE;
+//				wrgExpert.expert_suggestion = PUSH_SLICE_SUGGEST;
 				wrgExpert.expert_p_system = P2_3;
 				bIsSlice = true;
 				setWeight(1);
