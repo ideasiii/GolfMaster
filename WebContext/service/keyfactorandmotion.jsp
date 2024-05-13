@@ -9,18 +9,20 @@
 <%@ page import="com.golfmaster.service.ExpertData"%>
 <%@ page import="com.golfmaster.service.ShotData"%>
 <%@ page import="com.golfmaster.moduel.PSystem"%>
+<%@ page import="com.golfmaster.service.ShotVideo"%>
 
 <%!ExpertData expertData = new ExpertData();%>
 <%!ShotData shotData = new ShotData();%>
 <%!PSystem pSystem = new PSystem();%>
+<%!ShotVideo shotVideo = new ShotVideo();%>
 
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 Long shot_data_id = result.getLong("shotdata_id");
+Object[] temp = shotVideo.processAnalyz(shot_data_id);
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
-
 String psystem = "";
 String trajectory = "";
 String cause = "";
@@ -81,10 +83,49 @@ float Angle = 0;
 			<p id="launchAngleDisplay"></p>
 			<p id="backSpinDisplay"></p>
 		</div>
+
+		<!-- <video id="myVideo" width="320" height="240" controls>
+			<source
+				src="../page/video/Guest.1_shotVideo_side_161424_202404101614.mp4"
+				type="video/mp4">
+		</video>
+		<br>
+
+		<button onclick="goToFrame(300)">跳到第 300 帧</button>
+		<button onclick="goToFrame(600)">跳到第 600 帧</button>
+		<button onclick="goToFrame(900)">跳到第 900 帧</button>
+		<button onclick="goToFrame(1200)">跳到第 1200 帧</button>
+		<button onclick="playVideo()">Play</button>
+		<button onclick="pauseVideo()">Pause</button>
+		<div>  -->
+		<!-- <%
+		for (Object frame : temp) {
+			
+		}
+		%> -->
+	</div>
 	</div>
 
 </body>
 <script>
+	var frameRate = 60;
+	
+function goToFrame(frameNumber) {
+	var video = document.getElementById('myVideo');
+	// 計算目標帧對應的時間（秒）
+	var time = frameNumber / frameRate;
+	video.currentTime = time;
+}
+
+function playVideo() {
+    var video = document.getElementById('myVideo');
+    video.play();
+}
+
+function pauseVideo() {
+    var video = document.getElementById('myVideo');
+    video.pause();
+}
     // 在頁面加載時執行
 	// 將JSP變量轉換為JavaScript變量
     var greatLevelTopBS = <%=expertData.GreatLevelTopBS%>;
@@ -236,13 +277,6 @@ float Angle = 0;
         document.getElementById("backSpinDisplay").innerText = "後旋: " + backSpin + " rpm -> " + backSpinLevel + "rpm";
     });
     
- // 隨機生成後旋、桿頭速度和距離的數據和範圍
-    //var backSpin = Math.random() * 100;
-    //var clubSpeed = Math.random() * 100;
-    //var distance = Math.random() * 100;
-    //var ballSpeed = Math.random() * 100;
-    //var launchAngle = Math.random() * 100;
-
     // 數據範圍，您可以用後端服務的實際範圍來替換這些值
     var ranges = {
         'BackSpin': [[1, worseLevelLowBsp], [worseLevelLowBsp, badLevelLowBsp], [badLevelLowBsp, normalLevelLowBsp], [normalLevelLowBsp, goodLevelLowBsp], [goodLevelLowBsp,greatLevelLowBsp] ,[greatLevelLowBsp,greatLevelTopBsp],[greatLevelTopBsp,greatLevelTopBsp+backSpin]],

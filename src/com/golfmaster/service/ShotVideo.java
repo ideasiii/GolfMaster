@@ -3,6 +3,7 @@ package com.golfmaster.service;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.service.CallMotionApi;
 
+//
 public class ShotVideo {
 	private class ParamData {
 		private String video_id;
@@ -24,6 +26,7 @@ public class ShotVideo {
 		private String raw_shotVideo_front;
 		private String raw_shotVideo_side;
 		private boolean callMotionApi = false;
+		private String type;
 	}
 
 	public String processRequest(HttpServletRequest request) {
@@ -50,6 +53,22 @@ public class ShotVideo {
 		return strResponse;
 	}
 
+	public Object[] processAnalyz(Long shot_data_id) {
+		JSONObject jso = new JSONObject();
+		String tempSDI = Long.toString(shot_data_id);
+		String response = queryShotVideoAnalyz(tempSDI, jso);
+		Object[] framesData = extractFrames(response);
+		// 檢查是否有有效數據，如果無效則返回預設值
+		if (framesData == null || ((int[]) framesData[0]).length == 0) {
+			int[] defaultSideArray = { 257, 351, 402, 498 };
+			int[] defaultFrontArray = { 239, 339, 388, 481 };
+			String defaultFrontVideoName = "Guest.1_shotVideo_front_161424_202404101614.mp4";
+			String defaultSideVideoName = "Guest.1_shotVideo_side_161424_202404101614.mp4";
+			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName };
+		}
+		return framesData;
+	}
+
 	private int queryShotVideo(ParamData paramData, JSONObject jsonResponse) {
 		Connection conn = null;
 		Statement stmt = null;
@@ -61,22 +80,18 @@ public class ShotVideo {
 		jsonResponse.put("result", jarrProjects);
 		// 無日期就取最近的10筆
 		if (paramData.video_id != null && !paramData.video_id.isEmpty()) {
-			strSQL = String.format("SELECT * FROM shot_video WHERE Player = '%s' AND id = '%s' ORDER BY Date Desc", paramData.player,
-					paramData.video_id);
-		} 
-//		else {
-//			strSQL = String.format("SELECT * FROM shot_video WHERE Player = '%s' order by Date DESC LIMIT 1",
-//					paramData.player);
-//		}
-		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
+			strSQL = String.format(
+					"SELECT * FROM golf_master.shot_video WHERE Player = '%s' AND id = '%s' ORDER BY Date Desc",
+					paramData.player, paramData.video_id);
+		}
+		Logs.log(Logs.RUN_LOG, "queryShotVideo strSQL: " + strSQL);
+		Logs.log(Logs.RUN_LOG,
+				"queryShotVideo paramData.player: " + paramData.player + " paramData.video_id:" + paramData.video_id);
 
 		try {
 			conn = DBUtil.getConnGolfMaster();
-			Logs.log(Logs.RUN_LOG, "conn: " + conn.toString());
 			stmt = conn.createStatement();
-			Logs.log(Logs.RUN_LOG, "conn stmt: " + stmt.toString());
 			rs = stmt.executeQuery(strSQL);
-			Logs.log(Logs.RUN_LOG, "rs: " + rs.toString());
 			while (rs.next()) {
 				JSONObject jsonProject = new JSONObject();
 				jsonProject.put("id", rs.getInt("id"));
@@ -89,25 +104,118 @@ public class ShotVideo {
 				jsonProject.put("raw_shotVideo_front", rs.getString("raw_shotVideo_front"));
 				jsonProject.put("raw_shotVideo_side", rs.getString("raw_shotVideo_side"));
 				jsonProject.put("raw_headVideo", rs.getString("raw_headVideo"));
-				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
-				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
-				jsonProject.put("id_analyzeVideo", rs.getString("id_analyzeVideo"));
+				jsonProject.put("type", paramData.type);
+//				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
+//				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
 				jsonProject.put("ClubType", rs.getString("ClubType"));
 				jarrProjects.put(jsonProject);
+				Logs.log(Logs.RUN_LOG, jsonProject.toString());
 			}
 			jsonResponse.put("success", true);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, e.toString());
 			e.printStackTrace();
 			jsonResponse.put("success", false);
 			jsonResponse.put("message", e.getMessage());
 		}
-		Logs.log(Logs.RUN_LOG, "DB Closing");
 		DBUtil.close(rs, stmt, conn);
-		Logs.log(Logs.RUN_LOG, "DB Close");
 		jsonResponse.put("result", jarrProjects);
 		return jarrProjects.length();
+	}
+
+	private String queryShotVideoAnalyz(String shot_data_id, JSONObject jsonResponse) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL = null;
+		JSONArray jarrProjects = new JSONArray();
+		jsonResponse.put("result", jarrProjects);
+
+		if (shot_data_id != null && !shot_data_id.isEmpty()) {
+			strSQL = String.format(
+					"SELECT SVS.PlayerPSystem AS PlayerPSystem, SVS.CamPos AS CamPos,SV.analyze_shotVideo_front ,SV.analyze_shotVideo_side FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
+					shot_data_id);
+		}
+		Logs.log(Logs.RUN_LOG, "queryShotVideoAnalyz strSQL: " + strSQL);
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+
+			boolean hasResults = false;
+			while (rs.next()) {
+				hasResults = true; // 確認至少有一行數據
+				JSONObject jsonProject = new JSONObject();
+				jsonProject.put("CamPos", rs.getString("CamPos"));
+				jsonProject.put("PlayerPSystem", rs.getString("PlayerPSystem"));
+				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
+				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
+				jarrProjects.put(jsonProject);
+			}
+
+			if (!hasResults) {
+				Logs.log(Logs.RUN_LOG, "No data found for shot_data_id: " + shot_data_id);
+				jsonResponse.put("success", false);
+				jsonResponse.put("message", "No data found");
+			} else {
+				jsonResponse.put("success", true);
+			}
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+			jsonResponse.put("success", false);
+			jsonResponse.put("message", e.getMessage());
+		} finally {
+			DBUtil.close(rs, stmt, conn);
+		}
+
+		jsonResponse.put("result", jarrProjects);
+		return jsonResponse.toString();
+	}
+
+	private Object[] extractFrames(String jsonResponse) {
+		ArrayList<Integer> sideFrames = new ArrayList<>();
+		ArrayList<Integer> frontFrames = new ArrayList<>();
+		String sideVideoName = "";
+		String frontVideoName = "";
+		try {
+			JSONObject responseObj = new JSONObject(jsonResponse);
+			JSONArray results = responseObj.getJSONArray("result");
+			if (results.length() == 0)
+				return null; // 如果沒有數據，直接返回null
+
+			for (int i = 0; i < results.length(); i++) {
+				JSONObject result = results.getJSONObject(i);
+				String camPos = result.optString("CamPos");
+				String playerPSystemStr = result.optString("PlayerPSystem");
+				JSONObject playerPSystemObj = new JSONObject(playerPSystemStr);
+				JSONArray data = playerPSystemObj.getJSONArray("data");
+
+				if ("side".equals(camPos)) {
+					for (int j = 0; j < data.length(); j++) {
+						sideFrames.add(data.getInt(j));
+					}
+					sideVideoName = extractFileName(result.getString("analyze_shotVideo_side"));
+				} else if ("front".equals(camPos)) {
+					for (int j = 0; j < data.length(); j++) {
+						frontFrames.add(data.getInt(j));
+					}
+					frontVideoName = extractFileName(result.getString("analyze_shotVideo_front"));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null; // 在發生錯誤時返回null
+		}
+
+		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
+		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
+		return new Object[] { sideArray, frontArray, frontVideoName, sideVideoName };
+	}
+
+	private String extractFileName(String url) {
+		return url.substring(url.lastIndexOf('/') + 1);
 	}
 
 	private JSONObject requestAndTrimParams(HttpServletRequest request, ParamData paramData) {
@@ -116,6 +224,7 @@ public class ShotVideo {
 			paramData.video_id = StringUtils.trimToEmpty(request.getParameter("video_id"));
 			paramData.raw_shotVideo_front = StringUtils.trimToEmpty(request.getParameter("raw_shotVideo_front"));
 			paramData.raw_shotVideo_side = StringUtils.trimToEmpty(request.getParameter("raw_shotVideo_side"));
+			paramData.type = StringUtils.trimToEmpty(request.getParameter("type"));
 
 			if (StringUtils.isEmpty(paramData.player)) {
 				return ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
@@ -139,4 +248,6 @@ public class ShotVideo {
 		}
 		Logs.log(Logs.RUN_LOG, strRequest);
 	}
+
 }
+//{"result":[{"PlayerPSystem":"{\"data\": [259, 361, 402, 498]}","analyze_shotVideo_side":"http://125.227.141.7:49147/GolfVisionAnalytics/service/download_video/143/Guest.1_shotVideo_side_161424_202404101614.mp4","analyze_shotVideo_front":"http://125.227.141.7:49147/GolfVisionAnalytics/service/download_video/143/Guest.1_shotVideo_front_161424_202404101614.mp4","shot_data_id":"117340"}],"success":true}

@@ -45,7 +45,7 @@ public class YardageBookData extends Service
 						jobj.put("max", data.getCarryDistFtMax());
 						jobj.put("avg", data.getCarryDistFtAvg());
 						jobj.put("min", data.getCarryDistFtMin());
-						
+						jobj.put("count", data.getCount());
 						array.put(jobj);
 					}
 					

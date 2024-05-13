@@ -5,6 +5,8 @@
  */
 package com.golfmaster.moduel;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +64,7 @@ public class PSystem extends DeviceData {
 		}
 
 		strResult = formatExpertJSON(wrgExpert, jsonExpert);
-		Logs.log(Logs.RUN_LOG, strResult);
+		//Logs.log(Logs.RUN_LOG, strResult);
 		return strResult;
 	}
 
@@ -121,36 +123,6 @@ public class PSystem extends DeviceData {
 			}
 		}
 		return bValid;
-//		boolean bValid = false;
-//	    String newSuggestion = null;
-//
-//	    if (wrgData.CarryDistFt >= CARRY_DIST_FT_MIN) {
-//	        bValid = true;
-//	        if (wrgData.CarryDistFt >= 450) {
-//	            newSuggestion = "置球點到擊球落點的距離達到職業級水準 ";
-//	        } else if (wrgData.CarryDistFt >= 420 && wrgData.CarryDistFt < 450) {
-//	            newSuggestion = "置球點到擊球落點的距離達到教練水準 ";
-//	        } else if (wrgData.CarryDistFt >= 390 && wrgData.CarryDistFt < 420) {
-//	            newSuggestion = "置球點到擊球落點的距離達到進階水準 ";
-//	        } else if (wrgData.CarryDistFt >= 360 && wrgData.CarryDistFt < 390) {
-//	            newSuggestion = "置球點到擊球落點的距離達到進階水準 ";
-//	        } else if (wrgData.CarryDistFt >= 300 && wrgData.CarryDistFt < 360) {
-//	            newSuggestion = "置球點到擊球落點的距離達到標準水準 ";
-//	        } else if (wrgData.CarryDistFt >= 240 && wrgData.CarryDistFt < 300) {
-//	            newSuggestion = "置球點到擊球落點的距離一般水準 ";
-//	        } else {
-//	            bValid = false;
-//	        }
-//	    }
-//
-//	    if (bValid && newSuggestion != null) {
-//	        if (wrgExpert.expert_suggestion == null || wrgExpert.expert_suggestion.isEmpty()) {
-//	            wrgExpert.expert_suggestion = newSuggestion;
-//	        } else {
-//	            wrgExpert.expert_suggestion += newSuggestion;
-//	        }
-//	    }
-//	    return bValid;
 	}
 
 	private boolean launchAngleValid(WrgData wrgData, WrgExpert wrgExpert) {
@@ -377,7 +349,7 @@ public class PSystem extends DeviceData {
 
 		wrgExpert.expert_p_system = p2_9;
 		wrgExpert.expert_suggestion = SHOT_FAIL_BODY;
-		wrgExpert.expert_cause = "擊球角度過小 ";
+		wrgExpert.expert_cause = "擊球角度過小";
 
 		int nYt = Math.round(wrgData.CarryDistFt / 10);
 
@@ -386,11 +358,13 @@ public class PSystem extends DeviceData {
 
 		if (4 <= wrgData.LaunchAngle && 70 <= wrgData.CarryDistFt) {
 			if (60 <= wrgData.BallSpeed) {
-				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，揮動手臂下杆或者下杆時肩膀太過主動，這些動作都無法形成強大的力量";
-				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_suggestion += "，建議通過身體的旋轉，揮動手臂下杆或者下杆時肩膀太過主動，這些動作都無法形成強大的力量";
+				wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_trajectory = SHOT_FAIL;
 			} else {
-				wrgExpert.expert_suggestion += "如果球不是落於沙坑,建議通過身體的旋轉，而不是依靠手臂的力量。身體旋轉地速度越快，擊球力量就會越大";
-				wrgExpert.expert_cause = "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_suggestion += "，建議通過身體的旋轉，而不是依靠手臂的力量。身體旋轉地速度越快，擊球力量就會越大";
+				wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭，上臂用力導致手肘彎曲，身體重心移到腳跟";
+				wrgExpert.expert_trajectory = SHOT_FAIL;
 			}
 		} else {
 			switch (nYt) {
@@ -403,33 +377,37 @@ public class PSystem extends DeviceData {
 			case 1:
 				wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭";
 				wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+				wrgExpert.expert_trajectory = LACK_OF_STRENGTH;
 				break;
 			case 2:
 				wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
 				wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+				wrgExpert.expert_trajectory = LACK_OF_STRENGTH;
 				break;
-			case 3:
-			case 4:
 			case 5:
 				wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
 				wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+				wrgExpert.expert_trajectory = SHANK;
 				break;
-			case 6:
-			case 7:
 			case 8:
 				wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
 				wrgExpert.expert_suggestion += " 上桿過程中,不要把身體重心太過右移,以不超過右腳內側為佳";
+				wrgExpert.expert_trajectory = SHANK;
 				break;
 			case 9:
 				wrgExpert.expert_cause += "下桿時，球桿的釋放及球桿的加速度都太早發生";
 				wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+				wrgExpert.expert_trajectory = DUFF;
 				break;
-			case 10:
 			case 11:
 				wrgExpert.expert_cause += "下桿時，膝關節伸直，上臂用力導致手肘彎曲，身體重心移到腳跟";
 				wrgExpert.expert_suggestion += " 木桿應該是延著球中線平行掃過去，而鐵桿應該是往球的中心點向下擊下去";
+				wrgExpert.expert_trajectory = SHOT_FAIL;
 				break;
 			default:
+				wrgExpert.expert_cause += "下桿時，膝關節伸直，腰部伸展，聳肩、抬頭";
+				wrgExpert.expert_suggestion += " 擊球時左腕保持平直以及桿身向前傾斜";
+				wrgExpert.expert_trajectory = SHOT_FAIL;
 				bValid = false;
 				break;
 			}
@@ -526,62 +504,42 @@ public class PSystem extends DeviceData {
 		wrgExpert.expert_suggestion = selectedPSystem[2];
 	}
 
-	public static void main(String[] args) {
-		// 創建 PSystem 對象
-		PSystem pSystem = new PSystem();
-
-		// 生成隨機參數來模擬高爾夫球擊球
-		float ballSpeed = 30 + (float) Math.random() * 20; // 140至160之間的球速
-		float clubAnglePath = -15 + (float) Math.random() * 30; // -5至5之間的桿面路徑角度
-		float clubAngleFace = -15 + (float) Math.random() * 15; // -2至2之間的桿面角度
-		float totalDistFt = 300 + (float) Math.random() * 100; // 300至400英尺的總距離
-		float carryDistFt = 240 + (float) Math.random() * 210; // 280至330英尺的攜帶距離
-		float launchAngle = 0 + (float) Math.random() * 30; // 10至15度的發射角度
-		float backSpin = 300 + (float) Math.random() * 10000; // 2000至3000的後旋
-		float sideSpin = -200 + (float) Math.random() * 400; // -200至200的側旋
-		float clubHeadSpeed = 100 + (float) Math.random() * 20; // 100至120的桿頭速度
-		float smashFactor = ballSpeed / clubHeadSpeed;
-		float launchDirection = -15 + (float) Math.random() * 30; // -1至1的發射方向
-		float distToPinFt = 50 + (float) Math.random() * 50; // 50至100英尺的到旗杆距離
-
-		// 執行分析並印出結果
-		String result = pSystem.expertAnalysis(ballSpeed, clubAnglePath, clubAngleFace, totalDistFt, carryDistFt,
-				launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed, launchDirection, distToPinFt);
-
-		// 輸出結果
-		System.out.println("分析結果: " + result);
-		// 調用生成所有分析結果的方法
-//	    pSystem.generateAllResults();
-	}
+//	public static void main(String[] args) {
+//		// 創建 PSystem 對象
+//		PSystem pSystem = new PSystem();
+//
+//		// 調用生成所有分析結果的方法
+////	    pSystem.generateAllResults();
+//
+//	}
 
 	// 假設 PSystem 類中已經包含 generateAllResults 方法，該方法如前所述
-//	public void generateAllResults() {
-//	    for (float ballSpeed = 100; ballSpeed <= 200; ballSpeed += 10) {
-//	        for (float clubAnglePath = -20; clubAnglePath <= 20; clubAnglePath += 5) {
-//	            for (float clubAngleFace = -20; clubAngleFace <= 20; clubAngleFace += 5) {
-//	                for (float carryDistFt = 120; carryDistFt <= 400; carryDistFt += 30) {
-//	                    for (float launchAngle = 6; launchAngle <= 20; launchAngle += 1) {
-//	                        for (float clubHeadSpeed = 80; clubHeadSpeed <= 120; clubHeadSpeed += 5) {
-//	                            // 模擬其他固定值，例如 TotalDistFt, SmashFactor 等，根據需要添加
-//	                            float totalDistFt = carryDistFt + 50; // 例如，總距離為攜帶距離加上一個固定值
-//	                            float smashFactor = ballSpeed / clubHeadSpeed; // 算出擊球係數
-//	                            float sideSpin = 0; // 側旋，根據需求可能需要調整
-//	                            float backSpin = 1000; // 後旋，示例值
-//	                            float launchDirection = 0; // 發射方向，示例值
-//	                            float distToPinFt = 100; // 到旗杆的距離，示例值
-//
-//	                            String result = expertAnalysis(
-//	                                ballSpeed, clubAnglePath, clubAngleFace, totalDistFt, carryDistFt,
-//	                                launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed,
-//	                                launchDirection, distToPinFt);
-//	                            System.out.println("分析結果: " + result);
-//	                        }
-//	                    }
-//	                }
-//	            }
-//	        }
-//	    }
-//	}
+	public void generateAllResults() {
+		for (float ballSpeed = 60; ballSpeed <= 70; ballSpeed += 10) {
+			for (float clubAnglePath = -15; clubAnglePath <= 15; clubAnglePath += 5) {
+				for (float clubAngleFace = -15; clubAngleFace <= 15; clubAngleFace += 5) {
+					for (float carryDistFt = 1; carryDistFt <= 500; carryDistFt += 30) {
+						for (float launchAngle = 5; launchAngle <= 7; launchAngle += 1) {
+								float clubHeadSpeed = 80; 
+								// 模擬其他固定值，例如 TotalDistFt, SmashFactor 等，根據需要添加
+								float totalDistFt = carryDistFt + 50; // 例如，總距離為攜帶距離加上一個固定值
+								float smashFactor = ballSpeed / clubHeadSpeed; // 算出擊球係數
+								float sideSpin = 0; // 側旋，根據需求可能需要調整
+								float backSpin = 1000; // 後旋，示例值
+								float launchDirection = 0; // 發射方向，示例值
+								float distToPinFt = 100; // 到旗杆的距離，示例值
+
+								String result = expertAnalysis(ballSpeed, clubAnglePath, clubAngleFace, totalDistFt,
+										carryDistFt, launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed,
+										launchDirection, distToPinFt);
+								System.out.println(result);
+							
+						}
+					}
+				}
+			}
+		}
+	}
 
 }
 

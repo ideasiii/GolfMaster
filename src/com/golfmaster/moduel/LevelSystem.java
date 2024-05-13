@@ -47,7 +47,7 @@ public class LevelSystem extends DeviceData {
 		wrgData.ClubType = ClubType; // 球桿種類
 
 		strResult = formatExpertJSON(wrgExpert, jsonExpert);
-		Logs.log(Logs.RUN_LOG, strResult);
+//		Logs.log(Logs.RUN_LOG, strResult);
 		return strResult;
 	}
 

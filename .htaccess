@@ -1,0 +1,6 @@
+<IfModule mod_headers.c>
+    # 啟用 CORS
+    Header set Access-Control-Allow-Origin "http://61.216.149.161/GolfMaster/service/expert-data-v7.jsp?"
+    # 可根據需要允許多個域，使用星號（*）允許所有域，但注意安全風險
+    # Header set Access-Control-Allow-Origin "*"
+</IfModule>
