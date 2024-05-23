@@ -19,7 +19,6 @@ import com.golfmaster.moduel.analysis.PushTrajectory;
 import com.golfmaster.moduel.analysis.SliceTrajectory;
 import com.golfmaster.moduel.analysis.StraightTrajectory;
 import com.golfmaster.moduel.analysis.Trajectory;
-import com.golfmaster.persona.Persona;
 
 public class AnalysisNetwork extends DeviceData {
 	private Trajectory trajectory = null;
@@ -47,13 +46,12 @@ public class AnalysisNetwork extends DeviceData {
 			float CarryDistFt, float LaunchAngle, float SmashFactor, float BackSpin, float SideSpin,
 			float ClubHeadSpeed, float LaunchDirection, float DistToPinFt, String ClubType)
 			throws InterruptedException {
-		String strResult;
+		String strResult = null;
 		JSONObject jsonExpert = new JSONObject();
 		jsonExpert.put("success", true);
 
 		DeviceData.WrgData wrgData = new DeviceData.WrgData();
 		WrgExpert wrgExpert = new WrgExpert();
-		Persona persona = new Persona();
 
 		wrgData.BallSpeed = BallSpeed; // 球速
 		wrgData.ClubAnglePath = ClubAnglePath; // 桿面路徑
@@ -69,8 +67,7 @@ public class AnalysisNetwork extends DeviceData {
 		wrgData.ClubHeadSpeed = ClubHeadSpeed; // 桿頭速度
 		wrgData.ClubType = ClubType; // 球桿種類
 		
-		int personLevel = persona.getDistancelevel(CarryDistFt);
-		if (personLevel == 1) {
+		if (strResult.length() == 1) {
 			wrgExpert.expert_cause = SHOT_FAIL;
 			wrgExpert.expert_suggestion = SHOT_FAIL_BODY;
 		}else {

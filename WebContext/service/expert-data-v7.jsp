@@ -15,12 +15,17 @@
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 Long shot_data_id = result.getLong("shotdata_id");
+Long exID = result.getLong("id");
 
 Object temp[] = shotVideo.processAnalyz(shot_data_id);
 int[] sideFrames = (int[]) temp[0];
 int[] frontFrames = (int[]) temp[1];
 String frontVideoName = (String) temp[2];
 String sideVideoName = (String) temp[3];
+int aEffect = (int) temp[4];
+int tEffect = (int) temp[5];
+int iEffect = (int) temp[6];
+int fEffect = (int) temp[7];
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 
@@ -51,18 +56,44 @@ if (result != null && result.getString("expert_cause") != null) {
 if (result != null && result.getString("expert_suggestion") != null) {
 	suggestion = result.getString("expert_suggestion");
 }
+
+
+
+// 從session中獲取上一次存儲的expert值
+Integer lastExpert = (Integer) session.getAttribute("lastExpert");
+
+// 從請求中獲取當前的expert值
+Integer currentExpert = null;
+Integer tempEXid = Math.toIntExact(exID);
+if (exID != null && exID != 0) {
+    try {
+        currentExpert = tempEXid;
+    } catch (NumberFormatException e) {
+        // 處理數字格式轉換錯誤
+    }
+}
+
+// 檢查是否需要刷新頁面
+if (lastExpert != null && currentExpert != null && lastExpert.equals(currentExpert)) {
+    // 如果上次和這次的expert相同，則設置頁面刷新
+    response.setHeader("Refresh", "0");
+}
+
+// 更新session中的expert值
+session.setAttribute("lastExpert", currentExpert);
 %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="../../page/css/GM.css" rel="stylesheet" type="text/css">
+<link href="../../page/css/GM02.css" rel="stylesheet" type="text/css">
 <title>Expert</title>
 <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 <script
 	src="
-https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js"></script>
+https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
+</script>
 <style>
 </style>
 
@@ -93,35 +124,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js"></script>
 									alt="Image 1" />-->
 							</video>
 						</div>
-						<div class="custom-div2">
-							<div class="steps">
-								<div class="step">
-									<span class="step_title">Swing</span><br> <span
-										class="step_4">4 Steps</span>
-								</div>
-								<div class="step">
-									<button class="stepbutton"
-										onclick="goToFrame(<%=sideFrames[0]%>,<%=frontFrames[0]%>)">A</button>
-								</div>
-								<div class="step">
-									<button class="stepbutton"
-										onclick="goToFrame(<%=sideFrames[1]%>,<%=frontFrames[1]%>)">T</button>
-								</div>
-								<div class="step">
-									<button class="stepbutton"
-										onclick="goToFrame(<%=sideFrames[2]%>,<%=frontFrames[2]%>)">I</button>
-								</div>
-								<div class="step">
-									<button class="stepbutton"
-										onclick="goToFrame(<%=sideFrames[3]%>,<%=frontFrames[3]%>)">F</button>
-								</div>
-								<div class="step">
-									<div id="player-container">
-										<div id="play-pause" class="play">Play</div>
-									</div>
-								</div>
-							</div>
-						</div>
+
 					</div>
 				</div>
 			</div>
@@ -150,21 +153,50 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js"></script>
 
 		<div class="row2 stretch">
 			<div class="column2">
+				<div class="custom-div2">
+					<div class="steps">
+						<div class="step">
+							<span class="step_title">Swing</span><br> <span
+								class="step_4">4 Steps</span>
+						</div>
+						<div class="step">
+							<button class="stepbutton"
+								onclick="goToFrame(<%=sideFrames[0]%>,<%=frontFrames[0]%>)">A</button>
+						</div>
+						<div class="step">
+							<button class="stepbutton"
+								onclick="goToFrame(<%=sideFrames[1]%>,<%=frontFrames[1]%>)">T</button>
+						</div>
+						<div class="step">
+							<button class="stepbutton"
+								onclick="goToFrame(<%=sideFrames[2]%>,<%=frontFrames[2]%>)">I</button>
+						</div>
+						<div class="step">
+							<button class="stepbutton"
+								onclick="goToFrame(<%=sideFrames[3]%>,<%=frontFrames[3]%>)">F</button>
+						</div>
+						<div class="step">
+							<div id="player-container">
+								<div id="play-pause" class="play">Play</div>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div class="content" style="text-align: center;">
 					<div class="row">
 						<!--<h1>個人影像</h1>-->
 						<div class="psystemSection">
 							<div class="box">
-								<img src="../../page/img/GP_F_01.jpg">
+								<img src="../../page/img/A/A<%=aEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../../page/img/GP_F_04.jpg">
+								<img src="../../page/img/T/T<%=tEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../../page/img/GP_F_07.jpg">
+								<img src="../../page/img/I/I<%=iEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../../page/img/GP_F_09.jpg">
+								<img src="../../page/img/F/F<%=fEffect%>.png">
 							</div>
 						</div>
 
@@ -392,7 +424,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js"></script>
 		var smachfact = Math.round((ballSpeed/clubSpeed)*100)/100;
 		//document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed + " -> " + ballSpeedLevel + "mph";
 	    document.addEventListener("DOMContentLoaded", function() {
-        	document.getElementById("smachfactDisplay").innerText = "擊球效率:"+smachfact+"mph";
+        	document.getElementById("smachfactDisplay").innerText = "擊球效率:"+smachfact;
 	        document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed  + "mph";
 	        document.getElementById("clubSpeedDisplay").innerText = "桿頭速度: " + clubSpeed  + "mph";
 	        document.getElementById("distanceDisplay").innerText = "飛行距離: " + distance +  "yard";

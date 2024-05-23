@@ -176,7 +176,7 @@ public class ExpertData extends DeviceData{
 				jsonExpert.put("expert_suggestion", rs.getString("expert_suggestion"));
 				jsonExpert.put("expert_cause", rs.getString("expert_cause"));
 				jsonExpert.put("shotdata_id", rs.getLong("shot_data_id"));
-				
+				jsonExpert.put("id", rs.getLong("id"));
 			}
 			
 		} catch (Exception e){

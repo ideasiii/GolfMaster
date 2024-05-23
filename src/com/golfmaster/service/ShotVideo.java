@@ -5,11 +5,13 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.golfmaster.common.ApiResponse;
@@ -17,7 +19,6 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.service.CallMotionApi;
 
-//
 public class ShotVideo {
 	private class ParamData {
 		private String video_id;
@@ -60,12 +61,25 @@ public class ShotVideo {
 		Object[] framesData = extractFrames(response);
 		// 檢查是否有有效數據，如果無效則返回預設值
 		if (framesData == null || ((int[]) framesData[0]).length == 0) {
+			Logs.log(Logs.RUN_LOG, "Null framesData ");
 			int[] defaultSideArray = { 257, 351, 402, 498 };
 			int[] defaultFrontArray = { 239, 339, 388, 481 };
+			Random ran = new Random();
+			int aPos = ran.nextInt(6);
+			int tPos = ran.nextInt(6);
+			int iPos = ran.nextInt(6);
+			int fPos = ran.nextInt(6);
 			String defaultFrontVideoName = "Guest.1_shotVideo_front_161424_202404101614.mp4";
 			String defaultSideVideoName = "Guest.1_shotVideo_side_161424_202404101614.mp4";
-			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName };
+			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName,
+					aPos, tPos, iPos, fPos };
 		}
+//		Object[] fD = new Object[framesData.length+1];
+//		for (int idx = 0; idx < framesData.length; idx++) {
+//			fD[idx] = framesData[idx];
+//		}
+//		fD[fD.length - 1] = true; 
+		Logs.log(Logs.RUN_LOG, "Got framesData ");
 		return framesData;
 	}
 
@@ -133,7 +147,7 @@ public class ShotVideo {
 
 		if (shot_data_id != null && !shot_data_id.isEmpty()) {
 			strSQL = String.format(
-					"SELECT SVS.PlayerPSystem AS PlayerPSystem, SVS.CamPos AS CamPos,SV.analyze_shotVideo_front ,SV.analyze_shotVideo_side FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
+					"SELECT SVS.PlayerPSystem AS PlayerPSystem, SVS.CamPos AS CamPos,SV.analyze_shotVideo_front ,SV.analyze_shotVideo_side,SVS.PoseImpact AS PoseImpact FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
 					shot_data_id);
 		}
 		Logs.log(Logs.RUN_LOG, "queryShotVideoAnalyz strSQL: " + strSQL);
@@ -151,6 +165,7 @@ public class ShotVideo {
 				jsonProject.put("PlayerPSystem", rs.getString("PlayerPSystem"));
 				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
 				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
+				jsonProject.put("PoseImpact", rs.getString("PoseImpact"));
 				jarrProjects.put(jsonProject);
 			}
 
@@ -179,6 +194,8 @@ public class ShotVideo {
 		ArrayList<Integer> frontFrames = new ArrayList<>();
 		String sideVideoName = "";
 		String frontVideoName = "";
+		// 修改變量以存儲最大值的索引
+		int maxAIndex = -1, maxTIndex = -1, maxIIndex = -1, maxFIndex = -1;
 		try {
 			JSONObject responseObj = new JSONObject(jsonResponse);
 			JSONArray results = responseObj.getJSONArray("result");
@@ -203,6 +220,28 @@ public class ShotVideo {
 					}
 					frontVideoName = extractFileName(result.getString("analyze_shotVideo_front"));
 				}
+
+				// 處理PoseImpact數據
+				if (result.has("PoseImpact")) {
+					JSONObject poseImpact = new JSONObject(result.getString("PoseImpact"));
+					JSONObject dataObj = poseImpact.getJSONObject("data");
+					
+					maxAIndex = getMaxIndex(dataObj.getJSONArray("A"));
+					maxTIndex = getMaxIndex(dataObj.getJSONArray("T"));
+					maxIIndex = getMaxIndex(dataObj.getJSONArray("I"));
+					maxFIndex = getMaxIndex(dataObj.getJSONArray("F"));
+					if(maxAIndex<0)
+						maxAIndex = 6;
+					if(maxTIndex<0)
+						maxTIndex = 6;
+					if(maxIIndex<0)
+						maxIIndex = 6;
+					if(maxFIndex<0)
+						maxFIndex = 6;
+
+					Logs.log(Logs.RUN_LOG, "A:" + Integer.toString(maxAIndex) + "T:" + Integer.toString(maxTIndex) + "I"
+							+ Integer.toString(maxIIndex) + "F" + Integer.toString(maxFIndex));
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -211,11 +250,26 @@ public class ShotVideo {
 
 		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
 		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
-		return new Object[] { sideArray, frontArray, frontVideoName, sideVideoName };
+		return new Object[] { sideArray, frontArray, frontVideoName, sideVideoName, maxAIndex, maxTIndex, maxIIndex,
+				maxFIndex };
 	}
 
 	private String extractFileName(String url) {
 		return url.substring(url.lastIndexOf('/') + 1);
+	}
+
+	// 更新方法以計算數組中最大值的索引
+	private int getMaxIndex(JSONArray array) throws JSONException {
+		double max = Double.MIN_VALUE;
+		int index = -1;
+		for (int i = 0; i < array.length(); i++) {
+			double value = array.getDouble(i);
+			if (value > max) {
+				max = value;
+				index = i;
+			}
+		}
+		return index;
 	}
 
 	private JSONObject requestAndTrimParams(HttpServletRequest request, ParamData paramData) {

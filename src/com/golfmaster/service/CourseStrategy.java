@@ -72,6 +72,7 @@ public class CourseStrategy extends DeviceData {
 						List<String> wedgeTemp = new ArrayList<>();
 						String[] clubTypes = clubs.split(",");
 						String par = result.getString("par");
+						String courseName = result.getString("course_name");
 						StringBuilder resultWord = new StringBuilder();
 						// 打法建議
 //						StringBuilder strikeMethod = new StringBuilder();
@@ -88,6 +89,9 @@ public class CourseStrategy extends DeviceData {
 							jsobjParam.put("code", 0);
 							jsobjParam.put("strategy", rw);
 							jsobjParam.put("Standard", true);
+							jsobjParam.put("par", par);
+							jsobjParam.put("courseName", courseName);
+							jsobjParam.put("holeNum", holeNumber);
 						} else {
 							// 使用動態規劃來計算策略
 							int p = Integer.parseInt(par);
@@ -98,7 +102,9 @@ public class CourseStrategy extends DeviceData {
 							jsobjParam.put("strategy", strategy);
 							jsobjParam.put("strategy2", strategy2);
 							jsobjParam.put("Standard", false);
-
+							jsobjParam.put("par", par);
+							jsobjParam.put("courseName", courseName);
+							jsobjParam.put("holeNum", holeNumber);
 						}
 					}
 				} else {
