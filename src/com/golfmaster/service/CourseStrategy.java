@@ -93,10 +93,11 @@ public class CourseStrategy extends DeviceData {
 							jsobjParam.put("courseName", courseName);
 							jsobjParam.put("holeNum", holeNumber);
 						} else {
-							// 使用動態規劃來計算策略
 							int p = Integer.parseInt(par);
-							String strategy2 = calculateStrategy(distc, clubArray, p, clubTypes);
-							String strategy = golfClubSelection.selectClubsForHole(distc, clubArray, p, clubTypes);
+							//球桿隨機
+							String strategy = calculateStrategy(distc, clubArray, p, clubTypes);
+							//貪婪算法
+							String strategy2 = golfClubSelection.selectClubsForHole(distc, clubArray, p, clubTypes);
 							System.out.println(strategy);
 							jsobjParam.put("code", 0);
 							jsobjParam.put("strategy", strategy);

@@ -25,6 +25,7 @@ public class CourseScoreCard {
 		private String holeNum;
 		private String par;
 		private String nowDate;
+		private String uid;
 	}
 
 	public String processRequest(HttpServletRequest request) {
@@ -55,10 +56,10 @@ public class CourseScoreCard {
 		if (paramData.player != null && !paramData.player.isEmpty()) {
 			strSQL = String.format(
 					"INSERT IGNORE INTO golf_course.course_score "
-							+ "(Player, Recommend_Strategy, Current_Strategy, Date, Course_Name, Hole_Number, Par)"
-							+ " Values('%s','%s','%s','%s','%s','%s','%s')",
+							+ "(Player, Recommend_Strategy, Current_Strategy, Date, Course_Name, Hole_Number, Par,Uid)"
+							+ " Values('%s','%s','%s','%s','%s','%s','%s','%s')",
 					paramData.player, paramData.originalStrategy, paramData.currentStrategy, paramData.nowDate,
-					paramData.courseName, paramData.holeNum, paramData.par);
+					paramData.courseName, paramData.holeNum, paramData.par, paramData.uid);
 		}
 		Logs.log(Logs.RUN_LOG, "saveCourseScore strSQL: " + strSQL);
 
@@ -67,7 +68,7 @@ public class CourseScoreCard {
 			stmt = conn.createStatement();
 			stmtRs = stmt.executeUpdate(strSQL);
 			JSONObject jsonProject = new JSONObject();
-			System.out.println("stmtRs:"+stmtRs);
+			System.out.println("stmtRs:" + stmtRs);
 			if (stmtRs == 1) {
 				jsonProject.put("INSERT SCORE", true);
 				jarrProjects.put(jsonProject);
@@ -86,13 +87,14 @@ public class CourseScoreCard {
 
 	private JSONObject requestAndTrimParams(HttpServletRequest request, ParamData paramData) {
 		try {
-	        paramData.originalStrategy = StringUtils.trimToEmpty(request.getParameter("originalStrategy"));
-	        paramData.currentStrategy = StringUtils.trimToEmpty(request.getParameter("currentStrategy"));
-	        paramData.player = StringUtils.trimToEmpty(request.getParameter("player"));
-	        paramData.courseName = StringUtils.trimToEmpty(request.getParameter("courseName"));
-	        paramData.holeNum = StringUtils.trimToEmpty(request.getParameter("holeNum"));
-	        paramData.par = StringUtils.trimToEmpty(request.getParameter("par"));
-	        paramData.nowDate = StringUtils.trimToEmpty(request.getParameter("nowDate"));
+			paramData.originalStrategy = StringUtils.trimToEmpty(request.getParameter("originalStrategy"));
+			paramData.currentStrategy = StringUtils.trimToEmpty(request.getParameter("currentStrategy"));
+			paramData.player = StringUtils.trimToEmpty(request.getParameter("player"));
+			paramData.courseName = StringUtils.trimToEmpty(request.getParameter("courseName"));
+			paramData.holeNum = StringUtils.trimToEmpty(request.getParameter("holeNum"));
+			paramData.par = StringUtils.trimToEmpty(request.getParameter("par"));
+			paramData.nowDate = StringUtils.trimToEmpty(request.getParameter("nowDate"));
+			paramData.uid = StringUtils.trimToEmpty(request.getParameter("uid"));
 
 			if (StringUtils.isEmpty(paramData.player)) {
 				return ApiResponse.error(ApiResponse.STATUS_MISSING_PARAMETER);
