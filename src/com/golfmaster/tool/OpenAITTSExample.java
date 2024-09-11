@@ -10,7 +10,7 @@ import javazoom.jl.player.Player;
 
 public class OpenAITTSExample {
 
-    private static final String API_KEY = "testkey";  // 替換為你的OpenAI API金鑰
+    private static final String API_KEY = "OpenAI key";  // 替換為你的OpenAI API金鑰
     private static final String API_URL = "https://api.openai.com/v1/audio/speech"; // 替換為實際的TTS API端點
 
     public static void main(String[] args) {

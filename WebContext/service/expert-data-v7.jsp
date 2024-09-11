@@ -34,6 +34,7 @@ String trajectory = "";
 String cause = "";
 String suggestion = "";
 String img = "";
+String talkhead = "";
 
 float backSwingTime = 0;
 float downSwingTime = 0;
@@ -56,38 +57,20 @@ if (result != null && result.getString("expert_cause") != null) {
 if (result != null && result.getString("expert_suggestion") != null) {
 	suggestion = result.getString("expert_suggestion");
 }
+//if(result != null && result.getString("video_url") != null){
+//	talkhead = result.getString("video_url");
+//}
 
 
 
-// 從session中獲取上一次存儲的expert值
-Integer lastExpert = (Integer) session.getAttribute("lastExpert");
 
-// 從請求中獲取當前的expert值
-Integer currentExpert = null;
-Integer tempEXid = Math.toIntExact(exID);
-if (exID != null && exID != 0) {
-    try {
-        currentExpert = tempEXid;
-    } catch (NumberFormatException e) {
-        // 處理數字格式轉換錯誤
-    }
-}
-
-// 檢查是否需要刷新頁面
-if (lastExpert != null && currentExpert != null && lastExpert.equals(currentExpert)) {
-    // 如果上次和這次的expert相同，則設置頁面刷新
-    response.setHeader("Refresh", "0");
-}
-
-// 更新session中的expert值
-session.setAttribute("lastExpert", currentExpert);
 %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="../../page/css/GM02.css" rel="stylesheet" type="text/css">
+<link href="../page/css/GM.css" rel="stylesheet" type="text/css">
 <title>Expert</title>
 <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 <script
@@ -101,7 +84,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 <body>
 	<div class="c_m">
 		<div class="header">
-			<img src="../../page/img/logo_1.png" alt="Your Logo" class="logo">
+			<img src="../page/img/logo_1.png" alt="Your Logo" class="logo">
 			<!-- <Input Type="Button" Value="重新整理" onClick="window.location.reload();">  -->
 		</div>
 		<div class="row2 ">
@@ -111,20 +94,25 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						<!--<h1>個人影像</h1>-->
 
 						<div class="row2" style="background-color: #000000">
-							<video id="myvideo" class="image_v" controls muted>
-								<source src="../../video/analyzVideo_front/<%=frontVideoName%>"
-									type="video/mp4" alt="Image 1" />
-								<!--<source src="../../page/video/<%=frontVideoName%>" type="video/mp4"
-									alt="Image 1" /> -->
-							</video>
-							<video id="myvideo1" class="image_v" controls muted>
-								<source src="../../video/analyzVideo_side/<%=sideVideoName%>"
-									type="video/mp4" alt="Image 1" />
-								<!--<source src="../../page/video/<%=sideVideoName%>" type="video/mp4"
-									alt="Image 1" />-->
-							</video>
+							<div style="position: relative;">
+								<video id="myvideo" class="image_v" controls muted>
+									<!--<source src="../video/analyzVideo_front/<%=frontVideoName%>"
+									type="video/mp4" alt="Image 1" />-->
+									<source src="../page/video/<%=frontVideoName%>"
+										type="video/mp4" alt="Image 1" />
+								</video>
+								<canvas id="overlayCanvas"></canvas>
+							</div>
+							<div style="position: relative;">
+								<video id="myvideo1" class="image_v" controls muted>
+									<!--<source src="../video/analyzVideo_side/<%=sideVideoName%>"
+									type="video/mp4" alt="Image 1" />-->
+									<source src="../page/video/<%=sideVideoName%>" type="video/mp4"
+										alt="Image 1" />
+								</video>
+								<canvas id="overlayCanvas1"></canvas>
+							</div>
 						</div>
-
 					</div>
 				</div>
 			</div>
@@ -187,16 +175,16 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						<!--<h1>個人影像</h1>-->
 						<div class="psystemSection">
 							<div class="box">
-								<img src="../../page/img/A/A<%=aEffect%>.png">
+								<img src="../page/img/A/A<%=aEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../../page/img/T/T<%=tEffect%>.png">
+								<img src="../page/img/T/T<%=tEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../../page/img/I/I<%=iEffect%>.png">
+								<img src="../page/img/I/I<%=iEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../../page/img/F/F<%=fEffect%>.png">
+								<img src="../page/img/F/F<%=fEffect%>.png">
 							</div>
 						</div>
 
@@ -211,10 +199,13 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 							<div class="column2">
 								<div class="suggestion">
 									<div class="vertical-image" style="width: 100%">
-										<img src="../../page/img/pic_coach.png" alt="Image">
+										<img src="../page/img/pic_coach.png" alt="Image">
+										<!-- <video style="width: 200px; height: 200px;" controls>
+											<source src="<%=talkhead%>" type="video/mp4">
+										</video>  -->
 										<div class="inner-text">
 											<p class="title"><%="彈道：" + trajectory%></p>
-											<p class="s_content"><%="p-system：" + psystem%></p>
+											<!-- <p class="s_content"><%="p-system：" + psystem%></p>  -->
 											<p class="s_content"><%="原因：" + cause%></p>
 											<p class="s_content"><%="建議：" + suggestion%></p>
 										</div>
@@ -231,20 +222,123 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	</div>
 	<script>
 		var frameRate = 60;
+		var controlBtn = document.getElementById('play-pause');
+		// 設定影片和對應的畫布
 		var video = document.getElementById('myvideo');
 		var video1 = document.getElementById('myvideo1');
-		var controlBtn = document.getElementById('play-pause');
-	
-	function goToFrame(frameNumber,frameNumber1) {
-		// 計算目標帧對應的時間（秒）
-		var time = frameNumber / frameRate;
-		var time1 = frameNumber1 / frameRate;
-		video.currentTime = time;
-		video1.currentTime = time1;
-	}
-	
+		var canvas = document.getElementById('overlayCanvas');
+		var canvas1 = document.getElementById('overlayCanvas1');
+		var ctx = canvas.getContext('2d');
+		var ctx1 = canvas1.getContext('2d');
 
-		function playPause() {
+		// 接收的輔助線數據
+		const responseData = {
+		    "success": true,
+		    "bbox": [0.2518528386166221, 0.29106055365668404, 0.6435657802381014, 0.7766441062644676],
+		    "head": { "pt": [0.5592105263157895, 0.3333333333333333], "h_length": 0.13486842105263158, "v_length": 0.07592592592592592 },
+		    "club": { "pt1": [0.25164473684210525, 0.27685185185185185], "pt2": [0.7220394736842105, 0.75] },
+		    "shoulder": { "pt1": [0.4555921052631579, 0.29074074074074074], "pt2": [0.7220394736842105, 0.75] },
+		    "left_leg": { "pt1": [0.0, 0.0], "pt2": [0.0, 0.0] },
+		    "right_leg": { "pt1": [0.0, 0.0], "pt2": [0.0, 0.0] }
+		};
+
+		// 根據影片實際顯示大小調整畫布
+		function resizeCanvas(videoElement, canvasElement) {
+			canvasElement.style.width = videoElement.clientWidth + 'px';
+		    canvasElement.style.height = videoElement.clientHeight + 'px';
+		    canvasElement.width = videoElement.clientWidth;
+		    canvasElement.height = videoElement.clientHeight;
+		    console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
+		}
+
+		// 繪製邊框
+		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'green') {
+		    const videoDisplayWidth = videoElement.clientWidth;
+		    const videoDisplayHeight = videoElement.clientHeight;
+
+		    const startX = bbox[0] * videoDisplayWidth;
+		    const startY = bbox[1] * videoDisplayHeight;
+		    const width = (bbox[2] - bbox[0]) * videoDisplayWidth;
+		    const height = (bbox[3] - bbox[1]) * videoDisplayHeight;
+
+		    ctx.strokeStyle = color;
+		    ctx.lineWidth = 4; // 增加線條寬度以便更清晰顯示
+		    ctx.strokeRect(startX, startY, width, height);
+
+		    console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
+		}
+
+		// 繪製輔助線
+		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'red') {
+		    const videoDisplayWidth = videoElement.clientWidth;
+		    const videoDisplayHeight = videoElement.clientHeight;
+
+		    const [startX, startY] = [line.pt1[0] * videoDisplayWidth, line.pt1[1] * videoDisplayHeight];
+		    const [endX, endY] = [line.pt2[0] * videoDisplayWidth, line.pt2[1] * videoDisplayHeight];
+
+		    ctx.beginPath();
+		    ctx.moveTo(startX, startY);
+		    ctx.lineTo(endX, endY);
+		    ctx.strokeStyle = color;
+		    ctx.lineWidth = 4; // 增加線條寬度以便更清晰顯示
+		    ctx.stroke();
+
+		    console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
+		}
+
+		// 清除畫布並重新繪製輔助線，根據影片不同比例進行調整
+		function clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, responseData) {
+		    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height); // 清除畫布
+
+		    // 繪製 Bounding Box
+		    drawBoundingBoxForVideo(responseData.bbox, videoElement, canvasElement, ctx, 'white');
+
+		    // 繪製 Club 線
+		    drawLineForVideo(responseData.club, videoElement, canvasElement, ctx, 'orange');
+
+		    // 繪製 Shoulder 線
+		    drawLineForVideo(responseData.shoulder, videoElement, canvasElement, ctx, 'orange');
+		}
+
+		// 當影片元數據載入完成時，設置畫布大小
+		video.addEventListener('loadedmetadata', function () {
+		    resizeCanvas(video, canvas);
+		    console.log("Left video canvas resized.");
+		});
+		video1.addEventListener('loadedmetadata', function () {
+		    resizeCanvas(video1, canvas1);
+		    console.log("Right video canvas resized.");
+		});
+
+		// 當影片播放時，為每個影片繪製輔助線
+		video.addEventListener('play', function () {
+		    clearAndDrawOverlayForVideo(video, canvas, ctx, responseData);
+		    console.log("Left video playing and overlay drawn.");
+		});
+
+		video1.addEventListener('play', function () {
+		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, responseData);
+		    console.log("Right video playing and overlay drawn.");
+		});
+
+		// 當視窗大小改變時，調整每個影片的畫布大小
+		window.addEventListener('resize', function () {
+		    resizeCanvas(video, canvas);
+		    resizeCanvas(video1, canvas1);
+		 // 確保畫布大小調整後重新繪製
+		    clearAndDrawOverlayForVideo(video, canvas, ctx, responseData);
+		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, responseData);
+		});
+
+        function goToFrame(frameNumber,frameNumber1) {
+    		// 計算目標帧對應的時間（秒）
+    		var time = frameNumber / frameRate;
+    		var time1 = frameNumber1 / frameRate;
+    		video.currentTime = time;
+    		video1.currentTime = time1;
+    	}
+     	
+        function playPause() {
 			if (video.paused && video1.pause) {
                 video.play();
                 video1.play();
@@ -279,7 +373,6 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		}
 		video.addEventListener("ended", handleVideoEnd);
 		video1.addEventListener("ended", handleVideoEnd);
-		
 		// 將JSP變量轉換為JavaScript變量
 	    var greatLevelTopBS = <%=expertData.GreatLevelTopBS%>;
 	    var greatLevelLowBS = <%=expertData.GreatLevelLowBS%>;

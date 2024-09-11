@@ -114,6 +114,8 @@ h1 {
   height: 460px;
   width: 50%;
   max-width: 620px;
+  z-index: 1;
+  position: relative; /* 確保影片相對定位 */
 }
 .steps {
   display: flex;
@@ -270,6 +272,25 @@ p.s_content {
   box-sizing: border-box;
 }
 
+#overlayCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10; /* 畫布在影片上方 */
+    pointer-events: none; /* 避免畫布影響滑鼠操作 */
+    width: 100%; /* 確保畫布跟影片同步調整大小 */
+    height: 100%; 
+}
+
+#overlayCanvas1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10; /* 畫布在影片上方 */
+    pointer-events: none; /* 避免畫布影響滑鼠操作 */
+    width: 100%; /* 確保畫布跟影片同步調整大小 */
+    height: 100%;
+}
 
 #player-container #play-pause {
   cursor: pointer;
