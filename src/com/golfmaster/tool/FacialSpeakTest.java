@@ -8,8 +8,8 @@ import org.json.JSONObject;
 
 public class FacialSpeakTest {
 	private final OkHttpClient client = new OkHttpClient();
-//    private final String apiKey = "ZGFmOWJhNGRmMTdlNDQ5MGI4NzVlMDhhZjQzMTMyMWYtMTcyNDYzNjkyOA==";
-    private final String apiKey ="MGFiNzg3MDg0YjVlNGQ4MTk3Yzc3Yzc1NjQ3MDk5NjAtMTcyNDMxNTcxMA==";
+//    private final String apiKey = "D-ID_Key";
+    private final String apiKey ="Hey_Gen_Key";
 //	  D-ID版本
 //    public String generateVideoUrl(String expertTrajectory, String expertPSystem, String expertSuggestion, String expertCause) throws IOException {
 //        OkHttpClient client = new OkHttpClient();
@@ -108,7 +108,7 @@ public class FacialSpeakTest {
                 .url("https://api.d-id.com/talks/" + talkId)
                 .get()
                 .addHeader("accept", "application/json")
-                .addHeader("Authorization", "Basic amFuZXMyMjc1MzExNEBnbWFpbC5jb20:0Krqr7BK2hCPJe48lGSlE")
+                .addHeader("Authorization", "Basic API_KEY")
                 .build();
 
             try (Response response = client.newCall(getRequest).execute()) {
