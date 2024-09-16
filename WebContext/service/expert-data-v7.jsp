@@ -26,6 +26,8 @@ int aEffect = (int) temp[4];
 int tEffect = (int) temp[5];
 int iEffect = (int) temp[6];
 int fEffect = (int) temp[7];
+String sideSwingPlane = (String) temp[8]; // 側面 SwingPlane 資料
+String frontSwingPlane = (String) temp[9]; // 正面 SwingPlane 資料
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 
@@ -70,7 +72,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="../page/css/GM.css" rel="stylesheet" type="text/css">
+<link href="../../page/css/GM.css" rel="stylesheet" type="text/css">
 <title>Expert</title>
 <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 <script
@@ -84,7 +86,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 <body>
 	<div class="c_m">
 		<div class="header">
-			<img src="../page/img/logo_1.png" alt="Your Logo" class="logo">
+			<img src="../../page/img/logo_1.png" alt="Your Logo" class="logo">
 			<!-- <Input Type="Button" Value="重新整理" onClick="window.location.reload();">  -->
 		</div>
 		<div class="row2 ">
@@ -94,21 +96,21 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						<!--<h1>個人影像</h1>-->
 
 						<div class="row2" style="background-color: #000000">
-							<div style="position: relative;">
-								<video id="myvideo" class="image_v" controls muted>
-									<!--<source src="../video/analyzVideo_front/<%=frontVideoName%>"
-									type="video/mp4" alt="Image 1" />-->
-									<source src="../page/video/<%=frontVideoName%>"
-										type="video/mp4" alt="Image 1" />
+							<div style="position: relative;" class="image_v">
+								<video id="myvideo" controls muted>
+									<source src="../../video/analyzVideo_front/<%=frontVideoName%>"
+									type="video/mp4" alt="Image 1" />
+									<!--<source src="../../page/video/<%=frontVideoName%>"
+										type="video/mp4" alt="Image 1" />-->
 								</video>
 								<canvas id="overlayCanvas"></canvas>
 							</div>
-							<div style="position: relative;">
-								<video id="myvideo1" class="image_v" controls muted>
-									<!--<source src="../video/analyzVideo_side/<%=sideVideoName%>"
-									type="video/mp4" alt="Image 1" />-->
-									<source src="../page/video/<%=sideVideoName%>" type="video/mp4"
-										alt="Image 1" />
+							<div style="position: relative;" class="image_v">
+								<video id="myvideo1" controls muted>
+									<source src="../../video/analyzVideo_side/<%=sideVideoName%>"
+									type="video/mp4" alt="Image 1" />
+									<!--<source src="../../page/video/<%=sideVideoName%>" type="video/mp4"
+										alt="Image 1" />-->
 								</video>
 								<canvas id="overlayCanvas1"></canvas>
 							</div>
@@ -175,16 +177,16 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						<!--<h1>個人影像</h1>-->
 						<div class="psystemSection">
 							<div class="box">
-								<img src="../page/img/A/A<%=aEffect%>.png">
+								<img src="../../page/img/A/A<%=aEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../page/img/T/T<%=tEffect%>.png">
+								<img src="../../page/img/T/T<%=tEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../page/img/I/I<%=iEffect%>.png">
+								<img src="../../page/img/I/I<%=iEffect%>.png">
 							</div>
 							<div class="box">
-								<img src="../page/img/F/F<%=fEffect%>.png">
+								<img src="../../page/img/F/F<%=fEffect%>.png">
 							</div>
 						</div>
 
@@ -199,7 +201,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 							<div class="column2">
 								<div class="suggestion">
 									<div class="vertical-image" style="width: 100%">
-										<img src="../page/img/pic_coach.png" alt="Image">
+										<img src="../../page/img/pic_coach.png" alt="Image">
 										<!-- <video style="width: 200px; height: 200px;" controls>
 											<source src="<%=talkhead%>" type="video/mp4">
 										</video>  -->
@@ -221,6 +223,9 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 
 	</div>
 	<script>
+		var sideSwingPlaneData = <%=sideSwingPlane%>;
+    	var frontSwingPlaneData = <%=frontSwingPlane%>;
+    	
 		var frameRate = 60;
 		var controlBtn = document.getElementById('play-pause');
 		// 設定影片和對應的畫布
@@ -231,103 +236,163 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		var ctx = canvas.getContext('2d');
 		var ctx1 = canvas1.getContext('2d');
 
-		// 接收的輔助線數據
-		const responseData = {
-		    "success": true,
-		    "bbox": [0.2518528386166221, 0.29106055365668404, 0.6435657802381014, 0.7766441062644676],
-		    "head": { "pt": [0.5592105263157895, 0.3333333333333333], "h_length": 0.13486842105263158, "v_length": 0.07592592592592592 },
-		    "club": { "pt1": [0.25164473684210525, 0.27685185185185185], "pt2": [0.7220394736842105, 0.75] },
-		    "shoulder": { "pt1": [0.4555921052631579, 0.29074074074074074], "pt2": [0.7220394736842105, 0.75] },
-		    "left_leg": { "pt1": [0.0, 0.0], "pt2": [0.0, 0.0] },
-		    "right_leg": { "pt1": [0.0, 0.0], "pt2": [0.0, 0.0] }
-		};
-
 		// 根據影片實際顯示大小調整畫布
 		function resizeCanvas(videoElement, canvasElement) {
-			canvasElement.style.width = videoElement.clientWidth + 'px';
-		    canvasElement.style.height = videoElement.clientHeight + 'px';
-		    canvasElement.width = videoElement.clientWidth;
-		    canvasElement.height = videoElement.clientHeight;
-		    console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
+		    const videoDisplayWidth = videoElement.clientWidth;
+		    const videoDisplayHeight = videoElement.clientHeight;
+
+	    	canvasElement.style.width = videoElement.clientWidth + "px";
+	    	canvasElement.style.height = videoElement.clientHeight + "px";
+	    	canvasElement.width = videoDisplayWidth;
+	    	canvasElement.height = videoDisplayHeight;
+	    	console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
 		}
 
 		// 繪製邊框
-		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'green') {
+		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
+			const videoWidth = videoElement.videoWidth;
+		    const videoHeight = videoElement.videoHeight;
+
 		    const videoDisplayWidth = videoElement.clientWidth;
 		    const videoDisplayHeight = videoElement.clientHeight;
 
-		    const startX = bbox[0] * videoDisplayWidth;
-		    const startY = bbox[1] * videoDisplayHeight;
-		    const width = (bbox[2] - bbox[0]) * videoDisplayWidth;
-		    const height = (bbox[3] - bbox[1]) * videoDisplayHeight;
+		    const startX = bbox[0] * videoWidth;
+		    const startY = bbox[1] * videoHeight;
+		    const width = (bbox[2] - bbox[0]) * videoWidth;
+		    const height = (bbox[3] - bbox[1]) * videoHeight;
 
-		    ctx.strokeStyle = color;
-		    ctx.lineWidth = 4; // 增加線條寬度以便更清晰顯示
-		    ctx.strokeRect(startX, startY, width, height);
+		// 轉換比例
+		   const scaleX = videoDisplayWidth / videoWidth;
+		   const scaleY = videoDisplayHeight / videoHeight;
 
-		    console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
+		   ctx.strokeStyle = color;
+		   ctx.lineWidth = 4;
+		   ctx.strokeRect(startX * scaleX, startY * scaleY, width * scaleX, height * scaleY);
+
+		   console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
 		}
 
 		// 繪製輔助線
-		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'red') {
+		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
+			const videoWidth = videoElement.videoWidth;
+		    const videoHeight = videoElement.videoHeight;
+
 		    const videoDisplayWidth = videoElement.clientWidth;
 		    const videoDisplayHeight = videoElement.clientHeight;
 
-		    const [startX, startY] = [line.pt1[0] * videoDisplayWidth, line.pt1[1] * videoDisplayHeight];
-		    const [endX, endY] = [line.pt2[0] * videoDisplayWidth, line.pt2[1] * videoDisplayHeight];
+		 // 計算比例
+			const scaleX = videoDisplayWidth / videoWidth;
+			const scaleY = videoDisplayHeight / videoHeight;
 
-		    ctx.beginPath();
-		    ctx.moveTo(startX, startY);
-		    ctx.lineTo(endX, endY);
-		    ctx.strokeStyle = color;
-		    ctx.lineWidth = 4; // 增加線條寬度以便更清晰顯示
-		    ctx.stroke();
+			const [startX, startY] = [line.pt1[0] * videoWidth, line.pt1[1] * videoHeight];
+			const [endX, endY] = [line.pt2[0] * videoWidth, line.pt2[1] * videoHeight];
 
-		    console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
+		   ctx.beginPath();
+		   ctx.moveTo(startX * scaleX, startY * scaleY);
+		   ctx.lineTo(endX * scaleX, endY * scaleY);
+		   ctx.strokeStyle = color;
+		   ctx.lineWidth = 4;
+		   ctx.stroke();
+
+		   console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
+		}
+		// 繪製頭部：side的情況是矩形，front是橢圓
+		function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
+		    const videoWidth = videoElement.videoWidth;
+		    const videoHeight = videoElement.videoHeight;
+
+		    const videoDisplayWidth = videoElement.clientWidth;
+		    const videoDisplayHeight = videoElement.clientHeight;
+
+		    const scaleX = videoDisplayWidth / videoWidth;
+		    const scaleY = videoDisplayHeight / videoHeight;
+
+		    if (side) {
+		        // side：繪製兩條線
+		        const [ptX, ptY] = [head.pt[0] * videoWidth, head.pt[1] * videoHeight];
+		        const [h_ptX, h_ptY] = [head.h_pt[0] * videoWidth, head.h_pt[1] * videoHeight];
+		        const [v_ptX, v_ptY] = [head.v_pt[0] * videoWidth, head.v_pt[1] * videoHeight];
+
+		        // 繪製水平方向的線 (pt -> h_pt)
+		        ctx.beginPath();
+		        ctx.moveTo(ptX * scaleX, ptY * scaleY);
+		        ctx.lineTo(h_ptX * scaleX, h_ptY * scaleY);
+		        ctx.strokeStyle = color;
+		        ctx.lineWidth = 4;
+		        ctx.stroke();
+
+		        // 繪製垂直方向的線 (pt -> v_pt)
+		        ctx.beginPath();
+		        ctx.moveTo(ptX * scaleX, ptY * scaleY);
+		        ctx.lineTo(v_ptX * scaleX, v_ptY * scaleY);
+		        ctx.strokeStyle = color;
+		        ctx.lineWidth = 4;
+		        ctx.stroke();
+
+		        console.log("Head drawn as lines for side view.");
+		    } else {
+		        // front：繪製橢圓
+		        const [ptX, ptY] = [head.pt[0] * videoWidth, head.pt[1] * videoHeight];
+		        const h_length = head.h_length * videoWidth;
+		        const v_length = head.v_length * videoHeight;
+
+		        ctx.beginPath();
+		        ctx.ellipse(ptX * scaleX, ptY * scaleY, h_length * scaleX, v_length * scaleY, 0, 0, 2 * Math.PI);
+		        ctx.strokeStyle = color;
+		        ctx.lineWidth = 4;
+		        ctx.stroke();
+
+		        console.log("Head drawn as ellipse for front view.");
+		    }
 		}
 
 		// 清除畫布並重新繪製輔助線，根據影片不同比例進行調整
-		function clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, responseData) {
+		function clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView = true) {
 		    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height); // 清除畫布
-
-		    // 繪製 Bounding Box
-		    drawBoundingBoxForVideo(responseData.bbox, videoElement, canvasElement, ctx, 'white');
-
-		    // 繪製 Club 線
-		    drawLineForVideo(responseData.club, videoElement, canvasElement, ctx, 'orange');
-
-		    // 繪製 Shoulder 線
-		    drawLineForVideo(responseData.shoulder, videoElement, canvasElement, ctx, 'orange');
+		    drawBoundingBoxForVideo(swingPlaneData.data.bbox, videoElement, canvasElement, ctx, 'white');
+		    if (swingPlaneData.data.club) {
+		        drawLineForVideo(swingPlaneData.data.club, videoElement, canvasElement, ctx, 'orange');
+		    }
+		    if (swingPlaneData.data.shoulder) {
+		        drawLineForVideo(swingPlaneData.data.shoulder, videoElement, canvasElement, ctx, 'orange');
+		    }
+		    if (swingPlaneData.data.left_leg) {
+		        drawLineForVideo(swingPlaneData.data.left_leg, videoElement, canvasElement, ctx, 'blue');
+		    }
+		    if (swingPlaneData.data.right_leg) {
+		        drawLineForVideo(swingPlaneData.data.right_leg, videoElement, canvasElement, ctx, 'blue');
+		    }
+		    if (swingPlaneData.data.head) {
+		        drawHeadForVideo(swingPlaneData.data.head, videoElement, canvasElement, ctx, 'blue', isSideView);
+		    } else {
+		        console.log('Head data is missing or incomplete.');
+		    }
+		    
+		    
 		}
+
 
 		// 當影片元數據載入完成時，設置畫布大小
 		video.addEventListener('loadedmetadata', function () {
 		    resizeCanvas(video, canvas);
-		    console.log("Left video canvas resized.");
+		    clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false); // front view
+		    console.log("Left video canvas resized.", video.clientWidth , video.clientHeight);
 		});
+
 		video1.addEventListener('loadedmetadata', function () {
 		    resizeCanvas(video1, canvas1);
-		    console.log("Right video canvas resized.");
+		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true); // side view
+		    console.log("Right video canvas resized. ", video1.clientWidth , video1.clientHeight);
 		});
 
-		// 當影片播放時，為每個影片繪製輔助線
-		video.addEventListener('play', function () {
-		    clearAndDrawOverlayForVideo(video, canvas, ctx, responseData);
-		    console.log("Left video playing and overlay drawn.");
-		});
-
-		video1.addEventListener('play', function () {
-		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, responseData);
-		    console.log("Right video playing and overlay drawn.");
-		});
 
 		// 當視窗大小改變時，調整每個影片的畫布大小
 		window.addEventListener('resize', function () {
 		    resizeCanvas(video, canvas);
 		    resizeCanvas(video1, canvas1);
 		 // 確保畫布大小調整後重新繪製
-		    clearAndDrawOverlayForVideo(video, canvas, ctx, responseData);
-		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, responseData);
+		    clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
+		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
 		});
 
         function goToFrame(frameNumber,frameNumber1) {

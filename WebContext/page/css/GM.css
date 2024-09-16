@@ -49,7 +49,7 @@ body {
   position: relative;
   z-index: 1;
   justify-content: space-between;
-  gap: 20px;
+  /* gap: 20px; */
 }
 .column {
   flex: 50%;
@@ -121,9 +121,9 @@ h1 {
   z-index: 1;
 }
 video {
-  object-fit: contain; /* 保持影片內容不被拉伸或變形 */
+  object-fit: fill; /*保持影片內容不被拉伸或變形 */
   width: 100%; /* 讓影片填充可用空間 */
-  height: auto; /* 自動調整高度，保持比例 */
+  height: 100%; /* 自動調整高度，保持比例 */
 }
 .steps {
   display: flex;
@@ -280,14 +280,14 @@ p.s_content {
   box-sizing: border-box;
 }
 
-#overlayCanvas, #overlayCanvas1 {
+#overlayCanvas, #overlayCanvas1{
     position: absolute;
     top: 0;
     left: 0;
     z-index: 10; /* 提高層級，確保畫布在影片上方 */
-    pointer-events: none; /* 避免畫布影響滑鼠操作 */
-    width: 100%; /* 確保畫布與影片同步調整大小 */
-    height: 100%;
+    pointer-events: none; /*避免畫布影響滑鼠操作 */
+    /*width: 100%;  確保畫布與影片同步調整大小 */
+    /*height: 100%;*/
 }
 
 #player-container #play-pause {
@@ -429,4 +429,8 @@ p.s_content {
   .box {
     width: 100%;
   }
+  /*#overlayCanvas, #overlayCanvas1 {
+    width: 100%;
+    height: 100%;
+  }*/
 }
