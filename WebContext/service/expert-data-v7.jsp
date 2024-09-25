@@ -225,7 +225,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	<script>
 		var sideSwingPlaneData = <%=sideSwingPlane%>;
     	var frontSwingPlaneData = <%=frontSwingPlane%>;
-    	
+    	var initialSideFrame = <%=sideFrames[0]%>; // 側面影片的第一步幀數
+    	var initialFrontFrame = <%=frontFrames[0]%>; // 正面影片的第一步幀數
 		var frameRate = 60;
 		var controlBtn = document.getElementById('play-pause');
 		// 設定影片和對應的畫布
@@ -375,12 +376,16 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		// 當影片元數據載入完成時，設置畫布大小
 		video.addEventListener('loadedmetadata', function () {
 		    resizeCanvas(video, canvas);
+		    var initialTimeFront = initialFrontFrame / frameRate;  // 計算對應的初始時間
+		    video.currentTime = initialTimeFront;  // 將影片跳轉到指定時間
 		    clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false); // front view
 		    console.log("Left video canvas resized.", video.clientWidth , video.clientHeight);
 		});
 
 		video1.addEventListener('loadedmetadata', function () {
 		    resizeCanvas(video1, canvas1);
+		    var initialTimeSide  = initialSideFrame  / frameRate;  // 計算對應的初始時間
+		    video1.currentTime = initialTimeSide;  // 將影片跳轉到指定時間
 		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true); // side view
 		    console.log("Right video canvas resized. ", video1.clientWidth , video1.clientHeight);
 		});

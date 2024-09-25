@@ -59,30 +59,47 @@ public class ShotVideo {
 		String tempSDI = Long.toString(shot_data_id);
 		String response = queryShotVideoAnalyz(tempSDI, jso);
 		Object[] framesData = extractFrames(response);
-		// 檢查是否有有效數據，如果無效則返回預設值
+
+		// 預設數據
+		int[] defaultSideArray = { 157, 281, 345, 407 };
+		int[] defaultFrontArray = { 160, 305, 353, 413 };
+		String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
+		String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
+		String emptySwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.0, 0.0, 0.0, 0.0], \"head\": {\"pt\": [0.0, 0.0], \"h_length\": 0.0, \"v_length\": 0.0, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
+		String defaultSideSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.2338863172029194, 0.31861487494574653, 0.6572389100727282, 0.8508367467809607], \"head\": {\"pt\": [0.6572389100727282, 0.31861487494574653], \"h_length\": 0.1572389100727282, \"v_length\": 0.09434808801721643, \"h_pt\": [0.5, 0.31861487494574653], \"v_pt\": [0.6572389100727282, 0.412962962962963]}, \"club\": {\"pt1\": [0.23355263157894737, 0.3990740740740741], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"shoulder\": {\"pt1\": [0.43914473684210525, 0.31851851851851853], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
+		String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";
+
+		// 檢查 framesData 是否有值，如果無效則返回預設值
 		if (framesData == null || ((int[]) framesData[0]).length == 0) {
 			Logs.log(Logs.RUN_LOG, "Null framesData ");
-			int[] defaultSideArray = { 157, 281, 345, 407 };
-			int[] defaultFrontArray = { 160, 305, 353, 413 };
 			Random ran = new Random();
 			int aPos = ran.nextInt(6);
 			int tPos = ran.nextInt(6);
 			int iPos = ran.nextInt(6);
 			int fPos = ran.nextInt(6);
-			String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
-			String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
-			String defaultSideSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.2338863172029194, 0.31861487494574653, 0.6572389100727282, 0.8508367467809607], \"head\": {\"pt\": [0.6572389100727282, 0.31861487494574653], \"h_length\": 0.1572389100727282, \"v_length\": 0.09434808801721643, \"h_pt\": [0.5, 0.31861487494574653], \"v_pt\": [0.6572389100727282, 0.412962962962963]}, \"club\": {\"pt1\": [0.23355263157894737, 0.3990740740740741], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"shoulder\": {\"pt1\": [0.43914473684210525, 0.31851851851851853], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";  // 側面的預設值
-		    String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";// 正面的預設值
+
 			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName,
-					aPos, tPos, iPos, fPos ,defaultSideSwingPlane ,defaultFrontSwingPlane};
+					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane };
 		}
-//		Object[] fD = new Object[framesData.length+1];
-//		for (int idx = 0; idx < framesData.length; idx++) {
-//			fD[idx] = framesData[idx];
-//		}
-//		fD[fD.length - 1] = true; 
-		Logs.log(Logs.RUN_LOG, "Got framesData ");
-		return framesData;
+
+		// 確保 framesData 有效，並且所有必須的參數都不為 null
+		int[] sideFrames = framesData[0] != null ? (int[]) framesData[0] : defaultSideArray;
+		int[] frontFrames = framesData[1] != null ? (int[]) framesData[1] : defaultFrontArray;
+		String frontVideoName = framesData[2] != null ? (String) framesData[2] : defaultFrontVideoName;
+		String sideVideoName = framesData[3] != null ? (String) framesData[3] : defaultSideVideoName;
+		int aEffect = framesData[4] != null ? (int) framesData[4] : 0;
+		int tEffect = framesData[5] != null ? (int) framesData[5] : 0;
+		int iEffect = framesData[6] != null ? (int) framesData[6] : 0;
+		int fEffect = framesData[7] != null ? (int) framesData[7] : 0;
+		String sideSwingPlane = framesData.length > 8 && framesData[8] != null ? (String) framesData[8]
+				: emptySwingPlane;
+		String frontSwingPlane = framesData.length > 9 && framesData[9] != null ? (String) framesData[9]
+				: emptySwingPlane;
+		System.out.println("framesData is null or length is 0. :" + sideFrames + frontFrames + frontVideoName
+				+ sideVideoName + aEffect + tEffect + iEffect + fEffect + sideSwingPlane + frontSwingPlane);
+		// 確保返回的 Object[] 中沒有 null 值
+		return new Object[] { sideFrames, frontFrames, frontVideoName, sideVideoName, aEffect, tEffect, iEffect,
+				fEffect, sideSwingPlane, frontSwingPlane };
 	}
 
 	private int queryShotVideo(ParamData paramData, JSONObject jsonResponse) {
@@ -200,6 +217,8 @@ public class ShotVideo {
 		ArrayList<Integer> frontFrames = new ArrayList<>();
 		String sideVideoName = "";
 		String frontVideoName = "";
+		String sideSwingPlane = ""; // 新增側面的 SwingPlane 變數
+		String frontSwingPlane = ""; // 新增正面的 SwingPlane 變數
 		// 修改變量以存儲最大值的索引
 		int maxAIndex = -1, maxTIndex = -1, maxIIndex = -1, maxFIndex = -1;
 		try {
@@ -220,11 +239,13 @@ public class ShotVideo {
 						sideFrames.add(data.getInt(j));
 					}
 					sideVideoName = extractFileName(result.getString("analyze_shotVideo_side"));
+					sideSwingPlane = result.getString("SwingPlane"); // 提取側面的 SwingPlane 資料
 				} else if ("front".equals(camPos)) {
 					for (int j = 0; j < data.length(); j++) {
 						frontFrames.add(data.getInt(j));
 					}
 					frontVideoName = extractFileName(result.getString("analyze_shotVideo_front"));
+					frontSwingPlane = result.getString("SwingPlane");
 				}
 
 				// 處理PoseImpact數據
@@ -245,8 +266,8 @@ public class ShotVideo {
 					if (maxFIndex < 0)
 						maxFIndex = 6;
 
-					Logs.log(Logs.RUN_LOG, "A:" + Integer.toString(maxAIndex) + "T:" + Integer.toString(maxTIndex) + "I"
-							+ Integer.toString(maxIIndex) + "F" + Integer.toString(maxFIndex));
+					Logs.log(Logs.RUN_LOG, "A:" + Integer.toString(maxAIndex) + "T:" + Integer.toString(maxTIndex)
+							+ "I:" + Integer.toString(maxIIndex) + "F:" + Integer.toString(maxFIndex));
 				}
 			}
 		} catch (Exception e) {
@@ -257,7 +278,7 @@ public class ShotVideo {
 		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
 		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
 		return new Object[] { sideArray, frontArray, frontVideoName, sideVideoName, maxAIndex, maxTIndex, maxIIndex,
-				maxFIndex };
+				maxFIndex, sideSwingPlane, frontSwingPlane };
 	}
 
 	private String extractFileName(String url) {
