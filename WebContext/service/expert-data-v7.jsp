@@ -99,7 +99,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 							<div style="position: relative;" class="image_v">
 								<video id="myvideo" controls muted>
 									<source src="../../video/analyzVideo_front/<%=frontVideoName%>"
-									type="video/mp4" alt="Image 1" />
+										type="video/mp4" alt="Image 1" />
 									<!--<source src="../../page/video/<%=frontVideoName%>"
 										type="video/mp4" alt="Image 1" />-->
 								</video>
@@ -108,13 +108,15 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 							<div style="position: relative;" class="image_v">
 								<video id="myvideo1" controls muted>
 									<source src="../../video/analyzVideo_side/<%=sideVideoName%>"
-									type="video/mp4" alt="Image 1" />
+										type="video/mp4" alt="Image 1" />
 									<!--<source src="../../page/video/<%=sideVideoName%>" type="video/mp4"
 										alt="Image 1" />-->
 								</video>
 								<canvas id="overlayCanvas1"></canvas>
 							</div>
 						</div>
+						<!-- <input type="range" id="videoSlider" min="0" value="0" step="0.01"
+							style="width: 100%;">  -->
 					</div>
 				</div>
 			</div>
@@ -151,19 +153,19 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						</div>
 						<div class="step">
 							<button class="stepbutton"
-								onclick="goToFrame(<%=sideFrames[0]%>,<%=frontFrames[0]%>)">A</button>
+								onclick="goToFrame(<%=frontFrames[0]%>,<%=sideFrames[0]%>)">A</button>
 						</div>
 						<div class="step">
 							<button class="stepbutton"
-								onclick="goToFrame(<%=sideFrames[1]%>,<%=frontFrames[1]%>)">T</button>
+								onclick="goToFrame(<%=frontFrames[1]%>,<%=sideFrames[1]%>)">T</button>
 						</div>
 						<div class="step">
 							<button class="stepbutton"
-								onclick="goToFrame(<%=sideFrames[2]%>,<%=frontFrames[2]%>)">I</button>
+								onclick="goToFrame(<%=frontFrames[2]%>,<%=sideFrames[2]%>)">I</button>
 						</div>
 						<div class="step">
 							<button class="stepbutton"
-								onclick="goToFrame(<%=sideFrames[3]%>,<%=frontFrames[3]%>)">F</button>
+								onclick="goToFrame(<%=frontFrames[3]%>,<%=sideFrames[3]%>)">F</button>
 						</div>
 						<div class="step">
 							<div id="player-container">
@@ -223,6 +225,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 
 	</div>
 	<script>
+		//var videoSlider = document.getElementById('videoSlider');
 		var sideSwingPlaneData = <%=sideSwingPlane%>;
     	var frontSwingPlaneData = <%=frontSwingPlane%>;
     	var initialSideFrame = <%=sideFrames[0]%>; // 側面影片的第一步幀數
@@ -236,6 +239,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		var canvas1 = document.getElementById('overlayCanvas1');
 		var ctx = canvas.getContext('2d');
 		var ctx1 = canvas1.getContext('2d');
+		var dragging = false;
+		var requestId = null;
 
 		// 根據影片實際顯示大小調整畫布
 		function resizeCanvas(videoElement, canvasElement) {
@@ -246,7 +251,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	    	canvasElement.style.height = videoElement.clientHeight + "px";
 	    	canvasElement.width = videoDisplayWidth;
 	    	canvasElement.height = videoDisplayHeight;
-	    	console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
+	    	//console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
 		}
 
 		// 繪製邊框
@@ -270,7 +275,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		   ctx.lineWidth = 4;
 		   ctx.strokeRect(startX * scaleX, startY * scaleY, width * scaleX, height * scaleY);
 
-		   console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
+		   //console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
 		}
 
 		// 繪製輔助線
@@ -295,7 +300,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		   ctx.lineWidth = 4;
 		   ctx.stroke();
 
-		   console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
+		   //console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
 		}
 		// 繪製頭部：side的情況是矩形，front是橢圓
 		function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
@@ -330,7 +335,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		        ctx.lineWidth = 4;
 		        ctx.stroke();
 
-		        console.log("Head drawn as lines for side view.");
+		        //console.log("Head drawn as lines for side view.");
 		    } else {
 		        // front：繪製橢圓
 		        const [ptX, ptY] = [head.pt[0] * videoWidth, head.pt[1] * videoHeight];
@@ -343,7 +348,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		        ctx.lineWidth = 4;
 		        ctx.stroke();
 
-		        console.log("Head drawn as ellipse for front view.");
+		        //console.log("Head drawn as ellipse for front view.");
 		    }
 		}
 
@@ -371,26 +376,67 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		    
 		    
 		}
+		// 優化事件處理器，確保影片元數據加載完成後再進行相關操作
+		function setupVideoEvents(videoElement, canvasElement, ctx, swingPlaneData, initialFrame, isSideView) {
+			videoElement.addEventListener('loadedmetadata', function () {
+				//videoSlider.max = videoElement.duration;
+				resizeCanvas(videoElement, canvasElement);
+				videoElement.currentTime = initialFrame / frameRate;
+				videoElement.pause();
+				clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
+			});
+		}
 
+		// 初始化影片事件
+		setupVideoEvents(video, canvas, ctx, frontSwingPlaneData, initialFrontFrame, false);
+		setupVideoEvents(video1, canvas1, ctx1, sideSwingPlaneData, initialSideFrame, true);
+		
+		// 當滑動條被拖動時，暫停影片並頻繁更新影片時間
+//		videoSlider.addEventListener('input', function () {
+//		    dragging = true;
+//		    video.pause();
+//		    video1.pause();
+//		    
+//		    if (requestId) {
+//		        cancelAnimationFrame(requestId);
+//		    }
+//
+//		    requestId = requestAnimationFrame(function updateSlider() {
+//		        video.currentTime = videoSlider.value; 
+//		        video1.currentTime = videoSlider.value;
+//		        requestId = requestAnimationFrame(updateSlider); // 不斷請求下一幀更新
+//		    });
+//		});
 
-		// 當影片元數據載入完成時，設置畫布大小
-		video.addEventListener('loadedmetadata', function () {
-		    resizeCanvas(video, canvas);
-		    var initialTimeFront = initialFrontFrame / frameRate;  // 計算對應的初始時間
-		    video.currentTime = initialTimeFront;  // 將影片跳轉到指定時間
-		    clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false); // front view
-		    console.log("Left video canvas resized.", video.clientWidth , video.clientHeight);
-		});
+		// 當用戶結束拖曳後，停止更新並恢復播放
+//		videoSlider.addEventListener('change', function () {
+//		    dragging = false;
 
-		video1.addEventListener('loadedmetadata', function () {
-		    resizeCanvas(video1, canvas1);
-		    var initialTimeSide  = initialSideFrame  / frameRate;  // 計算對應的初始時間
-		    video1.currentTime = initialTimeSide;  // 將影片跳轉到指定時間
-		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true); // side view
-		    console.log("Right video canvas resized. ", video1.clientWidth , video1.clientHeight);
-		});
+		    // 停止 requestAnimationFrame 更新
+//		    if (requestId) {
+//		        cancelAnimationFrame(requestId);
+//		        requestId = null;
+//		    }
 
+//		    video.currentTime = videoSlider.value;
+//		    video1.currentTime = videoSlider.value;
 
+//		    video.play();
+//		    video1.play();
+//		});
+
+		// 同步影片時間更新滑動條
+//		function syncSliderWithVideo(videoElement) {
+//		    videoElement.addEventListener('timeupdate', function () {
+//		        if (!dragging) {
+//		            videoSlider.value = videoElement.currentTime;
+//		        }
+//		    });
+//		}
+
+		//syncSliderWithVideo(video);
+		//syncSliderWithVideo(video1);
+		
 		// 當視窗大小改變時，調整每個影片的畫布大小
 		window.addEventListener('resize', function () {
 		    resizeCanvas(video, canvas);
@@ -404,8 +450,29 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
     		// 計算目標帧對應的時間（秒）
     		var time = frameNumber / frameRate;
     		var time1 = frameNumber1 / frameRate;
-    		video.currentTime = time;
-    		video1.currentTime = time1;
+    		// 確保影片已載入完成後再設置 currentTime
+    	    if (video.readyState >= 2) {
+    	        video.pause(); // 暫停影片，確保時間設置後不立即播放
+    	        video.currentTime = time;
+    	    } else {
+    	        video.addEventListener('loadedmetadata', function () {
+    	            video.pause();
+    	            video.currentTime = time;
+    	        });
+    	    }
+
+    	    if (video1.readyState >= 2) {
+    	        video1.pause(); // 暫停影片，確保時間設置後不立即播放
+    	        video1.currentTime = time1;
+    	    } else {
+    	        video1.addEventListener('loadedmetadata', function () {
+    	            video1.pause();
+    	            video1.currentTime = time1;
+    	        });
+    	    }
+    	    
+    		controlBtn.className = 'play'; // 將按鈕設為播放狀態
+    	    controlBtn.innerText = 'Play';
     	}
      	
         function playPause() {
@@ -443,6 +510,26 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		}
 		video.addEventListener("ended", handleVideoEnd);
 		video1.addEventListener("ended", handleVideoEnd);
+		function toggleFullScreen(videoElement) {
+		    if (!document.fullscreenElement) {
+		        videoElement.requestFullscreen().catch(err => {
+		            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+		        });
+		        videoElement.style.objectFit = 'contain';  // 確保全螢幕時保持影片比例
+		    } else {
+		        document.exitFullscreen();
+		        videoElement.style.objectFit = '';  // 退出全螢幕後重置樣式
+		    }
+		}
+
+		// 為影片增加點擊全螢幕的事件
+		video.addEventListener('dblclick', function() {
+		    toggleFullScreen(video);
+		});
+
+		video1.addEventListener('dblclick', function() {
+		    toggleFullScreen(video1);
+		});
 		// 將JSP變量轉換為JavaScript變量
 	    var greatLevelTopBS = <%=expertData.GreatLevelTopBS%>;
 	    var greatLevelLowBS = <%=expertData.GreatLevelLowBS%>;

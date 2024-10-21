@@ -568,3 +568,4 @@ public class PSystem extends DeviceData {
  * //置球點到擊球落點的距離，單位: ft 呎 jsonProject.put("TotalDistFt",
  * rs.getDouble("TotalDistFt")); //置球點到擊球後停止滾動的距離，單位: ft 呎
  */
+//1. 另外一個鏡頭分析姿態(如何架設?) 2. 呈現推桿、姿態分析回饋 3. 掃完路線後可以接著作錄影? 4. 模式:直線、遊戲模式 5. 
