@@ -119,13 +119,13 @@ public class ShotData {
 		ResultSet rs = null;
 		String strSQL;
 		// BallSpeed and ClubHeadSpeed
-		float[][] BSAndCHS = new float[5][10];
+		float[][] BSAndCHS = new float[6][10];
 		// 取最近的10筆
 		strSQL = String.format(
-				"(SELECT 'Last' AS RecordType, BallSpeed, ClubHeadSpeed, round((CarryDistFt/3), 2) AS CarryDistFt, LaunchAngle, BackSpin "
+				"(SELECT 'Last' AS RecordType, BallSpeed, ClubHeadSpeed, round((CarryDistFt/3), 2) AS CarryDistFt, LaunchAngle, BackSpin , LaunchDirection "
 						+ " FROM golf_master.shot_data " + " WHERE Player = '%s' " + " AND id = '%d' " + " LIMIT 1) "
 						+ "UNION ALL "
-						+ "(SELECT 'Average' AS RecordType, AVG(BallSpeed), AVG(ClubHeadSpeed), AVG(round((CarryDistFt/3), 2)), AVG(LaunchAngle), AVG(BackSpin) "
+						+ "(SELECT 'Average' AS RecordType, AVG(BallSpeed), AVG(ClubHeadSpeed), AVG(round((CarryDistFt/3), 2)), AVG(LaunchAngle), AVG(BackSpin), AVG(LaunchDirection) "
 						+ " FROM golf_master.shot_data " + " WHERE Player = '%s' " + "AND ClubType = '%s')",
 				player, shot_data_id, player, ClubType);
 		Logs.log(Logs.RUN_LOG, "strSQL: " + strSQL);
@@ -143,6 +143,7 @@ public class ShotData {
 				BSAndCHS[2][colIndex] = rs.getFloat("CarryDistFt");
 				BSAndCHS[3][colIndex] = rs.getFloat("LaunchAngle");
 				BSAndCHS[4][colIndex] = rs.getFloat("BackSpin");
+				BSAndCHS[5][colIndex] = rs.getFloat("LaunchDirection");
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -4,13 +4,16 @@
 <%@ page import="com.golfmaster.service.ShotData"%>
 <%@ page import="com.golfmaster.service.ShotVideo"%>
 <%@ page import="com.golfmaster.moduel.DeviceData"%>
+<%@ page import="com.golfmaster.moduel.PSystem"%>
+<%@ page import="com.golfmaster.moduel.PSystemJP"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 
 <%!ExpertData expertData = new ExpertData();%>
 <%!ShotData shotData = new ShotData();%>
 <%!ShotVideo shotVideo = new ShotVideo();%>
-
+<%!PSystem pSystem = new PSystem();%>
+<%!PSystemJP pSystemJP = new PSystemJP();%>
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
@@ -126,17 +129,39 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						<!--<h1>能力提升分析</h1>-->
 						<div class="aanalysisSection">
 							<!-- <div class="legend-container"></div>  -->
+							<p class="strikeeff" id="ballscore"></p>
 							<div class="rida_p">
-								<canvas id="radarChart"></canvas>
+								
+								<%
+								if (result.getBoolean("result")) {
+									if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
+										|| trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
+										|| trajectory.equals(pSystemJP.FADE)) {
+												out.print("<img src='../../page/gif/" + "Straight" + ".gif' class='analysis-gif' />");
+									} else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
+												out.print("<img src='../../page/gif/" + "Pushs" + ".gif' class='analysis-gif' />");
+									} else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
+												out.print("<img src='../../page/gif/" + "Pullh" + ".gif' class='analysis-gif' />");
+									} else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)
+										|| trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)) {
+												out.print("<img src='../../page/gif/" + "Pull" + ".gif' class='analysis-gif' />");
+									} else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)
+										|| trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
+												out.print("<img src='../../page/gif/" + "Push" + ".gif' class='analysis-gif' />");
+									}
+								} else {
+											out.print("");
+									}
+								%>
 							</div>
-							<div class="aanalysis">
+							<!--<div class="aanalysis">
 								<p class="strikeeff" id="smachfactDisplay"></p>
 								<p id="ballSpeedDisplay"></p>
 								<p id="clubSpeedDisplay"></p>
 								<p id="distanceDisplay"></p>
 								<p id="launchAngleDisplay"></p>
 								<p id="backSpinDisplay"></p>
-							</div>
+							</div>-->
 						</div>
 					</div>
 				</div>
@@ -247,8 +272,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		    const videoDisplayWidth = videoElement.clientWidth;
 		    const videoDisplayHeight = videoElement.clientHeight;
 
-	    	canvasElement.style.width = videoElement.clientWidth + "px";
-	    	canvasElement.style.height = videoElement.clientHeight + "px";
+	    	canvasElement.style.width = `${videoDisplayWidth}px`;
+	    	canvasElement.style.height = `${videoDisplayHeight}px`;
 	    	canvasElement.width = videoDisplayWidth;
 	    	canvasElement.height = videoDisplayHeight;
 	    	//console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
@@ -510,7 +535,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		}
 		video.addEventListener("ended", handleVideoEnd);
 		video1.addEventListener("ended", handleVideoEnd);
-		function toggleFullScreen(videoElement) {
+		
+		function toggleFullScreen(videoElement, canvasElement, ctx, swingPlaneData, isSideView) {
 		    if (!document.fullscreenElement) {
 		        videoElement.requestFullscreen().catch(err => {
 		            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
@@ -520,16 +546,34 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		        document.exitFullscreen();
 		        videoElement.style.objectFit = '';  // 退出全螢幕後重置樣式
 		    }
+		    
+		    // 當全螢幕狀態改變時重新調整畫布
+		    resizeCanvas(videoElement, canvasElement);
+		    clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
 		}
 
-		// 為影片增加點擊全螢幕的事件
+		// 添加全螢幕狀態變更的事件監聽器，分別處理 video 和 video1
+		document.addEventListener("fullscreenchange", () => {
+		    if (document.fullscreenElement === video) {
+		        // 如果 video 進入或退出全螢幕
+		        resizeCanvas(video, canvas);
+		        clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
+		    } else if (document.fullscreenElement === video1) {
+		        // 如果 video1 進入或退出全螢幕
+		        resizeCanvas(video1, canvas1);
+		        clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
+		    }
+		});
+
+		// 為每個影片增加點擊全螢幕的事件
 		video.addEventListener('dblclick', function() {
-		    toggleFullScreen(video);
+		    toggleFullScreen(video, canvas, ctx, frontSwingPlaneData, false);
 		});
 
 		video1.addEventListener('dblclick', function() {
-		    toggleFullScreen(video1);
+		    toggleFullScreen(video1, canvas1, ctx1, sideSwingPlaneData, true);
 		});
+
 		// 將JSP變量轉換為JavaScript變量
 	    var greatLevelTopBS = <%=expertData.GreatLevelTopBS%>;
 	    var greatLevelLowBS = <%=expertData.GreatLevelLowBS%>;
@@ -662,7 +706,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		var clubSpeed = <%=shotResult[1][0]%>;
 		var avgCS = <%=shotResult[1][1]%>;
 		var clubSpeedLevel = getClubSpeedLevel(clubSpeed);
-		var distance = <%=shotResult[2][0]%>;
+	    var distance = <%=shotResult[2][0]%>;
+	    var launchDirection = <%=shotResult[5][0]%>		
 		var avgDist = <%=shotResult[2][1]%>;
 		var distanceLevel = getDistanceLevel(distance);
 		var launchAngle = <%=shotResult[3][0]%>;
@@ -672,117 +717,23 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		var avgBsp = <%=shotResult[4][1]%>;
 		var backSpinLevel = getBackSpinLevel(backSpin);	        
 		var smachfact = Math.round((ballSpeed/clubSpeed)*100)/100;
+		
+		// 計算公式
+		function calculateBallScore(distance, direction) {
+		    const score = ((distance / 176 + ((16 - direction) / 16) * 0.5) / 1.5) * 100;
+		    return Math.min(score, 100).toFixed(2); // 確保不超過100，並限制小數位數
+		}
 		//document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed + " -> " + ballSpeedLevel + "mph";
 	    document.addEventListener("DOMContentLoaded", function() {
-        	document.getElementById("smachfactDisplay").innerText = "擊球效率:"+smachfact;
-	        document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed  + "mph";
-	        document.getElementById("clubSpeedDisplay").innerText = "桿頭速度: " + clubSpeed  + "mph";
-	        document.getElementById("distanceDisplay").innerText = "飛行距離: " + distance +  "yard";
-	        document.getElementById("launchAngleDisplay").innerText = "發射角度: " + launchAngle  + "degree";
-	        document.getElementById("backSpinDisplay").innerText = "後旋: " + backSpin  + "rpm";
+        	//document.getElementById("smachfactDisplay").innerText = "擊球效率:"+smachfact;
+	        //document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed  + "mph";
+	        //document.getElementById("clubSpeedDisplay").innerText = "桿頭速度: " + clubSpeed  + "mph";
+	        //document.getElementById("distanceDisplay").innerText = "飛行距離: " + distance +  "yard";
+	        //document.getElementById("launchAngleDisplay").innerText = "發射角度: " + launchAngle  + "degree";
+	        //document.getElementById("backSpinDisplay").innerText = "後旋: " + backSpin  + "rpm";
+	        document.getElementById("ballscore").innerText = "彈道評價: " + calculateBallScore(distance,launchDirection) ;
 	    });
 	    
-	    // 數據範圍，您可以用後端服務的實際範圍來替換這些值
-	    var ranges = {
-	        'BackSpin': [[1, worseLevelLowBsp], [worseLevelLowBsp, badLevelLowBsp], [badLevelLowBsp, normalLevelLowBsp], [normalLevelLowBsp, goodLevelLowBsp], [goodLevelLowBsp,greatLevelLowBsp] ,[greatLevelLowBsp,greatLevelTopBsp],[greatLevelTopBsp,greatLevelTopBsp+backSpin]],
-	        'ClubSpeed': [[1, worseLevelLowCS], [worseLevelLowCS, badLevelLowCS], [badLevelLowCS, normalLevelLowCS], [normalLevelLowCS, goodLevelLowCS], [goodLevelLowCS,greatLevelLowCS] ,[greatLevelLowCS,greatLevelTopCS],[greatLevelTopCS,greatLevelTopCS+clubSpeed]],
-	        'Distance': [[1, worseLevelLowDist], [worseLevelLowDist, badLevelLowDist], [badLevelLowDist, normalLevelLowDist], [normalLevelLowDist, goodLevelLowDist], [goodLevelLowDist,greatLevelLowDist] ,[greatLevelLowDist,greatLevelTopDist],[greatLevelTopDist,greatLevelTopDist+distance]],
-	        'BallSpeed': [[1, worseLevelLowBS], [worseLevelLowBS, badLevelLowBS], [badLevelLowBS, normalLevelLowBS], [normalLevelLowBS, goodLevelLowBS], [goodLevelLowBS,greatLevelLowBS] ,[greatLevelLowBS,greatLevelTopBS],[greatLevelTopBS,greatLevelTopBS+ballSpeed]],
-	        'LaunchAngle': [[1, worseLevelLowLA], [worseLevelLowLA, badLevelLowLA], [badLevelLowLA, normalLevelLowLA], [normalLevelLowLA, goodLevelLowLA], [goodLevelLowLA,greatLevelLowLA] ,[greatLevelLowLA,greatLevelTopLA],[greatLevelTopLA,greatLevelTopLA+launchAngle]],
-	        
-	    };
-
-	    // 將數據值映射到雷達圖的層級
-	    function getLevel(value, range) {
-	        return range.findIndex(r => value >= r[0] && value <= r[1]) + 1;
-	    }
-
-	    var radarData = {
-	        labels: ['後旋', '桿頭速度', '距離' , '球速' , '發射角度'],
-	        datasets: [{
-	            label: '最新一球',
-	            data: [getLevel(backSpin, ranges.BackSpin), 
-	            	getLevel(clubSpeed, ranges.ClubSpeed), 
-	            	getLevel(distance, ranges.Distance), 
-	            	getLevel(ballSpeed, ranges.BallSpeed), 
-	            	getLevel(launchAngle, ranges.LaunchAngle)],
-	            backgroundColor: 'rgba(135, 206, 250, 0.2)',
-	            borderColor: 'rgba(135, 206, 250, 1)',
-	            pointBackgroundColor: 'rgba(135, 206, 250, 1)',
-	            pointBorderColor: '#fff',
-	            pointHoverBackgroundColor: '#fff',
-	            pointHoverBorderColor: 'rgba(135, 206, 250, 1)'
-	        },
-	        {
-	            label: '擊球記錄',
-	            data: [
-	            	getLevel(avgBsp, ranges.BackSpin), 
-	            	getLevel(avgCS, ranges.ClubSpeed), 
-	            	getLevel(avgDist, ranges.Distance), 
-	            	getLevel(avgBS, ranges.BallSpeed), 
-	            	getLevel(avgLA, ranges.LaunchAngle)
-	            ],
-	            backgroundColor: 'rgba(255, 193, 7, 0.2)',
-	            borderColor: 'rgba(255, 193, 7, 1)',
-	            pointBackgroundColor: 'rgba(255, 193, 7, 1)',
-	            pointBorderColor: '#fff',
-	            pointHoverBackgroundColor: '#fff',
-	            pointHoverBorderColor: 'rgba(255, 193, 7, 1)'
-	        }
-	    ]
-	    };
-	    var hiddenRangeDataset = {
-	    	    label: '',
-	    	    data: [1, 2, 3, 4, 5, 6, 7], // 涵蓋1到7的數據範圍
-	    	    borderColor: 'rgba(0, 0, 0, 0)', // 完全透明
-	    	    backgroundColor: 'rgba(0, 0, 0, 0)' // 完全透明
-	    };
-
-	    	radarData.datasets.push(hiddenRangeDataset);
-	    var myRadarChart = new Chart(document.getElementById('radarChart'), {
-	        type: 'radar',
-	        data: radarData,
-	        options: {
-	            scales: {
-	            	r: {
-	                ticks: {
-	                	display: false,
-	                	backdropColor: 'transparent', // 去除背景色
-	                	beginAtZero: false, // 不從0開始
-	                    min: 1,  // 最小值設定為1
-	                    max: 7,  // 最大值設定為7
-	                    stepSize: 1,  // 步長為1
-	                },
-	                angleLines: {
-	                    display: true
-	                },
-	                grid: {
-	                	color: 'white'
-	                },
-	                pointLabels: {
-	                    font: {
-	                        size: 16, // 字體大小
-	                        family: "'Arial', sans-serif", // 字體類型
-	                        weight: 'bold' // 字體粗體
-	                    	},
-	                    color: '#FFFFFF' // 字體顏色
-	                	},
-	            	},
-	            },
-	            plugins: {
-	                legend: {
-	                    labels: {
-	                        color: 'white', // 設置圖例文字顏色
-	                        font: {
-	                            size: 16, // 設置圖例文字大小
-	                            family: "'Arial', sans-serif",
-	                            weight: 'bold'
-	                        }
-	                    }
-	                }
-	            },
-	        }
-	    });
 	</script>
 </body>
 </html>
