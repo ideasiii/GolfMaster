@@ -131,7 +131,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 							<!-- <div class="legend-container"></div>  -->
 							<p class="strikeeff" id="ballscore"></p>
 							<div class="rida_p">
-								
+
 								<%
 								if (result.getBoolean("result")) {
 									if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
@@ -233,7 +233,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 											<source src="<%=talkhead%>" type="video/mp4">
 										</video>  -->
 										<div class="inner-text">
-											<p class="title"><%="彈道：" + trajectory%></p>
+											<p class="title"><%="軌跡：" + trajectory%></p>
 											<!-- <p class="s_content"><%="p-system：" + psystem%></p>  -->
 											<p class="s_content"><%="原因：" + cause%></p>
 											<p class="s_content"><%="建議：" + suggestion%></p>
@@ -264,6 +264,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		var canvas1 = document.getElementById('overlayCanvas1');
 		var ctx = canvas.getContext('2d');
 		var ctx1 = canvas1.getContext('2d');
+		const videoContainer = document.getElementById('videoContainer');
+		const videoContainer1 = document.getElementById('videoContainer1');
 		var dragging = false;
 		var requestId = null;
 
@@ -277,53 +279,59 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	    	canvasElement.width = videoDisplayWidth;
 	    	canvasElement.height = videoDisplayHeight;
 	    	//console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
+	        // 更新畫布大小後，重新繪製輔助線
+	        const ctx = canvasElement.getContext('2d');
+	        const isSideView = (videoElement.id === "myvideo1");
+	        clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, isSideView ? sideSwingPlaneData : frontSwingPlaneData, isSideView);
 		}
 
 		// 繪製邊框
 		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
-			const videoWidth = videoElement.videoWidth;
+		    const videoWidth = videoElement.videoWidth;
 		    const videoHeight = videoElement.videoHeight;
+		    const videoDisplayWidth = canvasElement.width;
+		    const videoDisplayHeight = canvasElement.height;
 
-		    const videoDisplayWidth = videoElement.clientWidth;
-		    const videoDisplayHeight = videoElement.clientHeight;
+		    // 計算縮放比例，並保持等比例縮放
+		    const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
+		    const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
+		    const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
 
-		    const startX = bbox[0] * videoWidth;
-		    const startY = bbox[1] * videoHeight;
-		    const width = (bbox[2] - bbox[0]) * videoWidth;
-		    const height = (bbox[3] - bbox[1]) * videoHeight;
+		    const startX = bbox[0] * videoWidth * scale + offsetX;
+		    const startY = bbox[1] * videoHeight * scale + offsetY;
+		    const width = (bbox[2] - bbox[0]) * videoWidth * scale;
+		    const height = (bbox[3] - bbox[1]) * videoHeight * scale;
 
-		// 轉換比例
-		   const scaleX = videoDisplayWidth / videoWidth;
-		   const scaleY = videoDisplayHeight / videoHeight;
-
-		   ctx.strokeStyle = color;
-		   ctx.lineWidth = 4;
-		   ctx.strokeRect(startX * scaleX, startY * scaleY, width * scaleX, height * scaleY);
+		    ctx.strokeStyle = color;
+		    ctx.lineWidth = 4;
+		    ctx.strokeRect(startX, startY, width, height);
 
 		   //console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
 		}
 
 		// 繪製輔助線
 		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
-			const videoWidth = videoElement.videoWidth;
+		    const videoWidth = videoElement.videoWidth;
 		    const videoHeight = videoElement.videoHeight;
+		    const videoDisplayWidth = canvasElement.width;
+		    const videoDisplayHeight = canvasElement.height;
 
-		    const videoDisplayWidth = videoElement.clientWidth;
-		    const videoDisplayHeight = videoElement.clientHeight;
+		    // 計算縮放比例，並保持等比例縮放
+		    const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
+		    const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
+		    const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
 
-		 // 計算比例
-			const scaleX = videoDisplayWidth / videoWidth;
-			const scaleY = videoDisplayHeight / videoHeight;
+		    const startX = line.pt1[0] * videoWidth * scale + offsetX;
+		    const startY = line.pt1[1] * videoHeight * scale + offsetY;
+		    const endX = line.pt2[0] * videoWidth * scale + offsetX;
+		    const endY = line.pt2[1] * videoHeight * scale + offsetY;
 
-			const [startX, startY] = [line.pt1[0] * videoWidth, line.pt1[1] * videoHeight];
-			const [endX, endY] = [line.pt2[0] * videoWidth, line.pt2[1] * videoHeight];
-
-		   ctx.beginPath();
-		   ctx.moveTo(startX * scaleX, startY * scaleY);
-		   ctx.lineTo(endX * scaleX, endY * scaleY);
-		   ctx.strokeStyle = color;
-		   ctx.lineWidth = 4;
-		   ctx.stroke();
+		    ctx.beginPath();
+		    ctx.moveTo(startX, startY);
+		    ctx.lineTo(endX, endY);
+		    ctx.strokeStyle = color;
+		    ctx.lineWidth = 4;
+		    ctx.stroke();
 
 		   //console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
 		}
@@ -331,48 +339,49 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
 		    const videoWidth = videoElement.videoWidth;
 		    const videoHeight = videoElement.videoHeight;
+		    const videoDisplayWidth = canvasElement.width;
+		    const videoDisplayHeight = canvasElement.height;
 
-		    const videoDisplayWidth = videoElement.clientWidth;
-		    const videoDisplayHeight = videoElement.clientHeight;
+		    // 計算縮放比例和偏移量
+		    const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
+		    const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
+		    const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
 
-		    const scaleX = videoDisplayWidth / videoWidth;
-		    const scaleY = videoDisplayHeight / videoHeight;
+		    // 計算頭部中心點位置
+		    const ptX = head.pt[0] * videoWidth * scale + offsetX;
+		    const ptY = head.pt[1] * videoHeight * scale + offsetY;
 
 		    if (side) {
-		        // side：繪製兩條線
-		        const [ptX, ptY] = [head.pt[0] * videoWidth, head.pt[1] * videoHeight];
-		        const [h_ptX, h_ptY] = [head.h_pt[0] * videoWidth, head.h_pt[1] * videoHeight];
-		        const [v_ptX, v_ptY] = [head.v_pt[0] * videoWidth, head.v_pt[1] * videoHeight];
+		        // 側視圖：繪製90度的夾角
+		        const lineLength = head.h_length * videoWidth * scale; // 使用頭部的水平長度作為線段長度
 
-		        // 繪製水平方向的線 (pt -> h_pt)
+		        // 繪製水平線（從頭部中心點向右延伸）
 		        ctx.beginPath();
-		        ctx.moveTo(ptX * scaleX, ptY * scaleY);
-		        ctx.lineTo(h_ptX * scaleX, h_ptY * scaleY);
+		        ctx.moveTo(ptX, ptY);  // 從中心點開始
+		        ctx.lineTo(ptX - lineLength, ptY);  // 向左延伸
 		        ctx.strokeStyle = color;
 		        ctx.lineWidth = 4;
 		        ctx.stroke();
 
-		        // 繪製垂直方向的線 (pt -> v_pt)
+		        // 繪製垂直線（從頭部中心點向下延伸）
 		        ctx.beginPath();
-		        ctx.moveTo(ptX * scaleX, ptY * scaleY);
-		        ctx.lineTo(v_ptX * scaleX, v_ptY * scaleY);
+		        ctx.moveTo(ptX, ptY);  // 從中心點開始
+		        ctx.lineTo(ptX, ptY + lineLength);  // 向下延伸
 		        ctx.strokeStyle = color;
 		        ctx.lineWidth = 4;
 		        ctx.stroke();
 
 		        //console.log("Head drawn as lines for side view.");
 		    } else {
-		        // front：繪製橢圓
-		        const [ptX, ptY] = [head.pt[0] * videoWidth, head.pt[1] * videoHeight];
-		        const h_length = head.h_length * videoWidth;
-		        const v_length = head.v_length * videoHeight;
+		        // 正面圖，繪製橢圓
+		        const h_length = head.h_length * videoWidth * scale;
+		        const v_length = head.v_length * videoHeight * scale;
 
 		        ctx.beginPath();
-		        ctx.ellipse(ptX * scaleX, ptY * scaleY, h_length * scaleX, v_length * scaleY, 0, 0, 2 * Math.PI);
+		        ctx.ellipse(ptX, ptY, h_length , v_length , 0, 0, 2 * Math.PI);
 		        ctx.strokeStyle = color;
 		        ctx.lineWidth = 4;
 		        ctx.stroke();
-
 		        //console.log("Head drawn as ellipse for front view.");
 		    }
 		}
@@ -471,6 +480,56 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
 		});
 
+		
+		function toggleFullScreen(videoElement, canvasElement, ctx, swingPlaneData, isSideView) {
+		    if (!document.fullscreenElement) {
+		        videoElement.requestFullscreen().catch(err => {
+		            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+		        });
+		        videoElement.style.objectFit = 'contain';  // 確保全螢幕時保持影片比例
+		        // 畫布調整後立即重新繪製輔助線
+		        setTimeout(() => {
+		            resizeCanvas(videoElement, canvasElement);
+		            clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
+		        }, 100);  // 可微調延遲時間
+		    } else {
+		        document.exitFullscreen();
+		        videoElement.style.objectFit = '';  // 退出全螢幕後重置樣式
+		    }
+		    
+		    // 當全螢幕狀態改變時重新調整畫布
+		    resizeCanvas(videoElement, canvasElement);
+		    clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
+		}
+
+		// 添加全螢幕狀態變更的事件監聽器，分別處理 video 和 video1
+		document.addEventListener("fullscreenchange", () => {
+		    if (document.fullscreenElement === video) {
+		        // 如果 video 進入或退出全螢幕
+		        resizeCanvas(video, canvas);
+		        clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
+		    } else if (document.fullscreenElement === video1) {
+		        // 如果 video1 進入或退出全螢幕
+		        resizeCanvas(video1, canvas1);
+		        clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
+		    } else {
+		        // 當退出全螢幕狀態時，恢復輔助線原始比例
+		        resizeCanvas(video, canvas);
+		        resizeCanvas(video1, canvas1);
+		        clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
+		        clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
+		    }
+		});
+
+		// 為每個影片增加點擊全螢幕的事件
+		video.addEventListener('dblclick', function() {
+		    toggleFullScreen(video, canvas, ctx, frontSwingPlaneData, false);
+		});
+
+		video1.addEventListener('dblclick', function() {
+		    toggleFullScreen(video1, canvas1, ctx1, sideSwingPlaneData, true);
+		});
+		
         function goToFrame(frameNumber,frameNumber1) {
     		// 計算目標帧對應的時間（秒）
     		var time = frameNumber / frameRate;
@@ -535,45 +594,6 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		}
 		video.addEventListener("ended", handleVideoEnd);
 		video1.addEventListener("ended", handleVideoEnd);
-		
-		function toggleFullScreen(videoElement, canvasElement, ctx, swingPlaneData, isSideView) {
-		    if (!document.fullscreenElement) {
-		        videoElement.requestFullscreen().catch(err => {
-		            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-		        });
-		        videoElement.style.objectFit = 'contain';  // 確保全螢幕時保持影片比例
-		    } else {
-		        document.exitFullscreen();
-		        videoElement.style.objectFit = '';  // 退出全螢幕後重置樣式
-		    }
-		    
-		    // 當全螢幕狀態改變時重新調整畫布
-		    resizeCanvas(videoElement, canvasElement);
-		    clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
-		}
-
-		// 添加全螢幕狀態變更的事件監聽器，分別處理 video 和 video1
-		document.addEventListener("fullscreenchange", () => {
-		    if (document.fullscreenElement === video) {
-		        // 如果 video 進入或退出全螢幕
-		        resizeCanvas(video, canvas);
-		        clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
-		    } else if (document.fullscreenElement === video1) {
-		        // 如果 video1 進入或退出全螢幕
-		        resizeCanvas(video1, canvas1);
-		        clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
-		    }
-		});
-
-		// 為每個影片增加點擊全螢幕的事件
-		video.addEventListener('dblclick', function() {
-		    toggleFullScreen(video, canvas, ctx, frontSwingPlaneData, false);
-		});
-
-		video1.addEventListener('dblclick', function() {
-		    toggleFullScreen(video1, canvas1, ctx1, sideSwingPlaneData, true);
-		});
-
 		// 將JSP變量轉換為JavaScript變量
 	    var greatLevelTopBS = <%=expertData.GreatLevelTopBS%>;
 	    var greatLevelLowBS = <%=expertData.GreatLevelLowBS%>;
@@ -720,8 +740,19 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		
 		// 計算公式
 		function calculateBallScore(distance, direction) {
+		    if (distance > 176) {
+		        distance = 176;
+		    }
+
+		    // direction 取絕對值
+		    direction = Math.abs(direction);
+
+		    // 當 direction 大於 16 時，direction 等於 16
+		    if (direction > 16) {
+		        direction = 16;
+		    }
 		    const score = ((distance / 176 + ((16 - direction) / 16) * 0.5) / 1.5) * 100;
-		    return Math.min(score, 100).toFixed(2); // 確保不超過100，並限制小數位數
+		    return Math.ceil(Math.min(score, 100)); // 確保不超過100，並限制小數位數
 		}
 		//document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed + " -> " + ballSpeedLevel + "mph";
 	    document.addEventListener("DOMContentLoaded", function() {
@@ -731,7 +762,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	        //document.getElementById("distanceDisplay").innerText = "飛行距離: " + distance +  "yard";
 	        //document.getElementById("launchAngleDisplay").innerText = "發射角度: " + launchAngle  + "degree";
 	        //document.getElementById("backSpinDisplay").innerText = "後旋: " + backSpin  + "rpm";
-	        document.getElementById("ballscore").innerText = "彈道評價: " + calculateBallScore(distance,launchDirection) ;
+	        document.getElementById("ballscore").innerText = "彈道分數: " + calculateBallScore(distance,launchDirection) ;
 	    });
 	    
 	</script>

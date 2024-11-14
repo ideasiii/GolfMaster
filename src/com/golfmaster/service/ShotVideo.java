@@ -90,14 +90,14 @@ public class ShotVideo {
 		int[] frontFrames = framesData[1] != null ? (int[]) framesData[1] : defaultFrontArray;
 		String frontVideoName = framesData[2] != null ? (String) framesData[2] : defaultFrontVideoName;
 		String sideVideoName = framesData[3] != null ? (String) framesData[3] : defaultSideVideoName;
-//		int aEffect = framesData[4] != null ? (int) framesData[4] : 0;
-//		int tEffect = framesData[5] != null ? (int) framesData[5] : 0;
-//		int iEffect = framesData[6] != null ? (int) framesData[6] : 0;
-//		int fEffect = framesData[7] != null ? (int) framesData[7] : 0;
-		int aEffect = 1;  // 設定 aEffect 為 1
-		int tEffect = 2;  // 設定 tEffect 為 2
-		int iEffect = 2;  // 設定 iEffect 為 2
-		int fEffect = 0;  // 設定 fEffect 為 0
+		int aEffect = framesData[4] != null ? (int) framesData[4] : 0;
+		int tEffect = framesData[5] != null ? (int) framesData[5] : 0;
+		int iEffect = framesData[6] != null ? (int) framesData[6] : 0;
+		int fEffect = framesData[7] != null ? (int) framesData[7] : 0;
+//		int aEffect = 1;  // 設定 aEffect 為 1
+//		int tEffect = 2;  // 設定 tEffect 為 2
+//		int iEffect = 2;  // 設定 iEffect 為 2
+//		int fEffect = 0;  // 設定 fEffect 為 0
 		String sideSwingPlane = framesData.length > 8 && framesData[8] != null ? (String) framesData[8]
 				: emptySwingPlane;
 		String frontSwingPlane = framesData.length > 9 && framesData[9] != null ? (String) framesData[9]
