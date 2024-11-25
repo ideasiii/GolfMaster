@@ -514,32 +514,32 @@ public class PSystem extends DeviceData {
 //	}
 
 	// 假設 PSystem 類中已經包含 generateAllResults 方法，該方法如前所述
-	public void generateAllResults() {
-		for (float ballSpeed = 60; ballSpeed <= 70; ballSpeed += 10) {
-			for (float clubAnglePath = -15; clubAnglePath <= 15; clubAnglePath += 5) {
-				for (float clubAngleFace = -15; clubAngleFace <= 15; clubAngleFace += 5) {
-					for (float carryDistFt = 1; carryDistFt <= 500; carryDistFt += 30) {
-						for (float launchAngle = 5; launchAngle <= 7; launchAngle += 1) {
-								float clubHeadSpeed = 80; 
-								// 模擬其他固定值，例如 TotalDistFt, SmashFactor 等，根據需要添加
-								float totalDistFt = carryDistFt + 50; // 例如，總距離為攜帶距離加上一個固定值
-								float smashFactor = ballSpeed / clubHeadSpeed; // 算出擊球係數
-								float sideSpin = 0; // 側旋，根據需求可能需要調整
-								float backSpin = 1000; // 後旋，示例值
-								float launchDirection = 0; // 發射方向，示例值
-								float distToPinFt = 100; // 到旗杆的距離，示例值
-
-								String result = expertAnalysis(ballSpeed, clubAnglePath, clubAngleFace, totalDistFt,
-										carryDistFt, launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed,
-										launchDirection, distToPinFt);
-								System.out.println(result);
-							
-						}
-					}
-				}
-			}
-		}
-	}
+//	public void generateAllResults() {
+//		for (float ballSpeed = 60; ballSpeed <= 70; ballSpeed += 10) {
+//			for (float clubAnglePath = -15; clubAnglePath <= 15; clubAnglePath += 5) {
+//				for (float clubAngleFace = -15; clubAngleFace <= 15; clubAngleFace += 5) {
+//					for (float carryDistFt = 1; carryDistFt <= 500; carryDistFt += 30) {
+//						for (float launchAngle = 5; launchAngle <= 7; launchAngle += 1) {
+//								float clubHeadSpeed = 80; 
+//								// 模擬其他固定值，例如 TotalDistFt, SmashFactor 等，根據需要添加
+//								float totalDistFt = carryDistFt + 50; // 例如，總距離為攜帶距離加上一個固定值
+//								float smashFactor = ballSpeed / clubHeadSpeed; // 算出擊球係數
+//								float sideSpin = 0; // 側旋，根據需求可能需要調整
+//								float backSpin = 1000; // 後旋，示例值
+//								float launchDirection = 0; // 發射方向，示例值
+//								float distToPinFt = 100; // 到旗杆的距離，示例值
+//
+//								String result = expertAnalysis(ballSpeed, clubAnglePath, clubAngleFace, totalDistFt,
+//										carryDistFt, launchAngle, smashFactor, backSpin, sideSpin, clubHeadSpeed,
+//										launchDirection, distToPinFt);
+//								System.out.println(result);
+//							
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
 
 }
 
