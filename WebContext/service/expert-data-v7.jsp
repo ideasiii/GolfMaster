@@ -410,7 +410,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 		    
 		    
 		}
-		// 優化事件處理器，確保影片元數據加載完成後再進行相關操作
+		// 確保影片元數據加載完成後再進行相關操作
 		function setupVideoEvents(videoElement, canvasElement, ctx, swingPlaneData, initialFrame, isSideView) {
 			videoElement.addEventListener('loadedmetadata', function () {
 				//videoSlider.max = videoElement.duration;

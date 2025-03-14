@@ -1,0 +1,450 @@
+@charset "utf-8";
+/* CSS Document */
+body {
+  font-family: Arial, Helvetica, sans-serif,"Microsoft JhengHei";
+  display: flex;
+  flex-direction: column;
+  background-color: black;
+  margin: 0;
+  padding: 0;
+  background-image: url('../../page/img/background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+.header {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  padding: 20px 0px 10px 30px;
+  margin-bottom: 0px;
+}
+.logo {
+  width: 100px;
+  height: auto;
+}
+.c_m {
+  width:1240px;
+  height: 850px;
+  margin: auto;
+}
+.content {
+  display: flex;
+  flex-wrap: wrap;
+}
+.row {
+  margin: 0px 0px 0px 0px;
+  flex: 1;
+  display: flex; /* 使用 Flexbox */
+  flex-direction: column; /* 垂直方向排列子元素 */
+}
+.row2 {
+  margin: 0px 0px 0px 0px;
+  flex: 1;
+  display: flex; /* 使用 Flexbox */
+  position: relative;
+  z-index: 1;
+  justify-content: space-between;
+  /* gap: 20px; */
+}
+.column {
+  flex: 50%;
+  display: flex; /* 使用 Flexbox */
+  flex-direction: column; /* 垂直方向排列子元素 */
+}
+.column2 {
+  flex: 50%;
+  padding: 0px 0px;
+}
+.bg_b{
+    
+    background-color:#000000;
+}
+
+h1 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #7C7C7C;
+}
+.stretch {
+  align-items: stretch;
+}
+.cards {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 10px;
+  background-color: rgba(57, 61, 66, 0.5);
+  padding: 20px;
+  width: 100%;
+}
+.card {
+  flex: 0 1 calc(20% - 10px);
+  padding: 10px;
+  margin: 5px;
+}
+.card .title {
+  text-align: center;
+  padding-bottom: 5px;
+  border-bottom: #00A9BC solid 1px;
+  color: white;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+.card .unit {
+  text-align: right;
+  padding: 6px 0px 6px 0px;
+  color: white;
+  font-size: 0.8em;
+}
+.card .number {
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: #00A9BC;
+}
+.videoSection {
+  display: flex;
+  margin: auto;
+}
+.image {
+  width: 100%;
+  height: 410px;
+}
+.image_v {
+  height: 460px;
+  width: 100%;
+  max-width: 620px;
+  z-index: 1;
+}
+video {
+  object-fit: fill; /*保持影片內容不被拉伸或變形 */
+  width: 100%; /* 讓影片填充可用空間 */
+  height: 100%; /* 自動調整高度，保持比例 */
+}
+.steps {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 0px;
+  padding: 0px 20px;
+}
+.step {
+  flex: 0 1 calc(20% - 10px);
+  padding: 10px;
+}
+.step_title {
+  font-size: 1em;
+  font-weight: bold;
+}
+.step_4 {
+  font-size: 1em;
+}
+.stepbutton {
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: black;
+  color: #00A9BC;
+  font-size: 2em;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.stepbutton_selected {
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: black;
+  color: #00A9BC;
+  font-size: 2em;
+}
+.stepbutton:hover {
+  background-color: aqua;
+}
+.custom-div {
+  flex: 1;
+  /*max-width: 100%; /* 使 div 与列1同宽 */
+  margin: 10px 0px;
+  height: 410px;
+}
+.custom-div2 {
+  flex: 1;
+  background-color: #00A9BC;
+  /*border-radius: 8px;*/
+}
+.vertical-div {
+  flex: 1;
+  width: 100%;
+  margin: 10px 0px;
+  height: 100%; /* 让垂直DIV填充父容器高度 */
+}
+.suggestionsession {
+  text-align: center;
+  margin-top: 20px;
+  padding: 0px 30px 10px 30px;
+ 
+}
+.suggestion {
+  text-align: left;
+  border-radius: 0px;
+  /*border: #00A9BC solid 1px;*/
+  padding: 8px;
+     
+    
+}
+.vertical-image {
+  flex: 1;
+  width: 83px;
+  margin: 10px;
+  display: flex;
+  flex-direction: row; /* 水平排列子元素 */
+  align-items: flex-start;
+}
+.inner-image {
+  flex: 1;
+}
+.inner-text {
+  margin-left: 10px; /* 在图像的右侧留出一些间距 */
+}
+p.title {
+  font-size: 1.6em;
+  color: #00A9BC;
+  font-weight: bold;
+  padding: 10px;
+}
+p.s_content {
+  padding: 10px;
+  font-size: 1.2em;
+  color: white;
+}
+.rida_p {
+  text-align: center;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /*padding-top: 40px;20240507更新*/
+}
+.rida_p img.analysis-gif {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  margin-bottom: 40px;
+}
+.image_r {
+  width: 280px;
+}
+.aanalysis {
+  text-align: left;
+  /*padding-top: 60px;*/
+  /*padding-top: 20px;20240429更新*/
+  /*margin-bottom: 60px;20240507更新*/
+}
+.strikeeff {
+  padding: 20px;
+  background-color: #00A9BC;
+  border-radius: 60px;
+  color: #ffffff;
+  font-size: 1.4em;
+  font-weight: bold;
+  text-align: center;
+}
+.aanalysisSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;/*20240429更新*/
+  /*height: 460px;20240429更新,0507改360->460*/
+  /*padding: 20px;*/
+  /*min-height: 100%;*/
+  background-color: #222222;
+  height: 460px;
+  /*padding: 20px;*/
+}
+.aanalysis p {
+  color: #ffffff;
+  padding: 10px 20px;
+}
+.f_content {
+  display: flex;
+  text-align: center;
+  /*border: #00A9BC solid 1px;*/
+  padding: 6px;
+}
+.psystemSection {
+  margin-top: 0px;
+  display: flex;
+  padding-top: 9px;
+  
+  
+  background-color: #ffffff;
+   justify-content: center; 
+ 
+}
+.psystem_p {
+  width: 25%; /* 每個盒子佔四分之一的寬度 */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+#overlayCanvas, #overlayCanvas1{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10; /* 提高層級，確保畫布在影片上方 */
+    pointer-events: none; /*避免畫布影響滑鼠操作 */
+    /*width: 100%;  確保畫布與影片同步調整大小 */
+    /*height: 100%;*/
+}
+
+#player-container #play-pause {
+  cursor: pointer;
+  text-indent: -999999px;
+  height: 40px;
+  width: 40px;
+  z-index: 2;
+  background-image: url("../../page/img/btn_play.png");
+  background-repeat: no-repeat !important;
+  background-position: center;
+  background-size: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 40px;
+}
+.play {
+    background-image: url("../../page/img/btn_play.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40px;
+}
+
+.pause {
+    background-image: url("../../page/img/btn_pause.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40px;
+}
+
+/*.play {
+  background-image: url("../../page/img/btn_play.png");
+}
+.pause {
+  background-image: url("../../page/img/btn_pause.png") !important;
+}*/
+@media screen and (max-width: 712px) {
+  .c_m {
+    width: 100%;
+    margin: auto;
+  }
+  .row {
+    flex: 100%;
+  }
+  .row2 {
+    margin: 0px 0px 0px 0px;
+    flex: 1;
+    display: flex; /* 使用 Flexbox */
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .column {
+    flex: 100%;
+  }
+  h1 {
+    font-size: 1.4em;
+    margin-top: 10px;
+  }
+  .column2 {
+    max-width: 100%;
+    flex-wrap: wrap;
+    padding: 0px;
+  }
+  .cards {
+    flex-direction: column;
+  }
+  .card {
+    flex: 100%;
+  }
+  .image {
+    width: 100%;
+    height: auto;
+  }
+  .custom-div {
+    max-width: 100%;
+    margin: 0;
+  }
+  .steps {
+    display: flex;
+    border-radius: 10px;
+    padding: 0px 20px;
+  }
+  .step {
+    padding: 4px 0px;
+  }
+  .step_title {
+    font-size: 0.8em;
+    font-weight: bold;
+  }
+  .step_4 {
+    font-size: 0.8em;
+  }
+  p.title {
+    font-size: 1.4em;
+    color: #00A9BC;
+    font-weight: bold;
+    padding: 10px;
+  }
+  p.s_content {
+    padding: 10px;
+    font-size: 1.2em;
+    color: white;
+  }
+  .aanalysisSection {
+    flex-wrap: wrap;
+	/*padding: 40px;*/
+    /*padding: 20px;20240429更新*/
+    /*min-height: auto;*/
+	/*height: 360px; 20240429更新*/
+    background-color: #222222;
+  }
+  .aanalysis {
+    width: 100%;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .rida_p {
+    width: 100%;
+    text-align: center;
+  }
+  .f_content {
+    text-align: center;
+    border: #00A9BC solid 1px;
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  .suggestion {
+    padding: 0px;
+  }
+  .vertical-image {
+    width: 100%;
+    flex-wrap: wrap;
+    margin: 0px;
+  }
+  .psystemSection {
+    flex-wrap: wrap;
+  }
+  .box {
+    width: 100%;
+  }
+  /*#overlayCanvas, #overlayCanvas1 {
+    width: 100%;
+    height: 100%;
+  }*/
+}

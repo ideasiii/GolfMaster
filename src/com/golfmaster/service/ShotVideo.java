@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Random;
 
@@ -29,7 +30,14 @@ public class ShotVideo {
 		private boolean callMotionApi = false;
 		private String type;
 	}
-
+	// 預設數據
+	public final int[] defaultSideArray = { 157, 281, 345, 407 };
+	public final int[] defaultFrontArray = { 160, 305, 353, 413 };
+	public final String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
+	public final String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
+	public final String emptySwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.0, 0.0, 0.0, 0.0], \"head\": {\"pt\": [0.0, 0.0], \"h_length\": 0.0, \"v_length\": 0.0, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
+	public final String defaultSideSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.2338863172029194, 0.31861487494574653, 0.6572389100727282, 0.8508367467809607], \"head\": {\"pt\": [0.6572389100727282, 0.31861487494574653], \"h_length\": 0.1572389100727282, \"v_length\": 0.09434808801721643, \"h_pt\": [0.5, 0.31861487494574653], \"v_pt\": [0.6572389100727282, 0.412962962962963]}, \"club\": {\"pt1\": [0.23355263157894737, 0.3990740740740741], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"shoulder\": {\"pt1\": [0.43914473684210525, 0.31851851851851853], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
+	public final String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";
 	public String processRequest(HttpServletRequest request) {
 		JSONObject jsonResponse = null;
 		CallMotionApi callMotionApi = new CallMotionApi();
@@ -60,14 +68,6 @@ public class ShotVideo {
 		String response = queryShotVideoAnalyz(tempSDI, jso);
 		Object[] framesData = extractFrames(response);
 
-		// 預設數據
-		int[] defaultSideArray = { 157, 281, 345, 407 };
-		int[] defaultFrontArray = { 160, 305, 353, 413 };
-		String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
-		String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
-		String emptySwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.0, 0.0, 0.0, 0.0], \"head\": {\"pt\": [0.0, 0.0], \"h_length\": 0.0, \"v_length\": 0.0, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
-		String defaultSideSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.2338863172029194, 0.31861487494574653, 0.6572389100727282, 0.8508367467809607], \"head\": {\"pt\": [0.6572389100727282, 0.31861487494574653], \"h_length\": 0.1572389100727282, \"v_length\": 0.09434808801721643, \"h_pt\": [0.5, 0.31861487494574653], \"v_pt\": [0.6572389100727282, 0.412962962962963]}, \"club\": {\"pt1\": [0.23355263157894737, 0.3990740740740741], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"shoulder\": {\"pt1\": [0.43914473684210525, 0.31851851851851853], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
-		String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";
 
 		// 檢查 framesData 是否有值，如果無效則返回預設值
 		if (framesData == null || ((int[]) framesData[0]).length == 0) {
@@ -264,14 +264,7 @@ public class ShotVideo {
 					maxTIndex = getMaxIndex(dataObj.getJSONArray("T"));
 					maxIIndex = getMaxIndex(dataObj.getJSONArray("I"));
 					maxFIndex = getMaxIndex(dataObj.getJSONArray("F"));
-					if (maxAIndex < 0)
-						maxAIndex = 6;
-					if (maxTIndex < 0)
-						maxTIndex = 6;
-					if (maxIIndex < 0)
-						maxIIndex = 6;
-					if (maxFIndex < 0)
-						maxFIndex = 6;
+					
 
 					Logs.log(Logs.RUN_LOG, "A:" + Integer.toString(maxAIndex) + "T:" + Integer.toString(maxTIndex)
 							+ "I:" + Integer.toString(maxIIndex) + "F:" + Integer.toString(maxFIndex));
@@ -281,7 +274,27 @@ public class ShotVideo {
 			e.printStackTrace();
 			return null; // 在發生錯誤時返回null
 		}
-
+	    // 補充缺少的資料
+	    if (sideFrames.isEmpty()) {
+	        Logs.log(Logs.RUN_LOG, "Side data missing. Using default side values.");
+	        sideFrames = new ArrayList<>(Arrays.asList(157, 281, 345, 407));
+	        sideVideoName = defaultSideVideoName;
+	        sideSwingPlane = emptySwingPlane;
+	    }
+	    if (frontFrames.isEmpty()) {
+	        Logs.log(Logs.RUN_LOG, "Front data missing. Using default front values.");
+	        frontFrames = new ArrayList<>(Arrays.asList(160, 305, 353, 413));
+	        frontVideoName = defaultFrontVideoName;
+	        frontSwingPlane = emptySwingPlane;
+	    }
+		if (maxAIndex < 0)
+			maxAIndex = 6;
+		if (maxTIndex < 0)
+			maxTIndex = 6;
+		if (maxIIndex < 0)
+			maxIIndex = 6;
+		if (maxFIndex < 0)
+			maxFIndex = 6;
 		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
 		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
 		return new Object[] { sideArray, frontArray, frontVideoName, sideVideoName, maxAIndex, maxTIndex, maxIIndex,
