@@ -129,30 +129,38 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 						<!--<h1>能力提升分析</h1>-->
 						<div class="aanalysisSection">
 							<p class="strikeeff" id="ballscore"></p>
-								<div class="rida_p">
-								<%
-								if (result.getBoolean("result")) {
-									if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
-										|| trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
-										|| trajectory.equals(pSystemJP.FADE)) {
-												out.print("<img src='../../page/gif/" + "Straight" + ".gif' class='analysis-gif' />");
-									} else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
-												out.print("<img src='../../page/gif/" + "Pushs" + ".gif' class='analysis-gif' />");
-									} else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
-												out.print("<img src='../../page/gif/" + "Pullh" + ".gif' class='analysis-gif' />");
-									} else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)
-										|| trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)) {
-												out.print("<img src='../../page/gif/" + "Pull" + ".gif' class='analysis-gif' />");
-									} else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)
-										|| trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
-												out.print("<img src='../../page/gif/" + "Push" + ".gif' class='analysis-gif' />");
-									}
-								} else {
-											out.print("");
-									}
-								%>							
+								<div class="row2" style="background-color: #000000">
+									<div style="position: relative;" class="image_v">
+										<div class="rida_p">
+											<%
+											if (result.getBoolean("result")) {
+												if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
+													|| trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
+													|| trajectory.equals(pSystemJP.FADE)) {
+															out.print("<img src='../../page/gif/" + "Straight" + ".gif' class='analysis-gif' />");
+												} else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
+															out.print("<img src='../../page/gif/" + "Pushs" + ".gif' class='analysis-gif' />");
+												} else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
+															out.print("<img src='../../page/gif/" + "Pullh" + ".gif' class='analysis-gif' />");
+												} else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)
+													|| trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)) {
+															out.print("<img src='../../page/gif/" + "Pull" + ".gif' class='analysis-gif' />");
+												} else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)
+													|| trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
+															out.print("<img src='../../page/gif/" + "Push" + ".gif' class='analysis-gif' />");
+												}
+											} else {
+														out.print("");
+												}
+											%>	
+										</div>
+									</div>
+								<div style="position: relative;" class="image_v">
+									<div style="margin-top: 20px;">
+										<canvas id="radarChart"></canvas>
+									</div>
 								</div>
-
+							</div>
 							<div class="aanalysis">
 								<p class="strikeeff" id="smachfactDisplay"></p>
 								<p id="ballSpeedDisplay"></p>
@@ -238,9 +246,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 											<p class="s_content"><%="建議：" + suggestion%></p>
 										</div>
 										
-										<div class="rida_p">
-										<canvas id="radarChart"></canvas>	
-										</div>
+										
 										
 									</div>
 								</div>

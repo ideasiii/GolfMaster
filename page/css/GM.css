@@ -233,9 +233,10 @@ p.s_content {
   /*padding-top: 40px;20240507更新*/
 }
 .rida_p img.analysis-gif {
-  width: 100%;
+  width: 90%;
   height: auto;
   max-height: 100%;
+  margin-top: 100px;
   margin-bottom: 40px;
 }
 .image_r {
@@ -407,7 +408,7 @@ p.s_content {
     color: white;
   }
   .aanalysisSection {
-    flex-wrap: wrap;
+    /*flex-wrap: wrap;*/
 	/*padding: 40px;*/
     /*padding: 20px;20240429更新*/
     /*min-height: auto;*/
