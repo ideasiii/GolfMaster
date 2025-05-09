@@ -161,6 +161,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 									</div>
 								</div>
 							</div>
+							<!-- 
 							<div class="aanalysis">
 								<p class="strikeeff" id="smachfactDisplay"></p>
 								<p id="ballSpeedDisplay"></p>
@@ -169,6 +170,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 								<p id="launchAngleDisplay"></p>
 								<p id="backSpinDisplay"></p>
 							</div>
+							 -->
 						</div>
 					</div>
 				</div>
@@ -806,7 +808,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	            pointHoverBackgroundColor: '#fff',
 	            pointHoverBorderColor: 'rgba(135, 206, 250, 1)'
 	        },
-	       {
+	        {
 	            label: '擊球歷程',
 	            data: [
 	            	getLevel(avgBsp, ranges.BackSpin), 
