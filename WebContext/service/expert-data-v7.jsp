@@ -793,7 +793,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	    var radarData = {
 	        labels: ['後旋', '桿頭速度', '距離' , '球速' , '發射角度'],
 	        datasets: [{
-	            label: '軌跡分析',
+	            label: '本次擊球',
 	            data: [getLevel(backSpin, ranges.BackSpin), 
 	            	getLevel(clubSpeed, ranges.ClubSpeed), 
 	            	getLevel(distance, ranges.Distance), 
@@ -805,9 +805,9 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	            pointBorderColor: '#fff',
 	            pointHoverBackgroundColor: '#fff',
 	            pointHoverBorderColor: 'rgba(135, 206, 250, 1)'
-	        }//,
-	       /* {
-	           // label: '擊球記錄',
+	        },
+	       {
+	            label: '擊球歷程',
 	            data: [
 	            	getLevel(avgBsp, ranges.BackSpin), 
 	            	getLevel(avgCS, ranges.ClubSpeed), 
@@ -821,7 +821,7 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	            pointBorderColor: '#fff',
 	            pointHoverBackgroundColor: '#fff',
 	            pointHoverBorderColor: 'rgba(255, 193, 7, 1)'
-	        } */
+	        }
 	    ]
 	    };
 	    var hiddenRangeDataset = {
