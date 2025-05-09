@@ -128,10 +128,8 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 					<div class="row">
 						<!--<h1>能力提升分析</h1>-->
 						<div class="aanalysisSection">
-							<!-- <div class="legend-container"></div>  -->
 							<p class="strikeeff" id="ballscore"></p>
-							<div class="rida_p">
-
+								<div class="rida_p">
 								<%
 								if (result.getBoolean("result")) {
 									if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
@@ -152,16 +150,17 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 								} else {
 											out.print("");
 									}
-								%>
-							</div>
-							<!--<div class="aanalysis">
+								%>							
+								</div>
+
+							<div class="aanalysis">
 								<p class="strikeeff" id="smachfactDisplay"></p>
 								<p id="ballSpeedDisplay"></p>
 								<p id="clubSpeedDisplay"></p>
 								<p id="distanceDisplay"></p>
 								<p id="launchAngleDisplay"></p>
 								<p id="backSpinDisplay"></p>
-							</div>-->
+							</div>
 						</div>
 					</div>
 				</div>
@@ -238,6 +237,11 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 											<p class="s_content"><%="原因：" + cause%></p>
 											<p class="s_content"><%="建議：" + suggestion%></p>
 										</div>
+										
+										<div class="rida_p">
+										<canvas id="radarChart"></canvas>	
+										</div>
+										
 									</div>
 								</div>
 							</div>
@@ -765,6 +769,107 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	        document.getElementById("ballscore").innerText = "彈道分數: " + calculateBallScore(distance,launchDirection) ;
 	    });
 	    
+	    // 數據範圍，您可以用後端服務的實際範圍來替換這些值
+	    var ranges = {
+	        'BackSpin': [[1, worseLevelLowBsp], [worseLevelLowBsp, badLevelLowBsp], [badLevelLowBsp, normalLevelLowBsp], [normalLevelLowBsp, goodLevelLowBsp], [goodLevelLowBsp,greatLevelLowBsp] ,[greatLevelLowBsp,greatLevelTopBsp],[greatLevelTopBsp,greatLevelTopBsp+backSpin]],
+	        'ClubSpeed': [[1, worseLevelLowCS], [worseLevelLowCS, badLevelLowCS], [badLevelLowCS, normalLevelLowCS], [normalLevelLowCS, goodLevelLowCS], [goodLevelLowCS,greatLevelLowCS] ,[greatLevelLowCS,greatLevelTopCS],[greatLevelTopCS,greatLevelTopCS+clubSpeed]],
+	        'Distance': [[1, worseLevelLowDist], [worseLevelLowDist, badLevelLowDist], [badLevelLowDist, normalLevelLowDist], [normalLevelLowDist, goodLevelLowDist], [goodLevelLowDist,greatLevelLowDist] ,[greatLevelLowDist,greatLevelTopDist],[greatLevelTopDist,greatLevelTopDist+distance]],
+	        'BallSpeed': [[1, worseLevelLowBS], [worseLevelLowBS, badLevelLowBS], [badLevelLowBS, normalLevelLowBS], [normalLevelLowBS, goodLevelLowBS], [goodLevelLowBS,greatLevelLowBS] ,[greatLevelLowBS,greatLevelTopBS],[greatLevelTopBS,greatLevelTopBS+ballSpeed]],
+	        'LaunchAngle': [[1, worseLevelLowLA], [worseLevelLowLA, badLevelLowLA], [badLevelLowLA, normalLevelLowLA], [normalLevelLowLA, goodLevelLowLA], [goodLevelLowLA,greatLevelLowLA] ,[greatLevelLowLA,greatLevelTopLA],[greatLevelTopLA,greatLevelTopLA+launchAngle]],
+	        
+	    };
+
+	    // 將數據值映射到雷達圖的層級
+	    function getLevel(value, range) {
+	        return range.findIndex(r => value >= r[0] && value <= r[1]) + 1;
+	    }
+
+	    var radarData = {
+	        labels: ['後旋', '桿頭速度', '距離' , '球速' , '發射角度'],
+	        datasets: [{
+	            label: '軌跡分析',
+	            data: [getLevel(backSpin, ranges.BackSpin), 
+	            	getLevel(clubSpeed, ranges.ClubSpeed), 
+	            	getLevel(distance, ranges.Distance), 
+	            	getLevel(ballSpeed, ranges.BallSpeed), 
+	            	getLevel(launchAngle, ranges.LaunchAngle)],
+	            backgroundColor: 'rgba(135, 206, 250, 0.2)',
+	            borderColor: 'rgba(135, 206, 250, 1)',
+	            pointBackgroundColor: 'rgba(135, 206, 250, 1)',
+	            pointBorderColor: '#fff',
+	            pointHoverBackgroundColor: '#fff',
+	            pointHoverBorderColor: 'rgba(135, 206, 250, 1)'
+	        }//,
+	       /* {
+	           // label: '擊球記錄',
+	            data: [
+	            	getLevel(avgBsp, ranges.BackSpin), 
+	            	getLevel(avgCS, ranges.ClubSpeed), 
+	            	getLevel(avgDist, ranges.Distance), 
+	            	getLevel(avgBS, ranges.BallSpeed), 
+	            	getLevel(avgLA, ranges.LaunchAngle)
+	            ],
+	            backgroundColor: 'rgba(255, 193, 7, 0.2)',
+	            borderColor: 'rgba(255, 193, 7, 1)',
+	            pointBackgroundColor: 'rgba(255, 193, 7, 1)',
+	            pointBorderColor: '#fff',
+	            pointHoverBackgroundColor: '#fff',
+	            pointHoverBorderColor: 'rgba(255, 193, 7, 1)'
+	        } */
+	    ]
+	    };
+	    var hiddenRangeDataset = {
+	    	    label: '',
+	    	    data: [1, 2, 3, 4, 5, 6, 7], // 涵蓋1到7的數據範圍
+	    	    borderColor: 'rgba(0, 0, 0, 0)', // 完全透明
+	    	    backgroundColor: 'rgba(0, 0, 0, 0)' // 完全透明
+	    };
+
+	    	radarData.datasets.push(hiddenRangeDataset);
+	    var myRadarChart = new Chart(document.getElementById('radarChart'), {
+	        type: 'radar',
+	        data: radarData,
+	        options: {
+	            scales: {
+	            	r: {
+	                ticks: {
+	                	display: false,
+	                	backdropColor: 'transparent', // 去除背景色
+	                	beginAtZero: false, // 不從0開始
+	                    min: 1,  // 最小值設定為1
+	                    max: 7,  // 最大值設定為7
+	                    stepSize: 1,  // 步長為1
+	                },
+	                angleLines: {
+	                    display: true
+	                },
+	                grid: {
+	                	color: 'white'
+	                },
+	                pointLabels: {
+	                    font: {
+	                        size: 16, // 字體大小
+	                        family: "'Arial', sans-serif", // 字體類型
+	                        weight: 'bold' // 字體粗體
+	                    	},
+	                    color: '#FFFFFF' // 字體顏色
+	                	},
+	            	},
+	            },
+	            plugins: {
+	                legend: {
+	                    labels: {
+	                        color: 'white', // 設置圖例文字顏色
+	                        font: {
+	                            size: 16, // 設置圖例文字大小
+	                            family: "'Arial', sans-serif",
+	                            weight: 'bold'
+	                        }
+	                    }
+	                }
+	            },
+	        }
+	    });
 	</script>
 </body>
 </html>
