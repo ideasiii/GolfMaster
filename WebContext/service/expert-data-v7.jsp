@@ -297,106 +297,225 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	        clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, isSideView ? sideSwingPlaneData : frontSwingPlaneData, isSideView);
 		}
 
-		// 繪製邊框
-		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
-		    const videoWidth = videoElement.videoWidth;
-		    const videoHeight = videoElement.videoHeight;
-		    const videoDisplayWidth = canvasElement.width;
-		    const videoDisplayHeight = canvasElement.height;
+		// // 繪製邊框
+		// function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
+		//     const videoWidth = videoElement.videoWidth;
+		//     const videoHeight = videoElement.videoHeight;
+		//     const videoDisplayWidth = canvasElement.width;
+		//     const videoDisplayHeight = canvasElement.height;
 
-		    // 計算縮放比例，並保持等比例縮放
-		    const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
-		    const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
-		    const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
+		//     // 計算縮放比例，並保持等比例縮放
+		//     const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
+		//     const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
+		//     const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
 
-		    const startX = bbox[0] * videoWidth * scale + offsetX;
-		    const startY = bbox[1] * videoHeight * scale + offsetY;
-		    const width = (bbox[2] - bbox[0]) * videoWidth * scale;
-		    const height = (bbox[3] - bbox[1]) * videoHeight * scale;
+		//     const startX = bbox[0] * videoWidth * scale + offsetX;
+		//     const startY = bbox[1] * videoHeight * scale + offsetY;
+		//     const width = (bbox[2] - bbox[0]) * videoWidth * scale;
+		//     const height = (bbox[3] - bbox[1]) * videoHeight * scale;
 
-		    ctx.strokeStyle = color;
-		    ctx.lineWidth = 4;
-		    ctx.strokeRect(startX, startY, width, height);
+		//     ctx.strokeStyle = color;
+		//     ctx.lineWidth = 4;
+		//     ctx.strokeRect(startX, startY, width, height);
 
-		   //console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
-		}
+		//    //console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
+		// }
 
 		// 繪製輔助線
-		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
-		    const videoWidth = videoElement.videoWidth;
-		    const videoHeight = videoElement.videoHeight;
-		    const videoDisplayWidth = canvasElement.width;
-		    const videoDisplayHeight = canvasElement.height;
+		// function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
+		//     const videoWidth = videoElement.videoWidth;
+		//     const videoHeight = videoElement.videoHeight;
+		//     const videoDisplayWidth = canvasElement.width;
+		//     const videoDisplayHeight = canvasElement.height;
 
-		    // 計算縮放比例，並保持等比例縮放
-		    const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
-		    const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
-		    const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
+		//     // 計算縮放比例，並保持等比例縮放
+		//     const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
+		//     const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
+		//     const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
 
-		    const startX = line.pt1[0] * videoWidth * scale + offsetX;
-		    const startY = line.pt1[1] * videoHeight * scale + offsetY;
-		    const endX = line.pt2[0] * videoWidth * scale + offsetX;
-		    const endY = line.pt2[1] * videoHeight * scale + offsetY;
+		//     const startX = line.pt1[0] * videoWidth * scale + offsetX;
+		//     const startY = line.pt1[1] * videoHeight * scale + offsetY;
+		//     const endX = line.pt2[0] * videoWidth * scale + offsetX;
+		//     const endY = line.pt2[1] * videoHeight * scale + offsetY;
 
-		    ctx.beginPath();
-		    ctx.moveTo(startX, startY);
-		    ctx.lineTo(endX, endY);
-		    ctx.strokeStyle = color;
-		    ctx.lineWidth = 4;
-		    ctx.stroke();
+		//     ctx.beginPath();
+		//     ctx.moveTo(startX, startY);
+		//     ctx.lineTo(endX, endY);
+		//     ctx.strokeStyle = color;
+		//     ctx.lineWidth = 4;
+		//     ctx.stroke();
 
-		   //console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
-		}
+		//    //console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
+		// }
+
 		// 繪製頭部：side的情況是矩形，front是橢圓
-		function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
-		    const videoWidth = videoElement.videoWidth;
-		    const videoHeight = videoElement.videoHeight;
-		    const videoDisplayWidth = canvasElement.width;
-		    const videoDisplayHeight = canvasElement.height;
+		// function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
+		//     const videoWidth = videoElement.videoWidth;
+		//     const videoHeight = videoElement.videoHeight;
+		//     const videoDisplayWidth = canvasElement.width;
+		//     const videoDisplayHeight = canvasElement.height;
 
-		    // 計算縮放比例和偏移量
-		    const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
-		    const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
-		    const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
+		//     // 計算縮放比例和偏移量
+		//     const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
+		//     const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
+		//     const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
 
-		    // 計算頭部中心點位置
-		    const ptX = head.pt[0] * videoWidth * scale + offsetX;
-		    const ptY = head.pt[1] * videoHeight * scale + offsetY;
+		//     // 計算頭部中心點位置
+		//     const ptX = head.pt[0] * videoWidth * scale + offsetX;
+		//     const ptY = head.pt[1] * videoHeight * scale + offsetY;
 
-		    if (side) {
-		        // 側視圖：繪製90度的夾角
-		        const lineLength = head.h_length * videoWidth * scale; // 使用頭部的水平長度作為線段長度
+		//     if (side) {
+		//         // 側視圖：繪製90度的夾角
+		//         const lineLength = head.h_length * videoWidth * scale; // 使用頭部的水平長度作為線段長度
 
-		        // 繪製水平線（從頭部中心點向右延伸）
-		        ctx.beginPath();
-		        ctx.moveTo(ptX, ptY);  // 從中心點開始
-		        ctx.lineTo(ptX - lineLength, ptY);  // 向左延伸
-		        ctx.strokeStyle = color;
-		        ctx.lineWidth = 4;
-		        ctx.stroke();
+		//         // 繪製水平線（從頭部中心點向右延伸）
+		//         ctx.beginPath();
+		//         ctx.moveTo(ptX, ptY);  // 從中心點開始
+		//         ctx.lineTo(ptX - lineLength, ptY);  // 向左延伸
+		//         ctx.strokeStyle = color;
+		//         ctx.lineWidth = 4;
+		//         ctx.stroke();
 
-		        // 繪製垂直線（從頭部中心點向下延伸）
-		        ctx.beginPath();
-		        ctx.moveTo(ptX, ptY);  // 從中心點開始
-		        ctx.lineTo(ptX, ptY + lineLength);  // 向下延伸
-		        ctx.strokeStyle = color;
-		        ctx.lineWidth = 4;
-		        ctx.stroke();
+		//         // 繪製垂直線（從頭部中心點向下延伸）
+		//         ctx.beginPath();
+		//         ctx.moveTo(ptX, ptY);  // 從中心點開始
+		//         ctx.lineTo(ptX, ptY + lineLength);  // 向下延伸
+		//         ctx.strokeStyle = color;
+		//         ctx.lineWidth = 4;
+		//         ctx.stroke();
 
-		        //console.log("Head drawn as lines for side view.");
-		    } else {
-		        // 正面圖，繪製橢圓
-		        const h_length = head.h_length * videoWidth * scale;
-		        const v_length = head.v_length * videoHeight * scale;
+		//         //console.log("Head drawn as lines for side view.");
+		//     } else {
+		//         // 正面圖，繪製橢圓
+		//         const h_length = head.h_length * videoWidth * scale;
+		//         const v_length = head.v_length * videoHeight * scale;
 
-		        ctx.beginPath();
-		        ctx.ellipse(ptX, ptY, h_length , v_length , 0, 0, 2 * Math.PI);
-		        ctx.strokeStyle = color;
-		        ctx.lineWidth = 4;
-		        ctx.stroke();
-		        //console.log("Head drawn as ellipse for front view.");
-		    }
+		//         ctx.beginPath();
+		//         ctx.ellipse(ptX, ptY, h_length , v_length , 0, 0, 2 * Math.PI);
+		//         ctx.strokeStyle = color;
+		//         ctx.lineWidth = 4;
+		//         ctx.stroke();
+		//         //console.log("Head drawn as ellipse for front view.");
+		//     }
+		// }
+
+		// ===========================
+		// 繪製邊框 (修正版，適用於非等比例縮放到 canvas 的情況)
+		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
+			// 取得 canvas 的實際顯示尺寸
+			const canvasWidth = canvasElement.width;
+			const canvasHeight = canvasElement.height;
+
+			// 假設影片內容已經被拉伸或壓縮以填滿整個 canvas 區域 (310x460)
+			// 正規化後的標定框座標 [0, 1] 直接對應到 canvas 的像素座標
+
+			// 計算標定框在 canvas 上的起始點座標
+			const startX = bbox[0] * canvasWidth;
+			const startY = bbox[1] * canvasHeight;
+
+			// 計算標定框在 canvas 上的寬度和高度
+			// 寬度 = (x2 - x1) * canvas 寬度
+			// 高度 = (y2 - y1) * canvas 高度
+			const width = (bbox[2] - bbox[0]) * canvasWidth;
+			const height = (bbox[3] - bbox[1]) * canvasHeight;
+
+			// 設定繪製樣式
+			ctx.strokeStyle = color;
+			ctx.lineWidth = 4; // 可以根據需要調整線條粗細
+
+			// 繪製矩形
+			ctx.strokeRect(startX, startY, width, height);
+
+			// 註解掉 console.log，避免在正式環境中輸出過多資訊
+			// console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
 		}
+
+		// 繪製輔助線 (修正版，適用於非等比例縮放到 canvas 的情況)
+		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
+			// 取得 canvas 的實際顯示尺寸
+			const canvasWidth = canvasElement.width;
+			const canvasHeight = canvasElement.height;
+
+			// 假設影片內容已經被拉伸或壓縮以填滿整個 canvas 區域 (310x460)
+			// 正規化後的線段端點座標 [0, 1] 直接對應到 canvas 的像素座標
+
+			// 計算線段第一個端點在 canvas 上的座標
+			const startX = line.pt1[0] * canvasWidth;
+			const startY = line.pt1[1] * canvasHeight;
+
+			// 計算線段第二個端點在 canvas 上的座標
+			const endX = line.pt2[0] * canvasWidth;
+			const endY = line.pt2[1] * canvasHeight;
+
+			// 繪製線段
+			ctx.beginPath();
+			ctx.moveTo(startX, startY); // 從第一個端點開始
+			ctx.lineTo(endX, endY);   // 連接到第二個端點
+			ctx.strokeStyle = color;
+			ctx.lineWidth = 4; // 可以根據需要調整線條粗細
+			ctx.stroke();
+
+			// 註解掉 console.log
+			// console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
+		}
+
+		// 繪製頭部：side的情況是線條組，front是橢圓 (修正版，適用於非等比例縮放到 canvas 的情況)
+		function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
+			// 取得 canvas 的實際顯示尺寸
+			const canvasWidth = canvasElement.width;
+			const canvasHeight = canvasElement.height;
+
+			// 假設影片內容已經被拉伸或壓縮以填滿整個 canvas 區域 (310x460)
+			// 正規化後的頭部中心點座標 [0, 1] 以及長度直接對應到 canvas 的像素值
+
+			// 計算頭部中心點在 canvas 上的位置
+			const ptX = head.pt[0] * canvasWidth;
+			const ptY = head.pt[1] * canvasHeight;
+
+			if (side) {
+				// 側視圖：繪製表示方向的線條組
+				// 假設 head.h_length 和 head.v_length 是正規化後的水平和垂直長度概念
+				const horizontalLineLength = head.h_length * canvasWidth; // 根據 canvas 寬度縮放正規化水平長度
+				// 原程式碼兩條線都用了 head.h_length，但如果是非等比例，垂直長度應根據 canvas 高度縮放
+				// 如果 head.h_length 也代表垂直方向的比例，則垂直線段長度應為 head.h_length * canvasHeight
+				// 這裡暫時沿用原程式碼只使用 h_length 的邏輯，但將其垂直方向的縮放改為 canvasHeight
+				const verticalLineLength = head.h_length * canvasHeight; // 根據 canvas 高度縮放正規化水平長度 (用於垂直線段)
+
+
+				// 繪製水平線（從頭部中心點向左延伸，與原始程式碼方向一致）
+				ctx.beginPath();
+				ctx.moveTo(ptX, ptY);  // 從中心點開始
+				ctx.lineTo(ptX - horizontalLineLength, ptY);  // 向左延伸，長度根據 canvas 寬度計算
+				ctx.strokeStyle = color;
+				ctx.lineWidth = 4;
+				ctx.stroke();
+
+				// 繪製垂直線（從頭部中心點向下延伸）
+				ctx.beginPath();
+				ctx.moveTo(ptX, ptY);  // 從中心點開始
+				ctx.lineTo(ptX, ptY + verticalLineLength);  // 向下延伸，長度根據 canvas 高度計算
+				ctx.strokeStyle = color;
+				ctx.lineWidth = 4;
+				ctx.stroke();
+
+				// console.log("Head drawn as lines for side view.");
+			} else {
+				// 正面圖，繪製橢圓
+				// 橢圓的水平半徑根據 canvas 寬度縮放正規化水平長度
+				const h_radius = head.h_length * canvasWidth;
+				// 橢圓的垂直半徑根據 canvas 高度縮放正規化垂直長度
+				const v_radius = head.v_length * canvasHeight;
+
+				ctx.beginPath();
+				// ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle);
+				ctx.ellipse(ptX, ptY, h_radius, v_radius, 0, 0, 2 * Math.PI);
+				ctx.strokeStyle = color;
+				ctx.lineWidth = 4;
+				ctx.stroke();
+				// console.log("Head drawn as ellipse for front view.");
+			}
+		}
+		// ===========================
 
 		// 清除畫布並重新繪製輔助線，根據影片不同比例進行調整
 		function clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView = true) {
