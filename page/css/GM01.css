@@ -46,6 +46,10 @@ body {
   margin: 0px 0px 0px 0px;
   flex: 1;
   display: flex; /* 使用 Flexbox */
+  position: relative;
+  z-index: 1;
+  justify-content: space-between;
+  /* gap: 20px; */
 }
 .column {
   flex: 50%;
@@ -112,8 +116,14 @@ h1 {
 }
 .image_v {
   height: 460px;
-  width: 50%;
+  width: 100%;
   max-width: 620px;
+  z-index: 1;
+}
+video {
+  object-fit: fill; /*保持影片內容不被拉伸或變形 */
+  width: 100%; /* 讓影片填充可用空間 */
+  height: 100%; /* 自動調整高度，保持比例 */
 }
 .steps {
   display: flex;
@@ -216,8 +226,17 @@ p.s_content {
 }
 .rida_p {
   text-align: center;
-  width: 50%;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   /*padding-top: 40px;20240507更新*/
+}
+.rida_p img.analysis-gif {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  margin-bottom: 40px;
 }
 .image_r {
   width: 280px;
@@ -226,7 +245,7 @@ p.s_content {
   text-align: left;
   /*padding-top: 60px;*/
   /*padding-top: 20px;20240429更新*/
-  margin-bottom: 60px;/*20240507更新*/
+  /*margin-bottom: 60px;20240507更新*/
 }
 .strikeeff {
   padding: 20px;
@@ -235,18 +254,19 @@ p.s_content {
   color: #ffffff;
   font-size: 1.4em;
   font-weight: bold;
-  
-  text-align: center; /* 文字置中 */
-  width: 100%; /* 滿寬 */
-  margin-bottom: 10px; /* 添加下方間距 */
+  text-align: center;
 }
 .aanalysisSection {
   display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: center;/*20240429更新*/
-  height: 460px;/*20240429更新,0507改360->460*/
+  /*height: 460px;20240429更新,0507改360->460*/
   /*padding: 20px;*/
   /*min-height: 100%;*/
   background-color: #222222;
+  height: 460px;
+  /*padding: 20px;*/
 }
 .aanalysis p {
   color: #ffffff;
@@ -274,6 +294,15 @@ p.s_content {
   box-sizing: border-box;
 }
 
+#overlayCanvas, #overlayCanvas1{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10; /* 提高層級，確保畫布在影片上方 */
+    pointer-events: none; /*避免畫布影響滑鼠操作 */
+    /*width: 100%;  確保畫布與影片同步調整大小 */
+    /*height: 100%;*/
+}
 
 #player-container #play-pause {
   cursor: pointer;
@@ -322,6 +351,8 @@ p.s_content {
     flex: 1;
     display: flex; /* 使用 Flexbox */
     flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
   }
   .column {
     flex: 100%;
@@ -376,16 +407,11 @@ p.s_content {
     color: white;
   }
   .aanalysisSection {
-    /*flex-wrap: wrap;1029*/
-	/*padding: 40px; 1029*/
+    flex-wrap: wrap;
+	/*padding: 40px;*/
     /*padding: 20px;20240429更新*/
     /*min-height: auto;*/
-	/*height: 360px;1029 20240429更新*/
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: space-between;
-	height: 460px; /* 調整此值以符合整體佈局需求 */
+	/*height: 360px; 20240429更新*/
     background-color: #222222;
   }
   .aanalysis {
@@ -396,19 +422,12 @@ p.s_content {
   .rida_p {
     width: 100%;
     text-align: center;
-	display: flex;/* 1029*/
   }
   .f_content {
     text-align: center;
     border: #00A9BC solid 1px;
     flex-wrap: wrap;
     padding: 10px;
-  }
-  .analysis-gif {
-  max-width: 100%; /* 確保不超過容器寬度 */
-  height: auto; /* 維持原始比例 */
-  max-height: 320px; /* 控制 GIF 高度，讓它不會超出區域 */
-  border-radius: 10px; /* 可選，添加圓角 */
   }
   .suggestion {
     padding: 0px;
@@ -424,4 +443,8 @@ p.s_content {
   .box {
     width: 100%;
   }
+  /*#overlayCanvas, #overlayCanvas1 {
+    width: 100%;
+    height: 100%;
+  }*/
 }
