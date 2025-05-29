@@ -1,0 +1,452 @@
+@charset "utf-8";
+/* CSS Document */
+body {
+  font-family: Arial, Helvetica, sans-serif,"Microsoft JhengHei";
+  display: flex;
+  flex-direction: column;
+  background-color: black;
+  margin: 0;
+  padding: 0;
+  background-image: url('../../page/img/background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+.header {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  padding: 20px 0px 10px 30px;
+  margin-bottom: 0px;
+}
+.logo {
+  width: 100px;
+  height: auto;
+}
+.c_m {
+  width:1240px;
+  height: 850px;
+  margin: auto;
+}
+.content {
+  display: flex;
+  flex-wrap: wrap;
+}
+.row {
+  margin: 0px 0px 0px 0px;
+  flex: 1;
+  display: flex; /* 使用 Flexbox */
+  flex-direction: column; /* 垂直方向排列子元素 */
+}
+.row2 {
+  margin: 0px 0px 0px 0px;
+  flex: 1;
+  display: flex; /* 使用 Flexbox */
+  position: relative;
+  z-index: 1;
+  justify-content: space-between;
+  /* gap: 20px; */
+}
+.column {
+  flex: 50%;
+  display: flex; /* 使用 Flexbox */
+  flex-direction: column; /* 垂直方向排列子元素 */
+}
+.column2 {
+  flex: 50%;
+  padding: 0px 0px;
+}
+
+/* === 修改開始 === */
+
+/* 重新定義主佈局的左右欄寬度 */
+.video-column {
+  flex: 0 0 650px; /* 給予影片欄位一個固定的、較大的寬度 */
+  padding: 0;
+}
+.analysis-column {
+  flex: 1; /* 讓分析欄位自動填滿剩餘空間 */
+  padding: 0;
+}
+
+/* 調整影片容器的高度，使其長寬比更適合 4:3 影片 */
+.image_v {
+  height: 340px; /* 原為 460px，縮小高度以減少 4:3 影片的黑邊 */
+  width: 100%;
+  z-index: 1;
+}
+
+/* 確保影片保持長寬比，不變形 */
+video {
+  object-fit: contain; /* 核心修改：從 fill 改為 contain */
+  background-color: #000000; /* 為黑邊提供統一的黑色背景 */
+  width: 100%;
+  height: 100%;
+}
+
+/* 同步調整分析區塊的高度以匹配影片區塊 */
+.aanalysisSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222222;
+  height: 340px; /* 原為 460px，與影片容器高度保持一致 */
+}
+
+/* 調整分析圖 (GIF) 的邊距，以適應新的容器高度 */
+.rida_p img.analysis-gif {
+  width: 90%;
+  height: auto;
+  max-height: 100%;
+  margin-top: 50px;    /* 原為 100px */
+  margin-bottom: 30px; /* 原為 40px */
+}
+
+.motion-column {
+  flex: 0 0 650px; /* 給予影片欄位一個固定的、較大的寬度 */
+  padding: 0;
+}
+.advice-column {
+  flex: 1; /* 讓分析欄位自動填滿剩餘空間 */
+  padding: 0;
+}
+
+/* === 修改結束 === */
+
+
+.bg_b{
+    background-color:#000000;
+}
+
+h1 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #7C7C7C;
+}
+.stretch {
+  align-items: stretch;
+}
+.cards {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 10px;
+  background-color: rgba(57, 61, 66, 0.5);
+  padding: 20px;
+  width: 100%;
+}
+.card {
+  flex: 0 1 calc(20% - 10px);
+  padding: 10px;
+  margin: 5px;
+}
+.card .title {
+  text-align: center;
+  padding-bottom: 5px;
+  border-bottom: #00A9BC solid 1px;
+  color: white;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+.card .unit {
+  text-align: right;
+  padding: 6px 0px 6px 0px;
+  color: white;
+  font-size: 0.8em;
+}
+.card .number {
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: #00A9BC;
+}
+.videoSection {
+  display: flex;
+  margin: auto;
+}
+.image {
+  width: 100%;
+  height: 410px;
+}
+.steps {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 0px;
+  padding: 0px 20px;
+}
+.step {
+  flex: 0 1 calc(20% - 10px);
+  padding: 10px;
+}
+.step_title {
+  font-size: 1em;
+  font-weight: bold;
+}
+.step_4 {
+  font-size: 1em;
+}
+.stepbutton {
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: black;
+  color: #00A9BC;
+  font-size: 2em;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.stepbutton_selected {
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: black;
+  color: #00A9BC;
+  font-size: 2em;
+}
+.stepbutton:hover {
+  background-color: aqua;
+}
+.custom-div {
+  flex: 1;
+  margin: 10px 0px;
+  height: 410px;
+}
+.custom-div2 {
+  flex: 1;
+  background-color: #00A9BC;
+}
+.vertical-div {
+  flex: 1;
+  width: 100%;
+  margin: 10px 0px;
+  height: 100%;
+}
+.suggestionsession {
+  text-align: center;
+  margin-top: 20px;
+  padding: 0px 30px 10px 30px;
+}
+.suggestion {
+  text-align: left;
+  border-radius: 0px;
+  padding: 8px;
+}
+.vertical-image {
+  flex: 1;
+  width: 83px;
+  margin: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.inner-image {
+  flex: 1;
+}
+.inner-text {
+  margin-left: 10px;
+}
+p.title {
+  font-size: 1.6em;
+  color: #00A9BC;
+  font-weight: bold;
+  padding: 10px;
+}
+p.s_content {
+  padding: 10px;
+  font-size: 1.2em;
+  color: white;
+}
+.rida_p {
+  text-align: center;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.image_r {
+  width: 280px;
+}
+.aanalysis {
+  text-align: left;
+}
+.strikeeff {
+  padding: 20px;
+  background-color: #00A9BC;
+  border-radius: 60px;
+  color: #ffffff;
+  font-size: 1.4em;
+  font-weight: bold;
+  text-align: center;
+}
+.aanalysis p {
+  color: #ffffff;
+  padding: 10px 20px;
+}
+.f_content {
+  display: flex;
+  text-align: center;
+  padding: 6px;
+}
+.psystemSection {
+  margin-top: 0px;
+  display: flex;
+  padding-top: 9px;
+  background-color: #ffffff;
+  justify-content: center;
+}
+.psystem_p {
+  width: 25%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+#overlayCanvas, #overlayCanvas1{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#player-container #play-pause {
+  cursor: pointer;
+  text-indent: -999999px;
+  height: 40px;
+  width: 40px;
+  z-index: 2;
+  background-image: url("../../page/img/btn_play.png");
+  background-repeat: no-repeat !important;
+  background-position: center;
+  background-size: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 40px;
+}
+.play {
+    background-image: url("../../page/img/btn_play.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40px;
+}
+
+.pause {
+    background-image: url("../../page/img/btn_pause.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 40px;
+}
+
+@media screen and (max-width: 712px) {
+  .c_m {
+    width: 100%;
+    margin: auto;
+  }
+  .row {
+    flex: 100%;
+  }
+  .row2 {
+    margin: 0px 0px 0px 0px;
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .column {
+    flex: 100%;
+  }
+  h1 {
+    font-size: 1.4em;
+    margin-top: 10px;
+  }
+  .column2 {
+    max-width: 100%;
+    flex-wrap: wrap;
+    padding: 0px;
+  }
+  /* 在小螢幕上讓影片和分析欄位都佔滿全部寬度 */
+  .video-column, .analysis-column {
+      flex: 1 1 100%;
+  }
+  .cards {
+    flex-direction: column;
+  }
+  .card {
+    flex: 100%;
+  }
+  .image {
+    width: 100%;
+    height: auto;
+  }
+  .custom-div {
+    max-width: 100%;
+    margin: 0;
+  }
+  .steps {
+    display: flex;
+    border-radius: 10px;
+    padding: 0px 20px;
+  }
+  .step {
+    padding: 4px 0px;
+  }
+  .step_title {
+    font-size: 0.8em;
+    font-weight: bold;
+  }
+  .step_4 {
+    font-size: 0.8em;
+  }
+  p.title {
+    font-size: 1.4em;
+    color: #00A9BC;
+    font-weight: bold;
+    padding: 10px;
+  }
+  p.s_content {
+    padding: 10px;
+    font-size: 1.2em;
+    color: white;
+  }
+  .aanalysisSection {
+    background-color: #222222;
+  }
+  .aanalysis {
+    width: 100%;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .rida_p {
+    width: 100%;
+    text-align: center;
+  }
+  .f_content {
+    text-align: center;
+    border: #00A9BC solid 1px;
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  .suggestion {
+    padding: 0px;
+  }
+  .vertical-image {
+    width: 100%;
+    flex-wrap: wrap;
+    margin: 0px;
+  }
+  .psystemSection {
+    flex-wrap: wrap;
+  }
+  .box {
+    width: 100%;
+  }
+}
