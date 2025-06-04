@@ -83,7 +83,8 @@ body {
 /* 確保影片保持長寬比，不變形 */
 video {
   object-fit: contain; /* 核心修改：從 fill 改為 contain */
-  background-color: #000000; /* 為黑邊提供統一的黑色背景 */
+  /* background-color: #000000;  為黑邊提供統一的黑色背景 */
+  background-color: rgba(0, 0, 0, 0); /* 為黑邊提供統一的黑色背景 */
   width: 100%;
   height: 100%;
 }
@@ -94,7 +95,7 @@ video {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  background-color: #222222;
+  /*background-color: #222222;*/
   height: 340px; /* 原為 460px，與影片容器高度保持一致 */
 }
 
@@ -114,6 +115,14 @@ video {
 .advice-column {
   flex: 1; /* 讓分析欄位自動填滿剩餘空間 */
   padding: 0;
+}
+
+.image_v_trajectory { /* Analysis GIF container - Adjusted height */
+  width: 100%;
+  z-index: 1;
+  position: relative;
+  /* background-color: #222222; */
+  height: 100%; /* 讓高度撐滿 analysis-top 容器 */
 }
 
 /* === 修改結束 === */
@@ -271,6 +280,7 @@ p.s_content {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: auto;
 }
 .image_r {
   width: 280px;
@@ -279,13 +289,16 @@ p.s_content {
   text-align: left;
 }
 .strikeeff {
+  width: 60%;
   padding: 20px;
-  background-color: #00A9BC;
+  /* background-color: #00A9BC; */
   border-radius: 60px;
   color: #ffffff;
   font-size: 1.4em;
   font-weight: bold;
   text-align: center;
+  margin: auto;
+  /* margin-top: 10%; */
 }
 .aanalysis p {
   color: #ffffff;

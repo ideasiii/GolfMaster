@@ -118,9 +118,10 @@ if (result != null && result.getString("expert_suggestion") != null) {
                 <div class="content" style="text-align: center;">
                     <div class="row">
                         <div class="aanalysisSection">
-                            <p class="strikeeff" id="ballscore"></p>
+                            <!-- <p class="strikeeff" id="ballscore"></p> -->
                             <div class="row2" style="background-color: #000000">
-                                <div style="position: relative;" class="image_v">
+                                <div style="position: relative;" class="image_v_trajectory">
+									<p class="strikeeff" id="ballscore"></p>
                                     <div class="rida_p">
                                         <%
                                         if (result.getBoolean("result")) {
@@ -217,7 +218,7 @@ if (result != null && result.getString("expert_suggestion") != null) {
 							<div class="column2">
 								<div class="suggestion">
 									<div class="vertical-image" style="width: 100%">
-										<img src="../../page/img/pic_coach.png" alt="Image">
+										<img src="../../page/img/aicoach.png" alt="Image">
 										<!-- <video style="width: 200px; height: 200px;" controls>
 											<source src="<%=talkhead%>" type="video/mp4">
 										</video>  -->

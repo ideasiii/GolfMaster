@@ -14,7 +14,7 @@
 		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
 		maxTotal="100" />
 
-	<Environment name="expert" value="7"
+	<Environment name="expert" value="8"
 		type="java.lang.String" override="false" />
 </Context>
 
