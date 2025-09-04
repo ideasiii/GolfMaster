@@ -38,6 +38,8 @@ public class ShotVideo {
 	public final String emptySwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.0, 0.0, 0.0, 0.0], \"head\": {\"pt\": [0.0, 0.0], \"h_length\": 0.0, \"v_length\": 0.0, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
 	public final String defaultSideSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.2338863172029194, 0.31861487494574653, 0.6572389100727282, 0.8508367467809607], \"head\": {\"pt\": [0.6572389100727282, 0.31861487494574653], \"h_length\": 0.1572389100727282, \"v_length\": 0.09434808801721643, \"h_pt\": [0.5, 0.31861487494574653], \"v_pt\": [0.6572389100727282, 0.412962962962963]}, \"club\": {\"pt1\": [0.23355263157894737, 0.3990740740740741], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"shoulder\": {\"pt1\": [0.43914473684210525, 0.31851851851851853], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
 	public final String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";
+	public final int[] defaultSideTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	public final int[] defaultFrontTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	public String processRequest(HttpServletRequest request) {
 		JSONObject jsonResponse = null;
 		CallMotionApi callMotionApi = new CallMotionApi();
@@ -73,16 +75,18 @@ public class ShotVideo {
 		if (framesData == null || ((int[]) framesData[0]).length == 0) {
 			Logs.log(Logs.RUN_LOG, "Null framesData ");
 			Random ran = new Random();
-//			int aPos = ran.nextInt(6);
-//			int tPos = ran.nextInt(6);
-//			int iPos = ran.nextInt(6);
-//			int fPos = ran.nextInt(6);
+			// int aPos = ran.nextInt(6);
+			// int tPos = ran.nextInt(6);
+			// int iPos = ran.nextInt(6);
+			// int fPos = ran.nextInt(6);
 			int aPos = 6;
 			int tPos = 6;
 			int iPos = 6;
 			int fPos = 6;
 			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName,
-					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane };
+					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane,
+					defaultSideTpiSwingTable, defaultFrontTpiSwingTable,
+				};
 		}
 
 		// 確保 framesData 有效，並且所有必須的參數都不為 null
@@ -94,19 +98,33 @@ public class ShotVideo {
 		int tEffect = framesData[5] != null ? (int) framesData[5] : 0;
 		int iEffect = framesData[6] != null ? (int) framesData[6] : 0;
 		int fEffect = framesData[7] != null ? (int) framesData[7] : 0;
-//		int aEffect = 1;  // 設定 aEffect 為 1
-//		int tEffect = 2;  // 設定 tEffect 為 2
-//		int iEffect = 2;  // 設定 iEffect 為 2
-//		int fEffect = 0;  // 設定 fEffect 為 0
+		// int aEffect = 1;  // 設定 aEffect 為 1
+		// int tEffect = 2;  // 設定 tEffect 為 2
+		// int iEffect = 2;  // 設定 iEffect 為 2
+		// int fEffect = 0;  // 設定 fEffect 為 0
 		String sideSwingPlane = framesData.length > 8 && framesData[8] != null ? (String) framesData[8]
 				: emptySwingPlane;
 		String frontSwingPlane = framesData.length > 9 && framesData[9] != null ? (String) framesData[9]
 				: emptySwingPlane;
-		System.out.println("framesData is null or length is 0. :" + sideFrames + frontFrames + frontVideoName
-				+ sideVideoName + aEffect + tEffect + iEffect + fEffect + sideSwingPlane + frontSwingPlane);
+		int[] sideTpiSwingTable = framesData.length > 10 && framesData[10] != null ? (int[]) framesData[10]
+				: defaultSideTpiSwingTable;
+		int[] frontTpiSwingTable = framesData.length > 11 && framesData[11] != null ? (int[]) framesData[11]
+				: defaultFrontTpiSwingTable;
+
+		// DEBUG
+		System.out.println(
+			"DEBUG framesData :"
+			+ Arrays.toString(sideFrames)
+			+ Arrays.toString(frontFrames)
+			+ frontVideoName + sideVideoName
+			+ aEffect + tEffect + iEffect + fEffect
+			+ sideSwingPlane + frontSwingPlane
+			+ Arrays.toString(sideTpiSwingTable)
+			+ Arrays.toString(frontTpiSwingTable)
+		);
 		// 確保返回的 Object[] 中沒有 null 值
 		return new Object[] { sideFrames, frontFrames, frontVideoName, sideVideoName, aEffect, tEffect, iEffect,
-				fEffect, sideSwingPlane, frontSwingPlane };
+				fEffect, sideSwingPlane, frontSwingPlane, sideTpiSwingTable, frontTpiSwingTable, };
 	}
 
 	private int queryShotVideo(ParamData paramData, JSONObject jsonResponse) {
@@ -173,13 +191,19 @@ public class ShotVideo {
 
 		if (shot_data_id != null && !shot_data_id.isEmpty()) {
 			strSQL = String.format(
-					"SELECT SVS.PlayerPSystem AS PlayerPSystem, SVS.CamPos AS CamPos, SVS.SwingPlane AS SwingPlane, "
-							+ "SV.analyze_shotVideo_front, SV.analyze_shotVideo_side, SVS.PoseImpact AS PoseImpact "
-							+ "FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS "
-							+ "WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
-					shot_data_id);
+				"SELECT SVS.CamPos AS CamPos, "
+					+ "SVS.PlayerPSystem AS PlayerPSystem, "
+					+ "SVS.PoseImpact AS PoseImpact, "
+					+ "SVS.SwingPlane AS SwingPlane, "
+					+ "SVS.TpiSwingTable As TpiSwingTable, "
+					+ "SV.analyze_shotVideo_front, SV.analyze_shotVideo_side "
+					+ "FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS "
+					+ "WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
+				shot_data_id
+			);
 		}
 		Logs.log(Logs.RUN_LOG, "queryShotVideoAnalyz strSQL: " + strSQL);
+		System.out.println("queryShotVideoAnalyz strSQL: " + strSQL);
 
 		try {
 			conn = DBUtil.getConnGolfMaster();
@@ -190,12 +214,23 @@ public class ShotVideo {
 			while (rs.next()) {
 				hasResults = true; // 確認至少有一行數據
 				JSONObject jsonProject = new JSONObject();
-				jsonProject.put("CamPos", rs.getString("CamPos"));
-				jsonProject.put("PlayerPSystem", rs.getString("PlayerPSystem"));
-				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
-				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
-				jsonProject.put("PoseImpact", rs.getString("PoseImpact"));
-				jsonProject.put("SwingPlane", rs.getString("SwingPlane"));
+				// jsonProject.put("CamPos", rs.getString("CamPos"));
+				// jsonProject.put("PlayerPSystem", rs.getString("PlayerPSystem"));
+				// jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front"));
+				// jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side"));
+				// jsonProject.put("PoseImpact", rs.getString("PoseImpact"));
+				// jsonProject.put("SwingPlane", rs.getString("SwingPlane"));
+				// jsonProject.put("TpiSwingTable", rs.getString("TpiSwingTable") != null ? rs.getString("TpiSwingTable") : "");
+
+				// 檢查並處理可能為 null 的欄位
+				jsonProject.put("CamPos", rs.getString("CamPos") != null ? rs.getString("CamPos") : "");
+				jsonProject.put("PlayerPSystem", rs.getString("PlayerPSystem") != null ? rs.getString("PlayerPSystem") : "");
+				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front") != null ? rs.getString("analyze_shotVideo_front") : "");
+				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side") != null ? rs.getString("analyze_shotVideo_side") : "");
+				jsonProject.put("PoseImpact", rs.getString("PoseImpact") != null ? rs.getString("PoseImpact") : "");
+				jsonProject.put("SwingPlane", rs.getString("SwingPlane") != null ? rs.getString("SwingPlane") : "");
+				jsonProject.put("TpiSwingTable", rs.getString("TpiSwingTable") != null ? rs.getString("TpiSwingTable") : "");
+
 				jarrProjects.put(jsonProject);
 			}
 
@@ -226,31 +261,73 @@ public class ShotVideo {
 		String frontVideoName = "";
 		String sideSwingPlane = ""; // 新增側面的 SwingPlane 變數
 		String frontSwingPlane = ""; // 新增正面的 SwingPlane 變數
+		ArrayList<Integer> sideTpiTable = new ArrayList<>();
+		ArrayList<Integer> frontTpiTable = new ArrayList<>();
+
+		// parameters
+		int defaultTpiTableSize = 16;
+
 		// 修改變量以存儲最大值的索引
 		int maxAIndex = -1, maxTIndex = -1, maxIIndex = -1, maxFIndex = -1;
 		try {
 			JSONObject responseObj = new JSONObject(jsonResponse);
 			JSONArray results = responseObj.getJSONArray("result");
-			if (results.length() == 0)
-				return null; // 如果沒有數據，直接返回null
+
+			// 檢查 results 陣列是否存在且非空
+			if (results == null || results.length() == 0) {
+				return null;
+			}
 
 			for (int i = 0; i < results.length(); i++) {
 				JSONObject result = results.getJSONObject(i);
-				String camPos = result.optString("CamPos");
-				String playerPSystemStr = result.optString("PlayerPSystem");
-				JSONObject playerPSystemObj = new JSONObject(playerPSystemStr);
-				JSONArray data = playerPSystemObj.getJSONArray("data");
+				String camPos = result.optString("CamPos", "");
+
+				System.out.println("result = " + result);
+
+				// 處理 PlayerPSystem
+				String playerPSystemStr = result.optString("PlayerPSystem", "{}");
+				if (!playerPSystemStr.isEmpty()) { // 添加檢查，避免空字串
+					JSONObject playerPSystemObj = new JSONObject(playerPSystemStr);
+					JSONArray data = playerPSystemObj.optJSONArray("data");
+					if (data != null) {
+						for (int j = 0; j < data.length(); j++) {
+							if ("side".equals(camPos)) {
+								sideFrames.add(data.optInt(j));
+							} else if ("front".equals(camPos)) {
+								frontFrames.add(data.optInt(j));
+							}
+						}
+					}
+				}
+
+				// 處理 TpiSwingTable
+				String tpiTableStr = result.optString("TpiSwingTable", "{}");
+				if (!tpiTableStr.isEmpty()) { // 添加檢查，避免空字串
+					JSONObject tpiTableObj = new JSONObject(tpiTableStr);
+					JSONArray tpiTableData = tpiTableObj.optJSONArray("data");
+					if (tpiTableData != null) {
+						for (int j = 0; j < tpiTableData.length(); j++) {
+							System.out.println(
+								"side = "
+								+ camPos
+								+ " tpiTableData "
+								+ j
+								+ " = "
+								+ tpiTableData.optInt(j)
+							);
+							if ("side".equals(camPos)) {
+								sideTpiTable.add(tpiTableData.optInt(j));
+							} else if ("front".equals(camPos)) {
+								frontTpiTable.add(tpiTableData.optInt(j));
+							}
+						}
+					}
+				}
 
 				if ("side".equals(camPos)) {
-					for (int j = 0; j < data.length(); j++) {
-						sideFrames.add(data.getInt(j));
-					}
 					sideVideoName = extractFileName(result.getString("analyze_shotVideo_side"));
 					sideSwingPlane = result.optString("SwingPlane", null); // 使用 optString 獲取 SwingPlane，允許為 null
 				} else if ("front".equals(camPos)) {
-					for (int j = 0; j < data.length(); j++) {
-						frontFrames.add(data.getInt(j));
-					}
 					frontVideoName = extractFileName(result.getString("analyze_shotVideo_front"));
 					frontSwingPlane = result.optString("SwingPlane", null); // 使用 optString 獲取 SwingPlane，允許為 null
 				}
@@ -264,7 +341,6 @@ public class ShotVideo {
 					maxTIndex = getMaxIndex(dataObj.getJSONArray("T"));
 					maxIIndex = getMaxIndex(dataObj.getJSONArray("I"));
 					maxFIndex = getMaxIndex(dataObj.getJSONArray("F"));
-					
 
 					Logs.log(Logs.RUN_LOG, "A:" + Integer.toString(maxAIndex) + "T:" + Integer.toString(maxTIndex)
 							+ "I:" + Integer.toString(maxIIndex) + "F:" + Integer.toString(maxFIndex));
@@ -287,6 +363,19 @@ public class ShotVideo {
 	        frontVideoName = defaultFrontVideoName;
 	        frontSwingPlane = emptySwingPlane;
 	    }
+
+		if (sideTpiTable.isEmpty()) {
+			for (int j = 0; j < defaultTpiTableSize; j++) {
+				sideTpiTable.add(0);
+			}
+		}
+
+		if (frontTpiTable.isEmpty()) {
+			for (int j = 0; j < defaultTpiTableSize; j++) {
+				frontTpiTable.add(0);
+			}
+		}
+
 		if (maxAIndex < 0)
 			maxAIndex = 6;
 		if (maxTIndex < 0)
@@ -295,10 +384,24 @@ public class ShotVideo {
 			maxIIndex = 6;
 		if (maxFIndex < 0)
 			maxFIndex = 6;
+
 		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
 		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
-		return new Object[] { sideArray, frontArray, frontVideoName, sideVideoName, maxAIndex, maxTIndex, maxIIndex,
-				maxFIndex, sideSwingPlane, frontSwingPlane };
+		int[] sideTpi = sideTpiTable.stream().mapToInt(i -> i).toArray();
+		int[] frontTpi = frontTpiTable.stream().mapToInt(i -> i).toArray();
+
+		System.out.println(
+			"sideTpi = "
+			+ Arrays.toString(sideTpi)
+			+ " frontTpi = "
+			+ Arrays.toString(frontTpi)
+		);
+
+		return new Object[] {
+			sideArray, frontArray, frontVideoName, sideVideoName,
+			maxAIndex, maxTIndex, maxIIndex, maxFIndex,
+			sideSwingPlane, frontSwingPlane, sideTpi, frontTpi
+		};
 	}
 
 	private String extractFileName(String url) {

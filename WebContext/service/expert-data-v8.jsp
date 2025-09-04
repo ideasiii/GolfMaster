@@ -1,5 +1,8 @@
+<%@ page import="org.json.JSONArray"%>
 <%@ page import="org.json.JSONObject"%>
 <%@ page import="java.util.ArrayList"%>
+<%@ page import="org.apache.commons.lang3.StringUtils"%>
+
 <%@ page import="com.golfmaster.service.ExpertData"%>
 <%@ page import="com.golfmaster.service.ShotData"%>
 <%@ page import="com.golfmaster.service.ShotVideo"%>
@@ -9,6 +12,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 
+<%-- Java Parameters --%>
 <%!ExpertData expertData = new ExpertData();%>
 <%!ShotData shotData = new ShotData();%>
 <%!ShotVideo shotVideo = new ShotVideo();%>
@@ -18,70 +22,85 @@
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 Long shot_data_id = result.getLong("shotdata_id");
-Long exID = result.getLong("id");
+// Long shot_data_id = 128069L; // test
+Long exID = result.getLong("id"); // Unused, but kept for context
 
 Object temp[] = shotVideo.processAnalyz(shot_data_id);
 int[] sideFrames = (int[]) temp[0];
 int[] frontFrames = (int[]) temp[1];
 String frontVideoName = (String) temp[2];
 String sideVideoName = (String) temp[3];
-int aEffect = (int) temp[4];
-int tEffect = (int) temp[5];
-int iEffect = (int) temp[6];
-int fEffect = (int) temp[7];
+int aEffect = (int) temp[4]; // Address
+int tEffect = (int) temp[5]; // Top
+int iEffect = (int) temp[6]; // Impact
+int fEffect = (int) temp[7]; // Finish
 String sideSwingPlane = (String) temp[8]; // 側面 SwingPlane 資料
 String frontSwingPlane = (String) temp[9]; // 正面 SwingPlane 資料
+int[] sideTpiSwingTable = (int[]) temp[10]; // 側面 SwingTable 資料
+int[] frontTpiSwingTable = (int[]) temp[11]; // 正面 SwingTable 資料
+int[] combinedTpiSwingTable = null;
+
+if (sideTpiSwingTable != null && frontTpiSwingTable != null &&
+	sideTpiSwingTable.length == frontTpiSwingTable.length
+) {
+
+	// 建立一個新陣列來存放 OR 合併後的結果
+    combinedTpiSwingTable = new int[sideTpiSwingTable.length];
+
+    // 迴圈遍歷陣列中的每一個元素
+    for (int i = 0; i < sideTpiSwingTable.length; i++) {
+        // 使用位元運算子的 OR (|) 來合併兩個陣列的元素
+        combinedTpiSwingTable[i] = sideTpiSwingTable[i] | frontTpiSwingTable[i];
+    }
+}
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 
-String psystem = "";
-String trajectory = "";
-String cause = "";
-String suggestion = "";
-String img = "";
-String talkhead = "";
+// String psystem = "";
+// String trajectory = "";
+// String cause = "";
+// String suggestion = "";
+// String img = "";
+// String talkhead = "";
 
-float backSwingTime = 0;
-float downSwingTime = 0;
-float tempo = 0;
-float BallSpeed;
-float BackSpin;
-float SideSpin;
-float LaunchAngle;
-float Angle;
+// float backSwingTime = 0;
+// float downSwingTime = 0;
+// float tempo = 0;
+// float BallSpeed;
+// float BackSpin;
+// float SideSpin;
+// float LaunchAngle;
+// float Angle;
 
-if (result != null && result.getString("expert_p_system") != null) {
-	psystem = result.getString("expert_p_system");
-}
-if (result != null && result.getString("expert_trajectory") != null) {
-	trajectory = result.getString("expert_trajectory");
-}
-if (result != null && result.getString("expert_cause") != null) {
-	cause = result.getString("expert_cause");
-}
-if (result != null && result.getString("expert_suggestion") != null) {
-	suggestion = result.getString("expert_suggestion");
-}
+String psystem = result.optString("expert_p_system", "");
+String trajectory = result.optString("expert_trajectory", "");
+String cause = result.optString("expert_cause", "");
+String suggestion = result.optString("expert_suggestion", "");
+
 //if(result != null && result.getString("video_url") != null){
 //	talkhead = result.getString("video_url");
 //}
 
-
-
-
 %>
 
+<%-- HTML --%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="../../page/css/GM08.css" rel="stylesheet" type="text/css">
+	<link href="../../page/css/GM08_3.css" rel="stylesheet" type="text/css">
 	<title>Expert</title>
 	<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+	<%-- outer js --%>
 	<script
 		src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	</script>
+	<%-- inner js --%>
+	<script src="../../page/js/radarChart.js"></script>
+	<script src="../../page/js/swingVideo.js"></script>
+	<script src="../../page/js/tpiAdvicesManager.js"></script>
+	<script src="../../page/js/cmpChartManager.js"></script>
 	<style>
 	</style>
 </head>
@@ -92,23 +111,30 @@ if (result != null && result.getString("expert_suggestion") != null) {
 			<!-- <Input Type="Button" Value="重新整理" onClick="window.location.reload();">  -->
 		</div>
 		<div class="row2 ">
-            <div class="column2 video-column">
-                <div class="content" style="text-align: center;">
+			<div class="column2 video-column">
+				<div class="content">
                     <div class="row">
                         <div class="row2" style="background-color: #000000">
-                            <div style="position: relative;" class="image_v">
+                            <div id="videoContainer" style="position: relative;" class="image_v">
                                 <video id="myvideo" controls muted>
                                     <source src="../../video/analyzVideo_front/<%=frontVideoName%>"
                                         type="video/mp4" alt="Image 1" />
                                 </video>
                                 <canvas id="overlayCanvas"></canvas>
                             </div>
-                            <div style="position: relative;" class="image_v">
+                            <div id="videoContainer1" style="position: relative;" class="image_v">
                                 <video id="myvideo1" controls muted>
                                     <source src="../../video/analyzVideo_side/<%=sideVideoName%>"
                                         type="video/mp4" alt="Image 1" />
                                 </video>
                                 <canvas id="overlayCanvas1"></canvas>
+
+								<div id="player-controls1">
+									<%-- <button id="video-play-pause1" class="play" type="button"></button> --%>
+									<%-- <input type="range" id="progress-bar1" value="0"> --%>
+									<%-- <span id="time-display1">00:00 / 00:00</span> --%>
+									<%-- <button id="fullscreen-btn1" type="button">全螢幕</button> --%>
+								</div>
                             </div>
                         </div>
                     </div>
@@ -118,36 +144,39 @@ if (result != null && result.getString("expert_suggestion") != null) {
                 <div class="content" style="text-align: center;">
                     <div class="row">
                         <div class="aanalysisSection">
-                            <!-- <p class="strikeeff" id="ballscore"></p> -->
                             <div class="row2" style="background-color: #000000">
                                 <div style="position: relative;" class="image_v_trajectory">
-									<p class="strikeeff" id="ballscore"></p>
-                                    <div class="rida_p">
-                                        <%
-                                        if (result.getBoolean("result")) {
-                                            if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
-                                                    || trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
-                                                    || trajectory.equals(pSystemJP.FADE)) {
-                                                out.print("<img src='../../page/gif/" + "Straight" + ".gif' class='analysis-gif' />");
-                                            } else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
-                                                out.print("<img src='../../page/gif/" + "Pushs" + ".gif' class='analysis-gif' />");
-                                            } else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
-                                                out.print("<img src='../../page/gif/" + "Pullh" + ".gif' class='analysis-gif' />");
-                                            } else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystemJP.PULL)
-                                                    || trajectory.equals(pSystem.PULL_SLICE) || trajectory.equals(pSystemJP.PULL_SLICE)) {
-                                                out.print("<img src='../../page/gif/" + "Pull" + ".gif' class='analysis-gif' />");
-                                            } else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystemJP.PUSH)
-                                                    || trajectory.equals(pSystem.PUSH_HOOK) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
-                                                out.print("<img src='../../page/gif/" + "Push" + ".gif' class='analysis-gif' />");
-                                            }
-                                        } else {
-                                            out.print("");
-                                        }
-                                        %>
+									<p class="strikeeff"> 彈道分數:
+										<span class="score" id="ballscore"></span>
+									</p>
+                                    <div class="crop-left">
+										<%
+											if (result.getBoolean("result")) {
+												String gifName = "";
+												if (trajectory.equals(pSystem.DRAW) || trajectory.equals(pSystem.STRAIGHT) || trajectory.equals(pSystem.FADE)
+														|| trajectory.equals(pSystemJP.DRAW) || trajectory.equals(pSystemJP.STRAIGHT)
+														|| trajectory.equals(pSystemJP.FADE)) {
+													gifName = "Straight_2";
+												} else if (trajectory.equals(pSystem.PUSH_SLICE) || trajectory.equals(pSystemJP.PUSH_SLICE)) {
+													gifName = "Pushs_2";
+												} else if (trajectory.equals(pSystem.PULL_HOOK) || trajectory.equals(pSystemJP.PULL_HOOK)) {
+													gifName = "Pullh_2";
+												} else if (trajectory.equals(pSystem.PULL) || trajectory.equals(pSystem.PULL_SLICE)
+														|| trajectory.equals(pSystemJP.PULL) || trajectory.equals(pSystemJP.PULL_SLICE)) {
+													gifName = "Pull_2";
+												} else if (trajectory.equals(pSystem.PUSH) || trajectory.equals(pSystem.PUSH_HOOK)
+														|| trajectory.equals(pSystemJP.PUSH) || trajectory.equals(pSystemJP.PUSH_HOOK)) {
+													gifName = "Push_2";
+												}
+												if (!gifName.isEmpty()) {
+													out.print("<img src='../../page/gif/" + gifName + ".gif' class='crop-img' />");
+												}
+											}
+										%>
                                     </div>
                                 </div>
-                                <div style="position: relative;" class="image_v">
-                                    <div style="margin-top: 20px;">
+                                <div>
+                                    <div>
                                         <canvas id="radarChart"></canvas>
                                     </div>
                                 </div>
@@ -167,20 +196,16 @@ if (result != null && result.getString("expert_suggestion") != null) {
 								class="step_4">4 Steps</span>
 						</div>
 						<div class="step">
-							<button class="stepbutton"
-								onclick="goToFrame(<%=frontFrames[0]%>,<%=sideFrames[0]%>)">A</button>
+							<button class="stepbutton" data-phase="A" data-front-frame="<%=frontFrames[0]%>" data-side-frame="<%=sideFrames[0]%>">A</button>
 						</div>
 						<div class="step">
-							<button class="stepbutton"
-								onclick="goToFrame(<%=frontFrames[1]%>,<%=sideFrames[1]%>)">T</button>
+							<button class="stepbutton" data-phase="T" data-front-frame="<%=frontFrames[1]%>" data-side-frame="<%=sideFrames[1]%>">T</button>
 						</div>
 						<div class="step">
-							<button class="stepbutton"
-								onclick="goToFrame(<%=frontFrames[2]%>,<%=sideFrames[2]%>)">I</button>
+							<button class="stepbutton" data-phase="I" data-front-frame="<%=frontFrames[2]%>" data-side-frame="<%=sideFrames[2]%>">I</button>
 						</div>
 						<div class="step">
-							<button class="stepbutton"
-								onclick="goToFrame(<%=frontFrames[3]%>,<%=sideFrames[3]%>)">F</button>
+							<button class="stepbutton" data-phase="F" data-front-frame="<%=frontFrames[3]%>" data-side-frame="<%=sideFrames[3]%>">F</button>
 						</div>
 						<div class="step">
 							<div id="player-container">
@@ -193,20 +218,17 @@ if (result != null && result.getString("expert_suggestion") != null) {
 					<div class="row">
 						<!--<h1>個人影像</h1>-->
 						<div class="psystemSection">
-							<div class="box">
-								<img src="../../page/img/A/A<%=aEffect%>.png">
+							<div id="compare-chart" class="box">
+								<img data-phase="A" src="../../page/img/A/A<%=aEffect%>.png">
+								<img data-phase="T" src="../../page/img/T/T<%=tEffect%>.png">
+								<img data-phase="I" src="../../page/img/I/I<%=iEffect%>.png">
+								<img data-phase="F" src="../../page/img/F/F<%=fEffect%>.png">
 							</div>
-							<div class="box">
-								<img src="../../page/img/T/T<%=tEffect%>.png">
-							</div>
-							<div class="box">
-								<img src="../../page/img/I/I<%=iEffect%>.png">
-							</div>
-							<div class="box">
-								<img src="../../page/img/F/F<%=fEffect%>.png">
+							<div id="tpi-advices" class="p_de">
+								<table>
+								</table>
 							</div>
 						</div>
-
 					</div>
 				</div>
 			</div>
@@ -219,928 +241,569 @@ if (result != null && result.getString("expert_suggestion") != null) {
 								<div class="suggestion">
 									<div class="vertical-image" style="width: 100%">
 										<img src="../../page/img/aicoach.png" alt="Image">
-										<!-- <video style="width: 200px; height: 200px;" controls>
-											<source src="<%=talkhead%>" type="video/mp4">
-										</video>  -->
 										<div class="inner-text">
 											<p class="title"><%="軌跡：" + trajectory%></p>
-											<!-- <p class="s_content"><%="p-system：" + psystem%></p>  -->
-											<p class="s_content"><%="原因：" + cause%></p>
-											<p class="s_content"><%="建議：" + suggestion%></p>
+											<p class="s_content"><span class="f_c1">原因： </span><%= cause%> </p>
+											<p class="s_content"><span class="f_c1">建議： </span><%= suggestion%> </p>
 										</div>
-										
-										
-										
 									</div>
 								</div>
 							</div>
-
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-
 	</div>
 	<script>
-		//var videoSlider = document.getElementById('videoSlider');
-		var sideSwingPlaneData = <%=sideSwingPlane%>;
-    	var frontSwingPlaneData = <%=frontSwingPlane%>;
-    	var initialSideFrame = <%=sideFrames[0]%>; // 側面影片的第一步幀數
-    	var initialFrontFrame = <%=frontFrames[0]%>; // 正面影片的第一步幀數
-		var frameRate = 60;
-		var controlBtn = document.getElementById('play-pause');
-		// 設定影片和對應的畫布
-		var video = document.getElementById('myvideo');
-		var video1 = document.getElementById('myvideo1');
-		var canvas = document.getElementById('overlayCanvas');
-		var canvas1 = document.getElementById('overlayCanvas1');
-		var ctx = canvas.getContext('2d');
-		var ctx1 = canvas1.getContext('2d');
+		/**
+		 * TPI 揮桿特徵數據庫。
+		 * 每個物件代表一個揮桿特徵，包含其名稱、階段、標題、姿勢、原因和建議。
+		 * @const {Array<object>}
+		 */
+		const tpiAdvices = [
+			{ name: "s_posture", phase: "A", title: "準備", posture: "S形姿勢",
+				reason: "骨盆前傾或下交叉綜合症造成", suggestion: "收緊核心，保持脊椎中立，避免過度彎曲下背部。" }, // 索引 0
+			{ name: "c_posture", phase: "A", title: "準備", posture: "C形姿勢",
+				reason: "胸椎伸展受限或上交叉綜合症", suggestion: "擴展胸椎，改善肩胛骨穩定性，並確認球桿長度是否合適。" }, // 索引 1
+
+			{ name: "loss_of_posture", phase: "I", title: "揮桿過程", posture: "喪失體姿",
+				reason: "揮桿中原始設定角度變化", suggestion: "訓練核心力量與髖部、肩部柔韌性，保持脊椎角度穩定。" }, // 索引 2
+			{ name: "flat_shoulder_plane", phase: "T", title: "上桿", posture: "平坦肩部平面",
+				reason: "肩部轉動平面過於水平", suggestion: "練習軀幹與骨盆分離，並改善脊椎與肩部活動度。" }, // 索引 3
+			{ name: "flying_elbow", phase: "T", title: "上桿", posture: "飛肘",
+				reason: "後側手肘離開身體後側", suggestion: "訓練肩關節和胸椎活動度，保持肩部穩定並同步揮桿。" }, // 索引 4
+			{ name: "early_extension", phase: "I", title: "下桿", posture: "提前伸展",
+				reason: "下半身過早向球移動", suggestion: "增加髖部和下半身柔韌性，用身體旋轉而不是推動來啟動下桿。" }, // 索引 5
+			{ name: "over_the_top", phase: "I", title: "下桿", posture: "由上而下",
+				reason: "下桿時過度使用上半身", suggestion: "啟動下半身，讓球桿從內側路徑下桿。" }, // 索引 6
+			{ name: "sway", phase: "T", title: "上桿", posture: "身體搖擺",
+				reason: "上桿時下半身橫向移動", suggestion: "加強髖部內旋和臀大肌力量，保持重心穩定在上半身。" }, // 索引 7
+			{ name: "slide", phase: "I", title: "下桿", posture: "身體側移",
+				reason: "下桿時下半身過度橫向移動", suggestion: "訓練臀大肌力量，讓下半身穩定，以旋轉而不是側移來帶動下桿。" }, // 索引 8
+			{ name: "late_buckle", phase: "I", title: "擊球後", posture: "遲滯彎曲",
+				reason: "擊球後膝蓋突然彎曲下沉", suggestion: "強化髖部活動度和核心穩定性，讓身體能支撐下桿的巨大力量。" }, // 索引 9
+			{ name: "reverse_spine_angle", phase: "T", title: "上桿", posture: "反向脊柱角度",
+				reason: "上桿時上半身過度向後傾斜", suggestion: "訓練核心力量與軀幹分離，保持脊椎在正確的軸心上旋轉。" }, // 索引 10
+			{ name: "forward_lunge", phase: "I", title: "下桿", posture: "前向弓步",
+				reason: "下桿時上半身過度前移", suggestion: "提升下半身力量與爆發力，讓體重轉移正確。" }, // 索引 11
+			{ name: "hanging_back", phase: "I", title: "擊球", posture: "向後滯留",
+				reason: "下桿時缺乏體重轉移", suggestion: "訓練核心與腿部力量，確保在下桿時將體重完整轉移到前腳。" }, // 索引 12
+			{ name: "casting", phase: "I", title: "下桿", posture: "拋擲",
+				reason: "下桿時過早釋放手腕角度", suggestion: "強化下半身啟動，延遲手腕釋放，以增加桿頭速度。" }, // 索引 13
+			{ name: "scooping", phase: "I", title: "擊球", posture: "撈球",
+				reason: "擊球時試圖將球撈起", suggestion: "強化下半身力量與髖部活動度，專注於向下擊球以獲得穩定力量。" }, // 索引 14
+			{ name: "chicken_wing", phase: "I", title: "擊球", posture: "雞翅膀",
+				reason: "擊球後領先手臂過度彎曲", suggestion: "增強下半身力量，讓身體轉動帶動手臂，保持手臂伸直以增加寬度。" } // 索引 15
+		];
+
+		/**
+		 * 將揮桿階段映射到 tpiAdvices 陣列中的對應索引。
+		 * 用於快速篩選特定階段的揮桿特徵。
+		 * @const {Object<string, Array<number>>}
+		 */
+		const tpiMapping = {
+			'A': [0, 1],
+			'T': [3, 4, 7, 10],
+			'I': [2, 5, 6, 8, 9, 11, 12, 13, 14, 15],
+			'F': []
+		};
+	</script>
+
+	<script>
+		// --- JSP Data to JS Variables ---
+		const sideSwingPlaneData = <%= StringUtils.defaultIfEmpty(sideSwingPlane, "null") %>;
+		const frontSwingPlaneData = <%= StringUtils.defaultIfEmpty(frontSwingPlane, "null") %>;
+		const initialSideFrame = <%= sideFrames[0] %>; // 側面影片的第一步幀數
+		const initialFrontFrame = <%= frontFrames[0] %>; // 正面影片的第一步幀數
+		// const sideTpiSwingTable = <%= new JSONArray(sideTpiSwingTable).toString() %>;
+		// const frontTpiSwingTable = <%= new JSONArray(frontTpiSwingTable).toString() %>;
+		const combinedTpiSwingTable = <%= new JSONArray(combinedTpiSwingTable).toString() %>;
+
+		// 假設這是你的 combinedTpiSwingTable 陣列，這裡用一個固定值來模擬
+		// const combinedTpiSwingTable = [1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0];
+
+		const shotResultData = <%= new JSONArray(shotResult).toString() %>;
+
+		const expertDataLevels = {
+			greatLevelTopBS: <%= expertData.GreatLevelTopBS %>,
+			greatLevelLowBS: <%= expertData.GreatLevelLowBS %>,
+			goodLevelLowBS: <%= expertData.GoodLevelLowBS %>,
+			normalLevelLowBS: <%= expertData.NormalLevelLowBS %>,
+			badLevelLowBS: <%= expertData.BadLevelLowBS %>,
+			worseLevelLowBS: <%= expertData.WorseLevelLowBS %>,
+
+			greatLevelTopCS: <%= expertData.GreatLevelTopCS %>,
+			greatLevelLowCS: <%= expertData.GreatLevelLowCS %>,
+			goodLevelLowCS: <%= expertData.GoodLevelLowCS %>,
+			normalLevelLowCS: <%= expertData.NormalLevelLowCS %>,
+			badLevelLowCS: <%= expertData.BadLevelLowCS %>,
+			worseLevelLowCS: <%= expertData.WorseLevelLowCS %>,
+
+			greatLevelTopDist: <%= expertData.GreatLevelTopDist %>,
+			greatLevelLowDist: <%= expertData.GreatLevelLowDist %>,
+			goodLevelLowDist: <%= expertData.GoodLevelLowDist %>,
+			normalLevelLowDist: <%= expertData.NormalLevelLowDist %>,
+			badLevelLowDist: <%= expertData.BadLevelLowDist %>,
+			worseLevelLowDist: <%= expertData.WorseLevelLowDist %>,
+
+			greatLevelTopLA: <%= expertData.GreatLevelTopLA %>,
+			greatLevelLowLA: <%= expertData.GreatLevelLowLA %>,
+			goodLevelLowLA: <%= expertData.GoodLevelLowLA %>,
+			normalLevelLowLA: <%= expertData.NormalLevelLowLA %>,
+			badLevelLowLA: <%= expertData.BadLevelLowLA %>,
+			worseLevelLowLA: <%= expertData.WorseLevelLowLA %>,
+
+			greatLevelTopBsp: <%= expertData.GreatLevelTopBsp %>,
+			greatLevelLowBsp: <%= expertData.GreatLevelLowBsp %>,
+			goodLevelLowBsp: <%= expertData.GoodLevelLowBsp %>,
+			normalLevelLowBsp: <%= expertData.NormalLevelLowBsp %>,
+			badLevelLowBsp: <%= expertData.BadLevelLowBsp %>,
+			worseLevelLowBsp: <%= expertData.WorseLevelLowBsp %>
+		};
+
+		// console.log(shotResultData);
+		// console.log(expertDataLevels);
+		// console.log(sideSwingPlaneData);
+		// console.log(frontSwingPlaneData);
+		console.log(combinedTpiSwingTable);
+
+		// --- Shot Data ---
+		const userShotData = {
+			'ballSpeed': shotResultData[0][0],
+			'avgBS': shotResultData[0][1],
+			'clubSpeed': shotResultData[1][0],
+			'avgCS': shotResultData[1][1],
+			'distance': shotResultData[2][0],
+			'avgDist': shotResultData[2][1],
+			'launchAngle': shotResultData[3][0],
+			'avgLA': shotResultData[3][1],
+			'backSpin': shotResultData[4][0],
+			'avgBsp': shotResultData[4][1],
+			'launchDirection': shotResultData[5][0],
+			'smachfact': Math.round((shotResultData[0][0] / shotResultData[1][0]) * 100) / 100,
+		};
+
+		// const ballSpeedLevel = getBallSpeedLevel(ballSpeed);
+		// const clubSpeedLevel = getClubSpeedLevel(clubSpeed);
+		// const distanceLevel = getDistanceLevel(distance);
+		// const launchAngleLevel = getLaunchAngleLevel(launchAngle);
+		// const backSpinLevel = getBackSpinLevel(backSpin);
+
+		// --- Global DOM & App State Variables ---
+		const frameRate = 60;
+
+		const controlBtn = document.getElementById('play-pause');
 		const videoContainer = document.getElementById('videoContainer');
+		const video = document.getElementById('myvideo');
+		const canvas = document.getElementById('overlayCanvas');
+		const ctx = canvas.getContext('2d');
+
 		const videoContainer1 = document.getElementById('videoContainer1');
-		var dragging = false;
-		var requestId = null;
+		const video1 = document.getElementById('myvideo1');
+		const canvas1 = document.getElementById('overlayCanvas1');
+		const ctx1 = canvas1.getContext('2d');
+		const playPauseBtn1 = document.getElementById('play-pause1');
+		const progressBar1 = document.getElementById('progress-bar1');
+		const timeDisplay1 = document.getElementById('time-display1');
+		const fullscreenBtn1 = document.getElementById('fullscreen-btn1');
 
-		// 根據影片實際顯示大小調整畫布
-		function resizeCanvas(videoElement, canvasElement) {
-		    const videoDisplayWidth = videoElement.clientWidth;
-		    const videoDisplayHeight = videoElement.clientHeight;
+		// App State Variables ---
+		const cmpChartManager = new CmpChartManager(
+			chartContainerElement = document.getElementById('compare-chart'),
+		);
+		const tpiManager = new TpiAdvicesManager(
+			tableContainerElement = document.getElementById('tpi-advices'),
+			maxDisplayItems = 1,
+			timingOptions = {
+				animationDuration: 500,
+				carouselInterval: 5000,
+				initialDelay: 500,
+			},
+		);
+		// var dragging = false;
+		// var requestId = null;
 
-	    	canvasElement.style.width = `${videoDisplayWidth}px`;
-	    	canvasElement.style.height = `${videoDisplayHeight}px`;
-	    	canvasElement.width = videoDisplayWidth;
-	    	canvasElement.height = videoDisplayHeight;
-	    	//console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
-	        // 更新畫布大小後，重新繪製輔助線
-	        const ctx = canvasElement.getContext('2d');
-	        const isSideView = (videoElement.id === "myvideo1");
-	        clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, isSideView ? sideSwingPlaneData : frontSwingPlaneData, isSideView);
+		// --- Video Control Functions ---
+		function toggleFullScreen(containerElement) {
+			console.log("toggleFullScreen");
+			if (!document.fullscreenElement) {
+				// 進入全螢幕
+				if (containerElement.requestFullscreen) {
+					containerElement.requestFullscreen();
+				} else if (containerElement.webkitRequestFullscreen) { // Safari
+					containerElement.webkitRequestFullscreen();
+				} else if (containerElement.msRequestFullscreen) { // IE11
+					containerElement.msRequestFullscreen();
+				}
+			} else {
+				// 退出全螢幕
+				if (document.exitFullscreen) {
+					document.exitFullscreen();
+				}
+			}
 		}
 
-		// // 繪製邊框
-		// function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
-		//     const videoWidth = videoElement.videoWidth;
-		//     const videoHeight = videoElement.videoHeight;
-		//     const videoDisplayWidth = canvasElement.width;
-		//     const videoDisplayHeight = canvasElement.height;
+		function handleFullScreenChange() {
+			// 使用 setTimeout 給瀏覽器一點時間來更新 DOM 元素的尺寸
+			setTimeout(() => {
+				// 無論是進入還是退出全螢幕，都重新調整兩個畫布的大小
+				// 這樣可以確保畫布尺寸始終與影片的顯示尺寸保持一致
+				resizeCanvas(video, canvas, frontSwingPlaneData, isSideView=false);
+				resizeCanvas(video1, canvas1, sideSwingPlaneData, isSideView=true);
+			}, 150); // 150毫秒的延遲，可以根據實際情況微調
+		}
 
-		//     // 計算縮放比例，並保持等比例縮放
-		//     const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
-		//     const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
-		//     const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
+		// --- swing bar Functions ---
+		// 按鈕樣式控制函式
+		function selectButton(selectedBtn) {
+			// 移除所有按鈕的選取樣式
+			const buttons = document.querySelectorAll('.steps button');
+			buttons.forEach(btn => {
+				btn.classList.remove('stepbutton_selected');
+				btn.classList.add('stepbutton');
+			});
 
-		//     const startX = bbox[0] * videoWidth * scale + offsetX;
-		//     const startY = bbox[1] * videoHeight * scale + offsetY;
-		//     const width = (bbox[2] - bbox[0]) * videoWidth * scale;
-		//     const height = (bbox[3] - bbox[1]) * videoHeight * scale;
+			// 為被點擊的按鈕添加選取樣式
+			selectedBtn.classList.remove('stepbutton');
+			selectedBtn.classList.add('stepbutton_selected');
+		}
 
-		//     ctx.strokeStyle = color;
-		//     ctx.lineWidth = 4;
-		//     ctx.strokeRect(startX, startY, width, height);
+		function goToFrame(frameNumber,frameNumber1) {
+			// 計算目標帧對應的時間（秒）
+			var time = frameNumber / frameRate;
+			var time1 = frameNumber1 / frameRate;
+			// 確保影片已載入完成後再設置 currentTime
+			if (video.readyState >= 2) {
+				video.pause(); // 暫停影片，確保時間設置後不立即播放
+				video.currentTime = time;
+			} else {
+				video.addEventListener('loadedmetadata', function () {
+					video.pause();
+					video.currentTime = time;
+				});
+			}
 
-		//    //console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
+			if (video1.readyState >= 2) {
+				video1.pause(); // 暫停影片，確保時間設置後不立即播放
+				video1.currentTime = time1;
+			} else {
+				video1.addEventListener('loadedmetadata', function () {
+					video1.pause();
+					video1.currentTime = time1;
+				});
+			}
+
+			controlBtn.className = 'play'; // 將按鈕設為播放狀態
+			controlBtn.innerText = 'Play';
+		}
+
+		function playPause() {
+			if (video.paused && video1.paused) {
+				video.play();
+				video1.play();
+				controlBtn.className = 'pause';
+				controlBtn.innerText = 'Pause';
+			} else {
+				video.pause();
+				video1.pause();
+				controlBtn.className = 'play';
+				controlBtn.innerText = 'Play';
+			}
+		}
+
+		function handleVideoEnd() {
+			console.log("handleVideoEnd");
+			if (video.ended && video1.ended) {
+				// 兩個視頻都已結束，重置按鈕以允許重新播放
+				controlBtn.className = 'play';
+				controlBtn.innerText = 'Play';
+			} else {
+				// 只有一個視頻結束，檢查另一個視頻的狀態
+				if (video.ended && !video1.paused) {
+					// 第一個視頻結束，第二個正在播放，設置按鈕為暫停
+					controlBtn.className = 'pause';
+					controlBtn.innerText = 'Pause';
+				} else if (video1.ended && !video.paused) {
+					// 第二個視頻結束，第一個正在播放，設置按鈕為暫停
+					controlBtn.className = 'pause';
+					controlBtn.innerText = 'Pause';
+				}
+			}
+		}
+
+		// --- ball score Functions ---
+		function calculateBallScore(distance, direction) {
+			// PGA 男子 7 Iron 平均距離 = 176
+			distance = Math.min(distance, 176);
+
+			// direction 取絕對值
+			// 當 direction 大於 16 時，direction 等於 16
+			directionTemp = Math.min(Math.abs(direction), 16);
+
+			const score = ((distance / 176 + ((16 - directionTemp) / 16) * 0.5) / 1.5) * 100;
+			return Math.ceil(Math.min(score, 100)); // 確保不超過100，並限制小數位數
+		}
+
+		// 處理按鈕點擊的總函式
+		function handleButtonClick(event) {
+			// 獲取按鈕上的 data-屬性
+			const phase = event.target.dataset.phase;
+			const frontFrame = parseInt(event.target.dataset.frontFrame);
+			const sideFrame = parseInt(event.target.dataset.sideFrame);
+
+			// 處理按鈕樣式
+			selectButton(event.target);
+
+			// 處理影片跳轉
+			goToFrame(frontFrame, sideFrame);
+
+			// 根據點擊的階段更新圖片顯示
+			cmpChartManager.updateChartImage(phase);
+
+			// 處理 TPI 建議顯示
+			tpiManager.updateTable(
+				combinedTpiSwingTable,
+				phase,
+				tpiMapping,
+				tpiAdvices,
+			);
+		}
+
+		// --- Initialization ---
+		function init() {
+			// Setup event listeners
+			window.addEventListener('resize', () => {
+				resizeCanvas(video, canvas, frontSwingPlaneData, isSideView=false);
+				resizeCanvas(video1, canvas1, sideSwingPlaneData, isSideView=true);
+			});
+
+			// 為所有步驟按鈕添加事件監聽器
+			const stepButtons = document.querySelectorAll('.steps button');
+			stepButtons.forEach(button => {
+				button.addEventListener('click', handleButtonClick);
+			});
+
+			// 監聽全螢幕改變事件
+			document.addEventListener("fullscreenchange", handleFullScreenChange);
+			document.addEventListener("webkitfullscreenchange", handleFullScreenChange);
+			document.addEventListener("mozfullscreenchange", handleFullScreenChange);
+			document.addEventListener("MSFullscreenChange", handleFullScreenChange);
+
+			// 為每個影片增加事件
+			if (videoContainer) {
+				console.log("videoContainer");
+				video.addEventListener('dblclick', () => toggleFullScreen(videoContainer));
+			}
+			if (videoContainer1) {
+				console.log("videoContainer1");
+				video1.addEventListener('dblclick', () => toggleFullScreen(videoContainer1));
+			}
+			controlBtn.addEventListener("click", playPause);
+			video.addEventListener("ended", handleVideoEnd);
+			video1.addEventListener("ended", handleVideoEnd);
+
+			// 初始化影片事件
+			setupVideoEvents(video, canvas, frontSwingPlaneData, initialFrontFrame, frameRate, false);
+			setupVideoEvents(video1, canvas1, sideSwingPlaneData, initialSideFrame, frameRate, true);
+
+			// 初始化擊球分數
+			document.getElementById("ballscore").innerText = calculateBallScore(
+				distance = userShotData.distance,
+				launchDirection = userShotData.launchDirection,
+			);
+
+			// 初始化radar chart
+			initializeRadarChart(
+				document.getElementById('radarChart'),
+				userShotData,
+				expertDataLevels,
+			);
+
+			// 首次載入時顯示第一組數據
+			// 預設載入時選取 'A' 按鈕並顯示內容
+			const firstButton = document.querySelector('.steps button[data-phase="A"]');
+			if (firstButton) {
+				firstButton.classList.remove('stepbutton');
+				firstButton.classList.add('stepbutton_selected');
+
+				// 更新與教練比較圖
+				cmpChartManager.updateChartImage(firstButton.dataset.phase);
+
+				// 處理 TPI 建議顯示
+				tpiManager.updateTable(
+					combinedTpiSwingTable,
+					firstButton.dataset.phase,
+					tpiMapping,
+					tpiAdvices,
+				);
+			}
+
+			// 初始化兩個播放器
+			// setupPlayerControls(video, playPauseBtn, progressBar, timeDisplay, volumeBar, fullscreenBtn, videoContainer);
+			// setupPlayerControls(video1, playPauseBtn1, progressBar1, timeDisplay1, fullscreenBtn1, videoContainer1);
+		}
+
+		document.addEventListener("DOMContentLoaded", init);
+	</script>
+	<script>
+		// TODO
+
+		//document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed + " -> " + ballSpeedLevel + "mph";
+		// document.addEventListener("DOMContentLoaded", function() {
+		// 	//document.getElementById("smachfactDisplay").innerText = "擊球效率:"+smachfact;
+		// 	//document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed  + "mph";
+		// 	//document.getElementById("clubSpeedDisplay").innerText = "桿頭速度: " + clubSpeed  + "mph";
+		// 	//document.getElementById("distanceDisplay").innerText = "飛行距離: " + distance +  "yard";
+		// 	//document.getElementById("launchAngleDisplay").innerText = "發射角度: " + launchAngle  + "degree";
+		// 	//document.getElementById("backSpinDisplay").innerText = "後旋: " + backSpin  + "rpm";
+		// 	// document.getElementById("ballscore").innerText = "彈道分數: " + calculateBallScore(distance,launchDirection) ;
+		// 	document.getElementById("ballscore").innerText = calculateBallScore(distance,launchDirection);
+		// });
+
+		// --- Video Control bar Functions ---
+		// function setupPlayerControls(vid, playBtn, progress, timeDisp, fullBtn, container) {
+		// 	if (!vid) return;
+
+		// 	// 播放/暫停按鈕
+		// 	playBtn.addEventListener('click', () => {
+		// 		if (vid.paused || vid.ended) {
+		// 			vid.play();
+		// 			playBtn.className = 'pause'; // 修改按鈕樣式
+		// 		} else {
+		// 			vid.pause();
+		// 			playBtn.className = 'play'; // 修改按鈕樣式
+		// 		}
+		// 	});
+
+		// 	// 影片時間與進度條同步
+		// 	vid.addEventListener('timeupdate', () => {
+		// 		const value = (100 / vid.duration) * vid.currentTime;
+		// 		progress.value = value;
+
+		// 		// 內嵌時間格式化邏輯，避免函式衝突
+		// 		const minutes = Math.floor(vid.currentTime / 60);
+		// 		const seconds = Math.floor(vid.currentTime % 60);
+		// 		const formattedTime = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+
+		// 		const totalMinutes = Math.floor(vid.duration / 60);
+		// 		const totalSeconds = Math.floor(vid.duration % 60);
+		// 		const formattedDuration = totalMinutes.toString().padStart(2, '0') + ":" + totalSeconds.toString().padStart(2, '0');
+
+		// 		timeDisp.textContent = formattedTime + "/" + formattedDuration;
+		// 	});
+
+		// 	// 拖曳進度條
+		// 	progress.addEventListener('input', () => {
+		// 		const time = (progress.value / 100) * vid.duration;
+		// 		vid.currentTime = time;
+		// 	});
+
+		// 	// 全螢幕按鈕
+		// 	fullBtn.addEventListener('click', () => {
+		// 		if (container.requestFullscreen) {
+		// 			container.requestFullscreen();
+		// 		} else if (container.mozRequestFullScreen) { /* Firefox */
+		// 			container.mozRequestFullScreen();
+		// 		} else if (container.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+		// 			container.webkitRequestFullscreen();
+		// 		} else if (container.msRequestFullscreen) { /* IE/Edge */
+		// 			container.msRequestFullscreen();
+		// 		}
+		// 	});
 		// }
-
-		// 繪製輔助線
-		// function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
-		//     const videoWidth = videoElement.videoWidth;
-		//     const videoHeight = videoElement.videoHeight;
-		//     const videoDisplayWidth = canvasElement.width;
-		//     const videoDisplayHeight = canvasElement.height;
-
-		//     // 計算縮放比例，並保持等比例縮放
-		//     const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
-		//     const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
-		//     const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
-
-		//     const startX = line.pt1[0] * videoWidth * scale + offsetX;
-		//     const startY = line.pt1[1] * videoHeight * scale + offsetY;
-		//     const endX = line.pt2[0] * videoWidth * scale + offsetX;
-		//     const endY = line.pt2[1] * videoHeight * scale + offsetY;
-
-		//     ctx.beginPath();
-		//     ctx.moveTo(startX, startY);
-		//     ctx.lineTo(endX, endY);
-		//     ctx.strokeStyle = color;
-		//     ctx.lineWidth = 4;
-		//     ctx.stroke();
-
-		//    //console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
-		// }
-
-		// 繪製頭部：side的情況是矩形，front是橢圓
-		// function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
-		//     const videoWidth = videoElement.videoWidth;
-		//     const videoHeight = videoElement.videoHeight;
-		//     const videoDisplayWidth = canvasElement.width;
-		//     const videoDisplayHeight = canvasElement.height;
-
-		//     // 計算縮放比例和偏移量
-		//     const scale = Math.min(videoDisplayWidth / videoWidth, videoDisplayHeight / videoHeight);
-		//     const offsetX = (videoDisplayWidth - videoWidth * scale) / 2;
-		//     const offsetY = (videoDisplayHeight - videoHeight * scale) / 2;
-
-		//     // 計算頭部中心點位置
-		//     const ptX = head.pt[0] * videoWidth * scale + offsetX;
-		//     const ptY = head.pt[1] * videoHeight * scale + offsetY;
-
-		//     if (side) {
-		//         // 側視圖：繪製90度的夾角
-		//         const lineLength = head.h_length * videoWidth * scale; // 使用頭部的水平長度作為線段長度
-
-		//         // 繪製水平線（從頭部中心點向右延伸）
-		//         ctx.beginPath();
-		//         ctx.moveTo(ptX, ptY);  // 從中心點開始
-		//         ctx.lineTo(ptX - lineLength, ptY);  // 向左延伸
-		//         ctx.strokeStyle = color;
-		//         ctx.lineWidth = 4;
-		//         ctx.stroke();
-
-		//         // 繪製垂直線（從頭部中心點向下延伸）
-		//         ctx.beginPath();
-		//         ctx.moveTo(ptX, ptY);  // 從中心點開始
-		//         ctx.lineTo(ptX, ptY + lineLength);  // 向下延伸
-		//         ctx.strokeStyle = color;
-		//         ctx.lineWidth = 4;
-		//         ctx.stroke();
-
-		//         //console.log("Head drawn as lines for side view.");
-		//     } else {
-		//         // 正面圖，繪製橢圓
-		//         const h_length = head.h_length * videoWidth * scale;
-		//         const v_length = head.v_length * videoHeight * scale;
-
-		//         ctx.beginPath();
-		//         ctx.ellipse(ptX, ptY, h_length , v_length , 0, 0, 2 * Math.PI);
-		//         ctx.strokeStyle = color;
-		//         ctx.lineWidth = 4;
-		//         ctx.stroke();
-		//         //console.log("Head drawn as ellipse for front view.");
-		//     }
-		// }
-
-		// ======= fill start ================
-		// 繪製邊框 (修正版，適用於非等比例縮放到 canvas 的情況)
-		// function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
-		// 	// 取得 canvas 的實際顯示尺寸
-		// 	const canvasWidth = canvasElement.width;
-		// 	const canvasHeight = canvasElement.height;
-
-		// 	// 假設影片內容已經被拉伸或壓縮以填滿整個 canvas 區域 (310x460)
-		// 	// 正規化後的標定框座標 [0, 1] 直接對應到 canvas 的像素座標
-
-		// 	// 計算標定框在 canvas 上的起始點座標
-		// 	const startX = bbox[0] * canvasWidth;
-		// 	const startY = bbox[1] * canvasHeight;
-
-		// 	// 計算標定框在 canvas 上的寬度和高度
-		// 	// 寬度 = (x2 - x1) * canvas 寬度
-		// 	// 高度 = (y2 - y1) * canvas 高度
-		// 	const width = (bbox[2] - bbox[0]) * canvasWidth;
-		// 	const height = (bbox[3] - bbox[1]) * canvasHeight;
-
-		// 	// 設定繪製樣式
-		// 	ctx.strokeStyle = color;
-		// 	ctx.lineWidth = 4; // 可以根據需要調整線條粗細
-
-		// 	// 繪製矩形
-		// 	ctx.strokeRect(startX, startY, width, height);
-
-		// 	// 註解掉 console.log，避免在正式環境中輸出過多資訊
-		// 	// console.log("BoundingBox drawn: startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height);
-		// }
-
-		// 繪製輔助線 (修正版，適用於非等比例縮放到 canvas 的情況)
-		// function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
-		// 	// 取得 canvas 的實際顯示尺寸
-		// 	const canvasWidth = canvasElement.width;
-		// 	const canvasHeight = canvasElement.height;
-
-		// 	// 假設影片內容已經被拉伸或壓縮以填滿整個 canvas 區域 (310x460)
-		// 	// 正規化後的線段端點座標 [0, 1] 直接對應到 canvas 的像素座標
-
-		// 	// 計算線段第一個端點在 canvas 上的座標
-		// 	const startX = line.pt1[0] * canvasWidth;
-		// 	const startY = line.pt1[1] * canvasHeight;
-
-		// 	// 計算線段第二個端點在 canvas 上的座標
-		// 	const endX = line.pt2[0] * canvasWidth;
-		// 	const endY = line.pt2[1] * canvasHeight;
-
-		// 	// 繪製線段
-		// 	ctx.beginPath();
-		// 	ctx.moveTo(startX, startY); // 從第一個端點開始
-		// 	ctx.lineTo(endX, endY);   // 連接到第二個端點
-		// 	ctx.strokeStyle = color;
-		// 	ctx.lineWidth = 4; // 可以根據需要調整線條粗細
-		// 	ctx.stroke();
-
-		// 	// 註解掉 console.log
-		// 	// console.log("Line drawn: startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY);
-		// }
-
-		// 繪製頭部：side的情況是線條組，front是橢圓 (修正版，適用於非等比例縮放到 canvas 的情況)
-		// function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
-		// 	// 取得 canvas 的實際顯示尺寸
-		// 	const canvasWidth = canvasElement.width;
-		// 	const canvasHeight = canvasElement.height;
-
-		// 	// 假設影片內容已經被拉伸或壓縮以填滿整個 canvas 區域 (310x460)
-		// 	// 正規化後的頭部中心點座標 [0, 1] 以及長度直接對應到 canvas 的像素值
-
-		// 	// 計算頭部中心點在 canvas 上的位置
-		// 	const ptX = head.pt[0] * canvasWidth;
-		// 	const ptY = head.pt[1] * canvasHeight;
-
-		// 	if (side) {
-		// 		// 側視圖：繪製表示方向的線條組
-		// 		// 假設 head.h_length 和 head.v_length 是正規化後的水平和垂直長度概念
-		// 		const horizontalLineLength = head.h_length * canvasWidth; // 根據 canvas 寬度縮放正規化水平長度
-		// 		// 原程式碼兩條線都用了 head.h_length，但如果是非等比例，垂直長度應根據 canvas 高度縮放
-		// 		// 如果 head.h_length 也代表垂直方向的比例，則垂直線段長度應為 head.h_length * canvasHeight
-		// 		// 這裡暫時沿用原程式碼只使用 h_length 的邏輯，但將其垂直方向的縮放改為 canvasHeight
-		// 		const verticalLineLength = head.h_length * canvasHeight; // 根據 canvas 高度縮放正規化水平長度 (用於垂直線段)
-
-
-		// 		// 繪製水平線（從頭部中心點向左延伸，與原始程式碼方向一致）
-		// 		ctx.beginPath();
-		// 		ctx.moveTo(ptX, ptY);  // 從中心點開始
-		// 		ctx.lineTo(ptX - horizontalLineLength, ptY);  // 向左延伸，長度根據 canvas 寬度計算
-		// 		ctx.strokeStyle = color;
-		// 		ctx.lineWidth = 4;
-		// 		ctx.stroke();
-
-		// 		// 繪製垂直線（從頭部中心點向下延伸）
-		// 		ctx.beginPath();
-		// 		ctx.moveTo(ptX, ptY);  // 從中心點開始
-		// 		ctx.lineTo(ptX, ptY + verticalLineLength);  // 向下延伸，長度根據 canvas 高度計算
-		// 		ctx.strokeStyle = color;
-		// 		ctx.lineWidth = 4;
-		// 		ctx.stroke();
-
-		// 		// console.log("Head drawn as lines for side view.");
-		// 	} else {
-		// 		// 正面圖，繪製橢圓
-		// 		// 橢圓的水平半徑根據 canvas 寬度縮放正規化水平長度
-		// 		const h_radius = head.h_length * canvasWidth;
-		// 		// 橢圓的垂直半徑根據 canvas 高度縮放正規化垂直長度
-		// 		const v_radius = head.v_length * canvasHeight;
-
-		// 		ctx.beginPath();
-		// 		// ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle);
-		// 		ctx.ellipse(ptX, ptY, h_radius, v_radius, 0, 0, 2 * Math.PI);
-		// 		ctx.strokeStyle = color;
-		// 		ctx.lineWidth = 4;
-		// 		ctx.stroke();
-		// 		// console.log("Head drawn as ellipse for front view.");
+	</script>
+	<script>
+		// backup
+		// function getBallSpeedLevel(ballSpeed){
+		// 	if(ballSpeed>greatLevelTopBS){
+		// 		return greatLevelTopBS;
+		// 	}else if (ballSpeed <= greatLevelTopBS && ballSpeed>greatLevelLowBS){
+		// 		return greatLevelTopBS;
+		// 	}else if (ballSpeed<=greatLevelLowBS && ballSpeed>goodLevelLowBS){
+		// 		return greatLevelLowBS;
+		// 	}else if(ballSpeed<=goodLevelLowBS && ballSpeed>normalLevelLowBS){
+		// 		return goodLevelLowBS;
+		// 	}else if(ballSpeed<=normalLevelLowBS && ballSpeed>badLevelLowBS){
+		// 		return normalLevelLowBS;
+		// 	}else if(ballSpeed<=badLevelLowBS && ballSpeed>worseLevelLowBS){
+		// 		return badLevelLowBS;
+		// 	}else {
+		// 		return worseLevelLowBS;
 		// 	}
 		// }
-		// ========== fill end ==============
 
-		// ========== contain start =========
-		function drawBoundingBoxForVideo(bbox, videoElement, canvasElement, ctx, color = 'white') {
-			// 取得 canvas 的實際尺寸
-			const canvasWidth = canvasElement.width;
-			const canvasHeight = canvasElement.height;
+		// function getClubSpeedLevel(clubSpeed){
+		// 	if(clubSpeed>greatLevelTopCS ){
+		// 		return greatLevelTopCS ;
+		// 	}else if (clubSpeed<=greatLevelTopCS  && clubSpeed>greatLevelLowCS ){
+		// 		return greatLevelTopCS ;
+		// 	}else if (clubSpeed<=greatLevelLowCS  && clubSpeed>goodLevelLowCS ){
+		// 		return greatLevelLowCS ;
+		// 	}else if(clubSpeed<=goodLevelLowCS  && clubSpeed>normalLevelLowCS){
+		// 		return goodLevelLowCS ;
+		// 	}else if(clubSpeed<=normalLevelLowCS && clubSpeed>badLevelLowCS){
+		// 		return normalLevelLowCS;
+		// 	}else if(clubSpeed<=badLevelLowCS && clubSpeed>worseLevelLowCS ){
+		// 		return badLevelLowCS;
+		// 	}else {
+		// 		return worseLevelLowCS ;
+		// 	}
+		// }
 
-			// 取得影片的原始尺寸和長寬比
-			const videoWidth = videoElement.videoWidth;
-			const videoHeight = videoElement.videoHeight;
-			const videoAspectRatio = videoWidth / videoHeight;
+		// function getDistanceLevel(distance){
+		// 	if(distance>greatLevelTopDist){
+		// 		return greatLevelTopDist;
+		// 	}else if (distance<=greatLevelTopDist && distance>greatLevelLowDist ){
+		// 		return greatLevelTopDist;
+		// 	}else if (distance<=greatLevelLowDist  && distance>goodLevelLowDist ){
+		// 		return greatLevelLowDist ;
+		// 	}else if(distance<=goodLevelLowDist  && distance>normalLevelLowDist ){
+		// 		return goodLevelLowDist ;
+		// 	}else if(distance<=normalLevelLowDist  && distance>badLevelLowDist ){
+		// 		return normalLevelLowDist ;
+		// 	}else if(distance<=badLevelLowDist  && distance>worseLevelLowDist ){
+		// 		return badLevelLowDist ;
+		// 	}else {
+		// 		return worseLevelLowDist ;
+		// 	}
+		// }
 
-			// 取得 canvas 的長寬比
-			const canvasAspectRatio = canvasWidth / canvasHeight;
+		// function getLaunchAngleLevel(launchAngle){
+		// 	if(launchAngle>greatLevelTopLA ){
+		// 		return greatLevelTopLA ;
+		// 	}else if (launchAngle<=greatLevelTopLA  && launchAngle>greatLevelLowLA ){
+		// 		return greatLevelTopLA ;
+		// 	}else if (launchAngle<=greatLevelLowLA  && launchAngle>goodLevelLowLA ){
+		// 		return greatLevelLowLA ;
+		// 	}else if(launchAngle<=goodLevelLowLA  && launchAngle>normalLevelLowLA ){
+		// 		return goodLevelLowLA ;
+		// 	}else if(launchAngle<=normalLevelLowLA  && launchAngle>badLevelLowLA ){
+		// 		return normalLevelLowLA ;
+		// 	}else if(launchAngle<=badLevelLowLA  && launchAngle>worseLevelLowLA ){
+		// 		return badLevelLowLA ;
+		// 	}else {
+		// 		return worseLevelLowLA ;
+		// 	}
+		// }
 
-			let drawWidth, drawHeight, offsetX, offsetY;
-
-			// 計算影片在 canvas 中實際繪製的尺寸和偏移量
-			if (videoAspectRatio > canvasAspectRatio) {
-				// 影片較寬，左右兩側可能會留白
-				drawWidth = canvasWidth;
-				drawHeight = canvasWidth / videoAspectRatio;
-				offsetX = 0;
-				offsetY = (canvasHeight - drawHeight) / 2;
-			} else {
-				// 影片較高，上下兩側可能會留白
-				drawHeight = canvasHeight;
-				drawWidth = canvasHeight * videoAspectRatio;
-				offsetX = (canvasWidth - drawWidth) / 2;
-				offsetY = 0;
-			}
-
-			// 計算標定框在影片實際繪製區域的起始點座標、寬度和高度
-			const startX = offsetX + bbox[0] * drawWidth;
-			const startY = offsetY + bbox[1] * drawHeight;
-			const width = (bbox[2] - bbox[0]) * drawWidth;
-			const height = (bbox[3] - bbox[1]) * drawHeight;
-
-			// 設定繪製樣式
-			ctx.strokeStyle = color;
-			ctx.lineWidth = 4;
-
-			// 繪製矩形
-			ctx.strokeRect(startX, startY, width, height);
-
-			// 註解掉 console.log
-			// console.log("BoundingBox drawn (contain): startX = " + startX + ", startY = " + startY + ", width = " + width + ", height = " + height + ", offsetX = " + offsetX + ", offsetY = " + offsetY + ", drawWidth = " + drawWidth + ", drawHeight = " + drawHeight);
-		}
-
-		function drawLineForVideo(line, videoElement, canvasElement, ctx, color = 'orange') {
-			// 取得 canvas 的實際尺寸
-			const canvasWidth = canvasElement.width;
-			const canvasHeight = canvasElement.height;
-
-			// 取得影片的原始尺寸和長寬比
-			const videoWidth = videoElement.videoWidth;
-			const videoHeight = videoElement.videoHeight;
-			const videoAspectRatio = videoWidth / videoHeight;
-
-			// 取得 canvas 的長寬比
-			const canvasAspectRatio = canvasWidth / canvasHeight;
-
-			let drawWidth, drawHeight, offsetX, offsetY;
-
-			// 計算影片在 canvas 中實際繪製的尺寸和偏移量
-			if (videoAspectRatio > canvasAspectRatio) {
-				drawWidth = canvasWidth;
-				drawHeight = canvasWidth / videoAspectRatio;
-				offsetX = 0;
-				offsetY = (canvasHeight - drawHeight) / 2;
-			} else {
-				drawHeight = canvasHeight;
-				drawWidth = canvasHeight * videoAspectRatio;
-				offsetX = (canvasWidth - drawWidth) / 2;
-				offsetY = 0;
-			}
-
-			// 計算線段端點在影片實際繪製區域的座標
-			const startX = offsetX + line.pt1[0] * drawWidth;
-			const startY = offsetY + line.pt1[1] * drawHeight;
-			const endX = offsetX + line.pt2[0] * drawWidth;
-			const endY = offsetY + line.pt2[1] * drawHeight;
-
-			// 繪製線段
-			ctx.beginPath();
-			ctx.moveTo(startX, startY);
-			ctx.lineTo(endX, endY);
-			ctx.strokeStyle = color;
-			ctx.lineWidth = 4;
-			ctx.stroke();
-
-			// 註解掉 console.log
-			// console.log("Line drawn (contain): startX = " + startX + ", startY = " + startY + ", endX = " + endX + ", endY = " + endY + ", offsetX = " + offsetX + ", offsetY = " + offsetY + ", drawWidth = " + drawWidth + ", drawHeight = " + drawHeight);
-		}
-
-		function drawHeadForVideo(head, videoElement, canvasElement, ctx, color = 'blue', side = true) {
-			// 取得 canvas 的實際尺寸
-			const canvasWidth = canvasElement.width;
-			const canvasHeight = canvasElement.height;
-
-			// 取得影片的原始尺寸和長寬比
-			const videoWidth = videoElement.videoWidth;
-			const videoHeight = videoElement.videoHeight;
-			const videoAspectRatio = videoWidth / videoHeight;
-
-			// 取得 canvas 的長寬比
-			const canvasAspectRatio = canvasWidth / canvasHeight;
-
-			let drawWidth, drawHeight, offsetX, offsetY;
-
-			// 計算影片在 canvas 中實際繪製的尺寸和偏移量
-			if (videoAspectRatio > canvasAspectRatio) {
-				drawWidth = canvasWidth;
-				drawHeight = canvasWidth / videoAspectRatio;
-				offsetX = 0;
-				offsetY = (canvasHeight - drawHeight) / 2;
-			} else {
-				drawHeight = canvasHeight;
-				drawWidth = canvasHeight * videoAspectRatio;
-				offsetX = (canvasWidth - drawWidth) / 2;
-				offsetY = 0;
-			}
-
-			// 計算頭部中心點在影片實際繪製區域的座標
-			const ptX = offsetX + head.pt[0] * drawWidth;
-			const ptY = offsetY + head.pt[1] * drawHeight;
-
-			if (side) {
-				// 側視圖：繪製表示方向的線條組
-				const horizontalLineLength = head.h_length * drawWidth;
-				const verticalLineLength = head.h_length * drawHeight; // 沿用原邏輯，但垂直方向基於 drawHeight 縮放
-
-				// 繪製水平線
-				ctx.beginPath();
-				ctx.moveTo(ptX, ptY);
-				ctx.lineTo(ptX - horizontalLineLength, ptY);
-				ctx.strokeStyle = color;
-				ctx.lineWidth = 4;
-				ctx.stroke();
-
-				// 繪製垂直線
-				ctx.beginPath();
-				ctx.moveTo(ptX, ptY);
-				ctx.lineTo(ptX, ptY + verticalLineLength);
-				ctx.strokeStyle = color;
-				ctx.lineWidth = 4;
-				ctx.stroke();
-
-				// console.log("Head drawn as lines for side view (contain).");
-			} else {
-				// 正面圖，繪製橢圓
-				const h_radius = head.h_length * drawWidth;
-				const v_radius = head.v_length * drawHeight;
-
-				ctx.beginPath();
-				ctx.ellipse(ptX, ptY, h_radius, v_radius, 0, 0, 2 * Math.PI);
-				ctx.strokeStyle = color;
-				ctx.lineWidth = 4;
-				ctx.stroke();
-				// console.log("Head drawn as ellipse for front view (contain).");
-			}
-		}
-		// ========== contain end ============
-
-		// 清除畫布並重新繪製輔助線，根據影片不同比例進行調整
-		function clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView = true) {
-		    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height); // 清除畫布
-		    drawBoundingBoxForVideo(swingPlaneData.data.bbox, videoElement, canvasElement, ctx, 'white');
-		    if (swingPlaneData.data.club) {
-		        drawLineForVideo(swingPlaneData.data.club, videoElement, canvasElement, ctx, 'orange');
-		    }
-		    if (swingPlaneData.data.shoulder) {
-		        drawLineForVideo(swingPlaneData.data.shoulder, videoElement, canvasElement, ctx, 'orange');
-		    }
-		    if (swingPlaneData.data.left_leg) {
-		        drawLineForVideo(swingPlaneData.data.left_leg, videoElement, canvasElement, ctx, 'blue');
-		    }
-		    if (swingPlaneData.data.right_leg) {
-		        drawLineForVideo(swingPlaneData.data.right_leg, videoElement, canvasElement, ctx, 'blue');
-		    }
-		    if (swingPlaneData.data.head) {
-		        drawHeadForVideo(swingPlaneData.data.head, videoElement, canvasElement, ctx, 'blue', isSideView);
-		    } else {
-		        console.log('Head data is missing or incomplete.');
-		    }
-		    
-		    
-		}
-		// 確保影片元數據加載完成後再進行相關操作
-		function setupVideoEvents(videoElement, canvasElement, ctx, swingPlaneData, initialFrame, isSideView) {
-			videoElement.addEventListener('loadedmetadata', function () {
-				//videoSlider.max = videoElement.duration;
-				resizeCanvas(videoElement, canvasElement);
-				videoElement.currentTime = initialFrame / frameRate;
-				videoElement.pause();
-				clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
-			});
-		}
-
-		// 初始化影片事件
-		setupVideoEvents(video, canvas, ctx, frontSwingPlaneData, initialFrontFrame, false);
-		setupVideoEvents(video1, canvas1, ctx1, sideSwingPlaneData, initialSideFrame, true);
-		
-		// 當滑動條被拖動時，暫停影片並頻繁更新影片時間
-//		videoSlider.addEventListener('input', function () {
-//		    dragging = true;
-//		    video.pause();
-//		    video1.pause();
-//		    
-//		    if (requestId) {
-//		        cancelAnimationFrame(requestId);
-//		    }
-//
-//		    requestId = requestAnimationFrame(function updateSlider() {
-//		        video.currentTime = videoSlider.value; 
-//		        video1.currentTime = videoSlider.value;
-//		        requestId = requestAnimationFrame(updateSlider); // 不斷請求下一幀更新
-//		    });
-//		});
-
-		// 當用戶結束拖曳後，停止更新並恢復播放
-//		videoSlider.addEventListener('change', function () {
-//		    dragging = false;
-
-		    // 停止 requestAnimationFrame 更新
-//		    if (requestId) {
-//		        cancelAnimationFrame(requestId);
-//		        requestId = null;
-//		    }
-
-//		    video.currentTime = videoSlider.value;
-//		    video1.currentTime = videoSlider.value;
-
-//		    video.play();
-//		    video1.play();
-//		});
-
-		// 同步影片時間更新滑動條
-//		function syncSliderWithVideo(videoElement) {
-//		    videoElement.addEventListener('timeupdate', function () {
-//		        if (!dragging) {
-//		            videoSlider.value = videoElement.currentTime;
-//		        }
-//		    });
-//		}
-
-		//syncSliderWithVideo(video);
-		//syncSliderWithVideo(video1);
-		
-		// 當視窗大小改變時，調整每個影片的畫布大小
-		window.addEventListener('resize', function () {
-		    resizeCanvas(video, canvas);
-		    resizeCanvas(video1, canvas1);
-		 // 確保畫布大小調整後重新繪製
-		    clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
-		    clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
-		});
-
-		
-		function toggleFullScreen(videoElement, canvasElement, ctx, swingPlaneData, isSideView) {
-		    if (!document.fullscreenElement) {
-		        videoElement.requestFullscreen().catch(err => {
-		            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-		        });
-		        videoElement.style.objectFit = 'contain';  // 確保全螢幕時保持影片比例
-		        // 畫布調整後立即重新繪製輔助線
-		        setTimeout(() => {
-		            resizeCanvas(videoElement, canvasElement);
-		            clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
-		        }, 100);  // 可微調延遲時間
-		    } else {
-		        document.exitFullscreen();
-		        videoElement.style.objectFit = '';  // 退出全螢幕後重置樣式
-		    }
-		    
-		    // 當全螢幕狀態改變時重新調整畫布
-		    resizeCanvas(videoElement, canvasElement);
-		    clearAndDrawOverlayForVideo(videoElement, canvasElement, ctx, swingPlaneData, isSideView);
-		}
-
-		// 添加全螢幕狀態變更的事件監聽器，分別處理 video 和 video1
-		document.addEventListener("fullscreenchange", () => {
-		    if (document.fullscreenElement === video) {
-		        // 如果 video 進入或退出全螢幕
-		        resizeCanvas(video, canvas);
-		        clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
-		    } else if (document.fullscreenElement === video1) {
-		        // 如果 video1 進入或退出全螢幕
-		        resizeCanvas(video1, canvas1);
-		        clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
-		    } else {
-		        // 當退出全螢幕狀態時，恢復輔助線原始比例
-		        resizeCanvas(video, canvas);
-		        resizeCanvas(video1, canvas1);
-		        clearAndDrawOverlayForVideo(video, canvas, ctx, frontSwingPlaneData, false);
-		        clearAndDrawOverlayForVideo(video1, canvas1, ctx1, sideSwingPlaneData, true);
-		    }
-		});
-
-		// 為每個影片增加點擊全螢幕的事件
-		video.addEventListener('dblclick', function() {
-		    toggleFullScreen(video, canvas, ctx, frontSwingPlaneData, false);
-		});
-
-		video1.addEventListener('dblclick', function() {
-		    toggleFullScreen(video1, canvas1, ctx1, sideSwingPlaneData, true);
-		});
-		
-        function goToFrame(frameNumber,frameNumber1) {
-    		// 計算目標帧對應的時間（秒）
-    		var time = frameNumber / frameRate;
-    		var time1 = frameNumber1 / frameRate;
-    		// 確保影片已載入完成後再設置 currentTime
-    	    if (video.readyState >= 2) {
-    	        video.pause(); // 暫停影片，確保時間設置後不立即播放
-    	        video.currentTime = time;
-    	    } else {
-    	        video.addEventListener('loadedmetadata', function () {
-    	            video.pause();
-    	            video.currentTime = time;
-    	        });
-    	    }
-
-    	    if (video1.readyState >= 2) {
-    	        video1.pause(); // 暫停影片，確保時間設置後不立即播放
-    	        video1.currentTime = time1;
-    	    } else {
-    	        video1.addEventListener('loadedmetadata', function () {
-    	            video1.pause();
-    	            video1.currentTime = time1;
-    	        });
-    	    }
-    	    
-    		controlBtn.className = 'play'; // 將按鈕設為播放狀態
-    	    controlBtn.innerText = 'Play';
-    	}
-     	
-        function playPause() {
-			if (video.paused && video1.pause) {
-                video.play();
-                video1.play();
-                controlBtn.className = 'pause';
-                controlBtn.innerText = 'Pause';
-            } else {
-                video.pause();
-                video1.pause();
-                controlBtn.className = 'play';
-                controlBtn.innerText = 'Play';
-            }
-		}
-		
-		controlBtn.addEventListener("click", playPause);
-		function handleVideoEnd() {
-		    if (video.ended && video1.ended) {
-		        // 兩個視頻都已結束，重置按鈕以允許重新播放
-		        controlBtn.className = 'play';
-		        controlBtn.innerText = '播放';
-		    } else {
-		        // 只有一個視頻結束，檢查另一個視頻的狀態
-		        if (video.ended && !video1.paused) {
-		            // 第一個視頻結束，第二個正在播放，設置按鈕為暫停
-		            controlBtn.className = 'pause';
-		            controlBtn.innerText = '暫停';
-		        } else if (video1.ended && !video.paused) {
-		            // 第二個視頻結束，第一個正在播放，設置按鈕為暫停
-		            controlBtn.className = 'pause';
-		            controlBtn.innerText = '暫停';
-		        }
-		    }
-		}
-		video.addEventListener("ended", handleVideoEnd);
-		video1.addEventListener("ended", handleVideoEnd);
-		// 將JSP變量轉換為JavaScript變量
-	    var greatLevelTopBS = <%=expertData.GreatLevelTopBS%>;
-	    var greatLevelLowBS = <%=expertData.GreatLevelLowBS%>;
-	    var goodLevelLowBS = <%=expertData.GoodLevelLowBS%>;
-	    var normalLevelLowBS = <%=expertData.NormalLevelLowBS%>;
-	    var badLevelLowBS = <%=expertData.BadLevelLowBS%>;
-	    var worseLevelLowBS = <%=expertData.WorseLevelLowBS%>;
-	    
-	    var greatLevelTopCS = <%=expertData.GreatLevelTopCS%>;
-	    var greatLevelLowCS = <%=expertData.GreatLevelLowCS%>;
-	    var goodLevelLowCS = <%=expertData.GoodLevelLowCS%>;
-	    var normalLevelLowCS = <%=expertData.NormalLevelLowCS%>;
-	    var badLevelLowCS = <%=expertData.BadLevelLowCS%>;
-	    var worseLevelLowCS = <%=expertData.WorseLevelLowCS%>;
-
-	    var greatLevelTopDist = <%=expertData.GreatLevelTopDist%>;
-	    var greatLevelLowDist = <%=expertData.GreatLevelLowDist%>;
-	    var goodLevelLowDist = <%=expertData.GoodLevelLowDist%>;
-	    var normalLevelLowDist = <%=expertData.NormalLevelLowDist%>;
-	    var badLevelLowDist = <%=expertData.BadLevelLowDist%>;
-	    var worseLevelLowDist = <%=expertData.WorseLevelLowDist%>;
-
-	    var greatLevelTopLA = <%=expertData.GreatLevelTopLA%>;
-	    var greatLevelLowLA = <%=expertData.GreatLevelLowLA%>;
-	    var goodLevelLowLA = <%=expertData.GoodLevelLowLA%>;
-	    var normalLevelLowLA = <%=expertData.NormalLevelLowLA%>;
-	    var badLevelLowLA = <%=expertData.BadLevelLowLA%>;
-	    var worseLevelLowLA = <%=expertData.WorseLevelLowLA%>;
-
-	    var greatLevelTopBsp = <%=expertData.GreatLevelTopBsp%>;
-	    var greatLevelLowBsp = <%=expertData.GreatLevelLowBsp%>;
-	    var goodLevelLowBsp = <%=expertData.GoodLevelLowBsp%>;
-	    var normalLevelLowBsp = <%=expertData.NormalLevelLowBsp%>;
-	    var badLevelLowBsp = <%=expertData.BadLevelLowBsp%>;
-	    var worseLevelLowBsp = <%=expertData.WorseLevelLowBsp%>;
-
-		function getBallSpeedLevel(ballSpeed){
-			if(ballSpeed>greatLevelTopBS){
-				return greatLevelTopBS;
-			}else if (ballSpeed <= greatLevelTopBS && ballSpeed>greatLevelLowBS){
-				return greatLevelTopBS;
-			}else if (ballSpeed<=greatLevelLowBS && ballSpeed>goodLevelLowBS){
-				return greatLevelLowBS;
-			}else if(ballSpeed<=goodLevelLowBS && ballSpeed>normalLevelLowBS){
-				return goodLevelLowBS;
-			}else if(ballSpeed<=normalLevelLowBS && ballSpeed>badLevelLowBS){
-				return normalLevelLowBS;
-			}else if(ballSpeed<=badLevelLowBS && ballSpeed>worseLevelLowBS){
-				return badLevelLowBS;
-			}else {
-				return worseLevelLowBS;
-			}
-		}
-		
-		function getClubSpeedLevel(clubSpeed){
-			if(clubSpeed>greatLevelTopCS ){
-				return greatLevelTopCS ;
-			}else if (clubSpeed<=greatLevelTopCS  && clubSpeed>greatLevelLowCS ){
-				return greatLevelTopCS ;
-			}else if (clubSpeed<=greatLevelLowCS  && clubSpeed>goodLevelLowCS ){
-				return greatLevelLowCS ;
-			}else if(clubSpeed<=goodLevelLowCS  && clubSpeed>normalLevelLowCS){
-				return goodLevelLowCS ;
-			}else if(clubSpeed<=normalLevelLowCS && clubSpeed>badLevelLowCS){
-				return normalLevelLowCS;
-			}else if(clubSpeed<=badLevelLowCS && clubSpeed>worseLevelLowCS ){
-				return badLevelLowCS;
-			}else {
-				return worseLevelLowCS ;
-			}
-		}
-		
-		function getDistanceLevel(distance){
-			if(distance>greatLevelTopDist){
-				return greatLevelTopDist;
-			}else if (distance<=greatLevelTopDist && distance>greatLevelLowDist ){
-				return greatLevelTopDist;
-			}else if (distance<=greatLevelLowDist  && distance>goodLevelLowDist ){
-				return greatLevelLowDist ;
-			}else if(distance<=goodLevelLowDist  && distance>normalLevelLowDist ){
-				return goodLevelLowDist ;
-			}else if(distance<=normalLevelLowDist  && distance>badLevelLowDist ){
-				return normalLevelLowDist ;
-			}else if(distance<=badLevelLowDist  && distance>worseLevelLowDist ){
-				return badLevelLowDist ;
-			}else {
-				return worseLevelLowDist ;
-			}
-		}
-		
-		function getLaunchAngleLevel(launchAngle){
-			if(launchAngle>greatLevelTopLA ){
-				return greatLevelTopLA ;
-			}else if (launchAngle<=greatLevelTopLA  && launchAngle>greatLevelLowLA ){
-				return greatLevelTopLA ;
-			}else if (launchAngle<=greatLevelLowLA  && launchAngle>goodLevelLowLA ){
-				return greatLevelLowLA ;
-			}else if(launchAngle<=goodLevelLowLA  && launchAngle>normalLevelLowLA ){
-				return goodLevelLowLA ;
-			}else if(launchAngle<=normalLevelLowLA  && launchAngle>badLevelLowLA ){
-				return normalLevelLowLA ;
-			}else if(launchAngle<=badLevelLowLA  && launchAngle>worseLevelLowLA ){
-				return badLevelLowLA ;
-			}else {
-				return worseLevelLowLA ;
-			}
-		}
-		
-		function getBackSpinLevel(backSpin){
-			if(backSpin>greatLevelTopBsp){
-				return greatLevelTopBsp;
-			}else if (backSpin<=greatLevelTopBsp && backSpin>greatLevelLowBsp){
-				return greatLevelTopBsp;
-			}else if (backSpin<=greatLevelLowBsp && backSpin>goodLevelLowBsp){
-				return greatLevelLowBsp;
-			}else if(backSpin<=goodLevelLowBsp && backSpin>normalLevelLowBsp ){
-				return goodLevelLowBsp;
-			}else if(backSpin<=normalLevelLowBsp  && backSpin>badLevelLowBsp){
-				return normalLevelLowBsp ;
-			}else if(backSpin<=badLevelLowBsp && backSpin>worseLevelLowBsp){
-				return badLevelLowBsp;
-			}else {
-				return worseLevelLowBsp;
-			}
-		}
-
-		var ballSpeed = <%=shotResult[0][0]%>;
-		var avgBS = <%=shotResult[0][1]%>;
-		var ballSpeedLevel = getBallSpeedLevel(ballSpeed);
-		var clubSpeed = <%=shotResult[1][0]%>;
-		var avgCS = <%=shotResult[1][1]%>;
-		var clubSpeedLevel = getClubSpeedLevel(clubSpeed);
-	    var distance = <%=shotResult[2][0]%>;
-	    var launchDirection = <%=shotResult[5][0]%>		
-		var avgDist = <%=shotResult[2][1]%>;
-		var distanceLevel = getDistanceLevel(distance);
-		var launchAngle = <%=shotResult[3][0]%>;
-		var avgLA = <%=shotResult[3][1]%>;
-		var launchAngleLevel = getLaunchAngleLevel(launchAngle);
-		var backSpin = <%=shotResult[4][0]%>;
-		var avgBsp = <%=shotResult[4][1]%>;
-		var backSpinLevel = getBackSpinLevel(backSpin);	        
-		var smachfact = Math.round((ballSpeed/clubSpeed)*100)/100;
-		
-		// 計算公式
-		function calculateBallScore(distance, direction) {
-		    if (distance > 176) {
-		        distance = 176;
-		    }
-
-		    // direction 取絕對值
-		    direction = Math.abs(direction);
-
-		    // 當 direction 大於 16 時，direction 等於 16
-		    if (direction > 16) {
-		        direction = 16;
-		    }
-		    const score = ((distance / 176 + ((16 - direction) / 16) * 0.5) / 1.5) * 100;
-		    return Math.ceil(Math.min(score, 100)); // 確保不超過100，並限制小數位數
-		}
-		//document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed + " -> " + ballSpeedLevel + "mph";
-	    document.addEventListener("DOMContentLoaded", function() {
-        	//document.getElementById("smachfactDisplay").innerText = "擊球效率:"+smachfact;
-	        //document.getElementById("ballSpeedDisplay").innerText = "球速: " + ballSpeed  + "mph";
-	        //document.getElementById("clubSpeedDisplay").innerText = "桿頭速度: " + clubSpeed  + "mph";
-	        //document.getElementById("distanceDisplay").innerText = "飛行距離: " + distance +  "yard";
-	        //document.getElementById("launchAngleDisplay").innerText = "發射角度: " + launchAngle  + "degree";
-	        //document.getElementById("backSpinDisplay").innerText = "後旋: " + backSpin  + "rpm";
-	        document.getElementById("ballscore").innerText = "彈道分數: " + calculateBallScore(distance,launchDirection) ;
-	    });
-	    
-	    // 數據範圍，您可以用後端服務的實際範圍來替換這些值
-	    var ranges = {
-	        'BackSpin': [[1, worseLevelLowBsp], [worseLevelLowBsp, badLevelLowBsp], [badLevelLowBsp, normalLevelLowBsp], [normalLevelLowBsp, goodLevelLowBsp], [goodLevelLowBsp,greatLevelLowBsp] ,[greatLevelLowBsp,greatLevelTopBsp],[greatLevelTopBsp,greatLevelTopBsp+backSpin]],
-	        'ClubSpeed': [[1, worseLevelLowCS], [worseLevelLowCS, badLevelLowCS], [badLevelLowCS, normalLevelLowCS], [normalLevelLowCS, goodLevelLowCS], [goodLevelLowCS,greatLevelLowCS] ,[greatLevelLowCS,greatLevelTopCS],[greatLevelTopCS,greatLevelTopCS+clubSpeed]],
-	        'Distance': [[1, worseLevelLowDist], [worseLevelLowDist, badLevelLowDist], [badLevelLowDist, normalLevelLowDist], [normalLevelLowDist, goodLevelLowDist], [goodLevelLowDist,greatLevelLowDist] ,[greatLevelLowDist,greatLevelTopDist],[greatLevelTopDist,greatLevelTopDist+distance]],
-	        'BallSpeed': [[1, worseLevelLowBS], [worseLevelLowBS, badLevelLowBS], [badLevelLowBS, normalLevelLowBS], [normalLevelLowBS, goodLevelLowBS], [goodLevelLowBS,greatLevelLowBS] ,[greatLevelLowBS,greatLevelTopBS],[greatLevelTopBS,greatLevelTopBS+ballSpeed]],
-	        'LaunchAngle': [[1, worseLevelLowLA], [worseLevelLowLA, badLevelLowLA], [badLevelLowLA, normalLevelLowLA], [normalLevelLowLA, goodLevelLowLA], [goodLevelLowLA,greatLevelLowLA] ,[greatLevelLowLA,greatLevelTopLA],[greatLevelTopLA,greatLevelTopLA+launchAngle]],
-	        
-	    };
-
-	    // 將數據值映射到雷達圖的層級
-	    function getLevel(value, range) {
-	        return range.findIndex(r => value >= r[0] && value <= r[1]) + 1;
-	    }
-
-	    var radarData = {
-	        labels: ['後旋', '桿頭速度', '距離' , '球速' , '發射角度'],
-	        datasets: [{
-	            label: '本次擊球',
-	            data: [getLevel(backSpin, ranges.BackSpin), 
-	            	getLevel(clubSpeed, ranges.ClubSpeed), 
-	            	getLevel(distance, ranges.Distance), 
-	            	getLevel(ballSpeed, ranges.BallSpeed), 
-	            	getLevel(launchAngle, ranges.LaunchAngle)],
-	            backgroundColor: 'rgba(135, 206, 250, 0.2)',
-	            borderColor: 'rgba(135, 206, 250, 1)',
-	            pointBackgroundColor: 'rgba(135, 206, 250, 1)',
-	            pointBorderColor: '#fff',
-	            pointHoverBackgroundColor: '#fff',
-	            pointHoverBorderColor: 'rgba(135, 206, 250, 1)'
-	        },
-	        {
-	            label: '擊球歷程',
-	            data: [
-	            	getLevel(avgBsp, ranges.BackSpin), 
-	            	getLevel(avgCS, ranges.ClubSpeed), 
-	            	getLevel(avgDist, ranges.Distance), 
-	            	getLevel(avgBS, ranges.BallSpeed), 
-	            	getLevel(avgLA, ranges.LaunchAngle)
-	            ],
-	            backgroundColor: 'rgba(255, 193, 7, 0.2)',
-	            borderColor: 'rgba(255, 193, 7, 1)',
-	            pointBackgroundColor: 'rgba(255, 193, 7, 1)',
-	            pointBorderColor: '#fff',
-	            pointHoverBackgroundColor: '#fff',
-	            pointHoverBorderColor: 'rgba(255, 193, 7, 1)'
-	        }
-	    ]
-	    };
-	    var hiddenRangeDataset = {
-	    	    label: '',
-	    	    data: [1, 2, 3, 4, 5, 6, 7], // 涵蓋1到7的數據範圍
-	    	    borderColor: 'rgba(0, 0, 0, 0)', // 完全透明
-	    	    backgroundColor: 'rgba(0, 0, 0, 0)' // 完全透明
-	    };
-
-	    	radarData.datasets.push(hiddenRangeDataset);
-	    var myRadarChart = new Chart(document.getElementById('radarChart'), {
-	        type: 'radar',
-	        data: radarData,
-	        options: {
-	            scales: {
-	            	r: {
-	                ticks: {
-	                	display: false,
-	                	backdropColor: 'transparent', // 去除背景色
-	                	beginAtZero: false, // 不從0開始
-	                    min: 1,  // 最小值設定為1
-	                    max: 7,  // 最大值設定為7
-	                    stepSize: 1,  // 步長為1
-	                },
-	                angleLines: {
-	                    display: true
-	                },
-	                grid: {
-	                	color: 'white'
-	                },
-	                pointLabels: {
-	                    font: {
-	                        size: 16, // 字體大小
-	                        family: "'Arial', sans-serif", // 字體類型
-	                        weight: 'bold' // 字體粗體
-	                    	},
-	                    color: '#FFFFFF' // 字體顏色
-	                	},
-	            	},
-	            },
-	            plugins: {
-	                legend: {
-	                    labels: {
-	                        color: 'white', // 設置圖例文字顏色
-	                        font: {
-	                            size: 16, // 設置圖例文字大小
-	                            family: "'Arial', sans-serif",
-	                            weight: 'bold'
-	                        }
-	                    }
-	                }
-	            },
-	        }
-	    });
+		// function getBackSpinLevel(backSpin){
+		// 	if(backSpin>greatLevelTopBsp){
+		// 		return greatLevelTopBsp;
+		// 	}else if (backSpin<=greatLevelTopBsp && backSpin>greatLevelLowBsp){
+		// 		return greatLevelTopBsp;
+		// 	}else if (backSpin<=greatLevelLowBsp && backSpin>goodLevelLowBsp){
+		// 		return greatLevelLowBsp;
+		// 	}else if(backSpin<=goodLevelLowBsp && backSpin>normalLevelLowBsp ){
+		// 		return goodLevelLowBsp;
+		// 	}else if(backSpin<=normalLevelLowBsp  && backSpin>badLevelLowBsp){
+		// 		return normalLevelLowBsp ;
+		// 	}else if(backSpin<=badLevelLowBsp && backSpin>worseLevelLowBsp){
+		// 		return badLevelLowBsp;
+		// 	}else {
+		// 		return worseLevelLowBsp;
+		// 	}
+		// }
 	</script>
 </body>
 </html>
