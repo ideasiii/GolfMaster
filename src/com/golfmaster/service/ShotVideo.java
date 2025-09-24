@@ -193,6 +193,7 @@ public class ShotVideo {
 			strSQL = String.format(
 				"SELECT SVS.CamPos AS CamPos, "
 					+ "SVS.PlayerPSystem AS PlayerPSystem, "
+					+ "SVS.PlayerScore AS PlayerScore, "
 					+ "SVS.PoseImpact AS PoseImpact, "
 					+ "SVS.SwingPlane AS SwingPlane, "
 					+ "SVS.TpiSwingTable As TpiSwingTable, "
@@ -227,6 +228,7 @@ public class ShotVideo {
 				jsonProject.put("PlayerPSystem", rs.getString("PlayerPSystem") != null ? rs.getString("PlayerPSystem") : "");
 				jsonProject.put("analyze_shotVideo_front", rs.getString("analyze_shotVideo_front") != null ? rs.getString("analyze_shotVideo_front") : "");
 				jsonProject.put("analyze_shotVideo_side", rs.getString("analyze_shotVideo_side") != null ? rs.getString("analyze_shotVideo_side") : "");
+				jsonProject.put("PlayerScore", rs.getString("PlayerScore") != null ? rs.getString("PlayerScore") : "");
 				jsonProject.put("PoseImpact", rs.getString("PoseImpact") != null ? rs.getString("PoseImpact") : "");
 				jsonProject.put("SwingPlane", rs.getString("SwingPlane") != null ? rs.getString("SwingPlane") : "");
 				jsonProject.put("TpiSwingTable", rs.getString("TpiSwingTable") != null ? rs.getString("TpiSwingTable") : "");
@@ -266,6 +268,8 @@ public class ShotVideo {
 
 		// parameters
 		int defaultTpiTableSize = 16;
+		double simScoreThreshold = 0.70; // 相似度分數, 最大值為1
+		int postImpactMaxIndex = 6; // 關節部位個數[shoulder, elbow, wrist, hip, knee, ankle]
 
 		// 修改變量以存儲最大值的索引
 		int maxAIndex = -1, maxTIndex = -1, maxIIndex = -1, maxFIndex = -1;
@@ -333,18 +337,11 @@ public class ShotVideo {
 				}
 
 				// 處理PoseImpact數據
-				if (result.has("PoseImpact")) {
-					JSONObject poseImpact = new JSONObject(result.getString("PoseImpact"));
-					JSONObject dataObj = poseImpact.getJSONObject("data");
-
-					maxAIndex = getMaxIndex(dataObj.getJSONArray("A"));
-					maxTIndex = getMaxIndex(dataObj.getJSONArray("T"));
-					maxIIndex = getMaxIndex(dataObj.getJSONArray("I"));
-					maxFIndex = getMaxIndex(dataObj.getJSONArray("F"));
-
-					Logs.log(Logs.RUN_LOG, "A:" + Integer.toString(maxAIndex) + "T:" + Integer.toString(maxTIndex)
-							+ "I:" + Integer.toString(maxIIndex) + "F:" + Integer.toString(maxFIndex));
-				}
+				int[] maxIndexes = processCmpPoseImpact(result, simScoreThreshold, postImpactMaxIndex);
+				maxAIndex = maxIndexes[0];
+				maxTIndex = maxIndexes[1];
+				maxIIndex = maxIndexes[2];
+				maxFIndex = maxIndexes[3];
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -377,25 +374,25 @@ public class ShotVideo {
 		}
 
 		if (maxAIndex < 0)
-			maxAIndex = 6;
+			maxAIndex = postImpactMaxIndex;
 		if (maxTIndex < 0)
-			maxTIndex = 6;
+			maxTIndex = postImpactMaxIndex;
 		if (maxIIndex < 0)
-			maxIIndex = 6;
+			maxIIndex = postImpactMaxIndex;
 		if (maxFIndex < 0)
-			maxFIndex = 6;
+			maxFIndex = postImpactMaxIndex;
 
 		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
 		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
 		int[] sideTpi = sideTpiTable.stream().mapToInt(i -> i).toArray();
 		int[] frontTpi = frontTpiTable.stream().mapToInt(i -> i).toArray();
 
-		System.out.println(
-			"sideTpi = "
-			+ Arrays.toString(sideTpi)
-			+ " frontTpi = "
-			+ Arrays.toString(frontTpi)
-		);
+		// System.out.println(
+		// 	"sideTpi = "
+		// 	+ Arrays.toString(sideTpi)
+		// 	+ " frontTpi = "
+		// 	+ Arrays.toString(frontTpi)
+		// );
 
 		return new Object[] {
 			sideArray, frontArray, frontVideoName, sideVideoName,
@@ -403,6 +400,76 @@ public class ShotVideo {
 			sideSwingPlane, frontSwingPlane, sideTpi, frontTpi
 		};
 	}
+
+	// --- ---
+
+	/**
+	 * 根據 PlayerScore 判斷是否需要從 PoseImpact 中尋找最大值索引。
+	 *
+	 * @param result 單個 shotVideo 分析的 JSONObject。
+	 * @param scoreThreshold 分數門檻值。
+	 * @param maxIndex 關節部位分數的個數[shoulder, elbow, wrist, hip, knee, ankle]
+	 * @return 包含四個最大值索引的 int 陣列。
+	 */
+	private int[] processCmpPoseImpact(
+		JSONObject result,
+		double scoreThreshold,
+		int maxIndex
+	) {
+		int maxAIndex = maxIndex;
+		int maxTIndex = maxIndex;
+		int maxIIndex = maxIndex;
+		int maxFIndex = maxIndex;
+
+		String playerScoreStr = result.optString("PlayerScore", "{}");
+		String poseImpactStr = result.optString("PoseImpact", "{}");
+
+		if (!playerScoreStr.isEmpty() && !poseImpactStr.isEmpty()) {
+			try {
+				JSONObject playerScore = new JSONObject(playerScoreStr);
+				JSONObject poseImpact = new JSONObject(poseImpactStr);
+
+				JSONObject scoreData = playerScore.optJSONObject("data");
+				JSONObject impactData = poseImpact.optJSONObject("data");
+
+				System.out.println("scoreData = " + scoreData);
+				System.out.println("impactData = " + impactData);
+
+				if (scoreData != null && impactData != null) {
+					if (scoreData.optDouble("A", 1.0) < scoreThreshold) {
+						JSONArray aArray = impactData.optJSONArray("A");
+						maxAIndex = getMaxIndex(aArray);
+					}
+
+					if (scoreData.optDouble("T", 1.0) < scoreThreshold) {
+						JSONArray tArray = impactData.optJSONArray("T");
+						maxTIndex = getMaxIndex(tArray);
+					}
+
+					if (scoreData.optDouble("I", 1.0) < scoreThreshold) {
+						JSONArray iArray = impactData.optJSONArray("I");
+						maxIIndex = getMaxIndex(iArray);
+					}
+
+					if (scoreData.optDouble("F", 1.0) < scoreThreshold) {
+						JSONArray fArray = impactData.optJSONArray("F");
+						maxFIndex = getMaxIndex(fArray);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				Logs.log(Logs.EXCEPTION_LOG, "Error processing PlayerScore and PoseImpact: " + e.getMessage());
+				System.out.println("Error processing PlayerScore and PoseImpact: " + e.getMessage());
+			}
+		}
+
+		Logs.log(Logs.RUN_LOG, "A:" + maxAIndex + " T:" + maxTIndex + " I:" + maxIIndex + " F:" + maxFIndex);
+		System.out.println("A:" + maxAIndex + " T:" + maxTIndex + " I:" + maxIIndex + " F:" + maxFIndex);
+
+		return new int[]{maxAIndex, maxTIndex, maxIIndex, maxFIndex};
+	}
+
+	// --- ---
 
 	private String extractFileName(String url) {
 		return url.substring(url.lastIndexOf('/') + 1);

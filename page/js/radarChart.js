@@ -94,15 +94,23 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
         };
 
         radarData = {
-            labels: ['後旋', '桿頭速度', '距離', '球速', '發射角度'],
+            // labels: ['後旋', '桿頭速度', '距離', '球速', '發射角度'],
+            labels: ['距離', '桿頭速度', '發射角度', '後旋' , '球速'],
             datasets: [{
                 label: '本次擊球',
+                // data: [
+                //     getLevelForRadar(shotData.backSpin, ranges.BackSpin),
+                //     getLevelForRadar(shotData.clubSpeed, ranges.ClubSpeed),
+                //     getLevelForRadar(shotData.distance, ranges.Distance),
+                //     getLevelForRadar(shotData.ballSpeed, ranges.BallSpeed),
+                //     getLevelForRadar(shotData.launchAngle, ranges.LaunchAngle)
+                // ],
                 data: [
-                    getLevelForRadar(shotData.backSpin, ranges.BackSpin),
-                    getLevelForRadar(shotData.clubSpeed, ranges.ClubSpeed),
                     getLevelForRadar(shotData.distance, ranges.Distance),
+                    getLevelForRadar(shotData.clubSpeed, ranges.ClubSpeed),
+                    getLevelForRadar(shotData.launchAngle, ranges.LaunchAngle),
+                    getLevelForRadar(shotData.backSpin, ranges.BackSpin),
                     getLevelForRadar(shotData.ballSpeed, ranges.BallSpeed),
-                    getLevelForRadar(shotData.launchAngle, ranges.LaunchAngle)
                 ],
                 backgroundColor: 'rgba(0, 169, 188, 0.2)',
                 borderColor: 'rgba(0, 169, 188, 1)',
@@ -112,12 +120,19 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
                 pointHoverBorderColor: 'rgba(0, 169, 188, 1)'
             }, {
                 label: '擊球歷程',
+                // data: [
+                //     getLevelForRadar(shotData.avgBsp, ranges.BackSpin),
+                //     getLevelForRadar(shotData.avgCS, ranges.ClubSpeed),
+                //     getLevelForRadar(shotData.avgDist, ranges.Distance),
+                //     getLevelForRadar(shotData.avgBS, ranges.BallSpeed),
+                //     getLevelForRadar(shotData.avgLA, ranges.LaunchAngle)
+                // ],
                 data: [
-                    getLevelForRadar(shotData.avgBsp, ranges.BackSpin),
-                    getLevelForRadar(shotData.avgCS, ranges.ClubSpeed),
                     getLevelForRadar(shotData.avgDist, ranges.Distance),
+                    getLevelForRadar(shotData.avgCS, ranges.ClubSpeed),
+                    getLevelForRadar(shotData.avgLA, ranges.LaunchAngle),
+                    getLevelForRadar(shotData.avgBsp, ranges.BackSpin),
                     getLevelForRadar(shotData.avgBS, ranges.BallSpeed),
-                    getLevelForRadar(shotData.avgLA, ranges.LaunchAngle)
                 ],
                 backgroundColor: "rgba(240, 129, 86, 0.2)",
                 borderColor: "rgba(240, 129, 86, 1)",

@@ -307,5 +307,12 @@ public abstract class DeviceData {
 	public final double NormalLevelLowBsp = 4659.00;
 	public final double BadLevelLowBsp = 3276.00;
 	public final double WorseLevelLowBsp = 1194.08;
+	// 發射方向 (Launch Direction)
+	public final double GreatLevelTopLD = 0.45;
+	public final double GreatLevelLowLD = 1.48;
+	public final double GoodLevelLowLD = 3.20;
+	public final double NormalLevelLowLD = 5.50;
+	public final double BadLevelLowLD = 8.69;
+	public final double WorseLevelLowLD = 16.30;
 }
 
