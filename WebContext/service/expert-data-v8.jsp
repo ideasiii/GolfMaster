@@ -21,8 +21,8 @@
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
-Long shot_data_id = result.getLong("shotdata_id");
-// Long shot_data_id = 128069L; // test
+// Long shot_data_id = result.getLong("shotdata_id");
+Long shot_data_id = 128069L; // test
 Long exID = result.getLong("id"); // Unused, but kept for context
 
 Object temp[] = shotVideo.processAnalyz(shot_data_id);
@@ -36,23 +36,8 @@ int iEffect = (int) temp[6]; // Impact
 int fEffect = (int) temp[7]; // Finish
 String sideSwingPlane = (String) temp[8]; // 側面 SwingPlane 資料
 String frontSwingPlane = (String) temp[9]; // 正面 SwingPlane 資料
-int[] sideTpiSwingTable = (int[]) temp[10]; // 側面 SwingTable 資料
-int[] frontTpiSwingTable = (int[]) temp[11]; // 正面 SwingTable 資料
-int[] combinedTpiSwingTable = null;
-
-if (sideTpiSwingTable != null && frontTpiSwingTable != null &&
-	sideTpiSwingTable.length == frontTpiSwingTable.length
-) {
-
-	// 建立一個新陣列來存放 OR 合併後的結果
-    combinedTpiSwingTable = new int[sideTpiSwingTable.length];
-
-    // 迴圈遍歷陣列中的每一個元素
-    for (int i = 0; i < sideTpiSwingTable.length; i++) {
-        // 使用位元運算子的 OR (|) 來合併兩個陣列的元素
-        combinedTpiSwingTable[i] = sideTpiSwingTable[i] | frontTpiSwingTable[i];
-    }
-}
+int[] combinedTpiSwingTable = (int[]) temp[10]; // SwingTable 資料
+String tpiAdvicesJson = (String) temp[11]; // allFilteredAdvicesJson 資料
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 
@@ -219,10 +204,10 @@ String suggestion = result.optString("expert_suggestion", "");
 						<!--<h1>個人影像</h1>-->
 						<div class="psystemSection">
 							<div id="compare-chart" class="box">
-								<img data-phase="A" src="../../page/img/A/A<%=aEffect%>.png">
-								<img data-phase="T" src="../../page/img/T/T<%=tEffect%>.png">
-								<img data-phase="I" src="../../page/img/I/I<%=iEffect%>.png">
-								<img data-phase="F" src="../../page/img/F/F<%=fEffect%>.png">
+								<img id="img-A" class="chart-img" data-phase="A" data-effect="<%=aEffect%>" src="../../page/img/A/A<%=aEffect%>.png">
+								<img id="img-T" class="chart-img" data-phase="T" data-effect="<%=tEffect%>" src="../../page/img/T/T<%=tEffect%>.png">
+								<img id="img-I" class="chart-img" data-phase="I" data-effect="<%=iEffect%>" src="../../page/img/I/I<%=iEffect%>.png">
+								<img id="img-F" class="chart-img" data-phase="F" data-effect="<%=fEffect%>" src="../../page/img/F/F<%=fEffect%>.png">
 							</div>
 							<div id="tpi-advices" class="p_de">
 								<table>
@@ -255,60 +240,6 @@ String suggestion = result.optString("expert_suggestion", "");
 			</div>
 		</div>
 	</div>
-	<script>
-		/**
-		 * TPI 揮桿特徵數據庫。
-		 * 每個物件代表一個揮桿特徵，包含其名稱、階段、標題、姿勢、原因和建議。
-		 * @const {Array<object>}
-		 */
-		const tpiAdvices = [
-			{ name: "s_posture", phase: "A", title: "準備", posture: "S形姿勢",
-				reason: "骨盆前傾或下交叉綜合症造成", suggestion: "收緊核心，保持脊椎中立，避免過度彎曲下背部。" }, // 索引 0
-			{ name: "c_posture", phase: "A", title: "準備", posture: "C形姿勢",
-				reason: "胸椎伸展受限或上交叉綜合症", suggestion: "擴展胸椎，改善肩胛骨穩定性，並確認球桿長度是否合適。" }, // 索引 1
-
-			{ name: "loss_of_posture", phase: "I", title: "揮桿過程", posture: "喪失體姿",
-				reason: "揮桿中原始設定角度變化", suggestion: "訓練核心力量與髖部、肩部柔韌性，保持脊椎角度穩定。" }, // 索引 2
-			{ name: "flat_shoulder_plane", phase: "T", title: "上桿", posture: "平坦肩部平面",
-				reason: "肩部轉動平面過於水平", suggestion: "練習軀幹與骨盆分離，並改善脊椎與肩部活動度。" }, // 索引 3
-			{ name: "flying_elbow", phase: "T", title: "上桿", posture: "飛肘",
-				reason: "後側手肘離開身體後側", suggestion: "訓練肩關節和胸椎活動度，保持肩部穩定並同步揮桿。" }, // 索引 4
-			{ name: "early_extension", phase: "I", title: "下桿", posture: "提前伸展",
-				reason: "下半身過早向球移動", suggestion: "增加髖部和下半身柔韌性，用身體旋轉而不是推動來啟動下桿。" }, // 索引 5
-			{ name: "over_the_top", phase: "I", title: "下桿", posture: "由上而下",
-				reason: "下桿時過度使用上半身", suggestion: "啟動下半身，讓球桿從內側路徑下桿。" }, // 索引 6
-			{ name: "sway", phase: "T", title: "上桿", posture: "身體搖擺",
-				reason: "上桿時下半身橫向移動", suggestion: "加強髖部內旋和臀大肌力量，保持重心穩定在上半身。" }, // 索引 7
-			{ name: "slide", phase: "I", title: "下桿", posture: "身體側移",
-				reason: "下桿時下半身過度橫向移動", suggestion: "訓練臀大肌力量，讓下半身穩定，以旋轉而不是側移來帶動下桿。" }, // 索引 8
-			{ name: "late_buckle", phase: "I", title: "擊球後", posture: "遲滯彎曲",
-				reason: "擊球後膝蓋突然彎曲下沉", suggestion: "強化髖部活動度和核心穩定性，讓身體能支撐下桿的巨大力量。" }, // 索引 9
-			{ name: "reverse_spine_angle", phase: "T", title: "上桿", posture: "反向脊柱角度",
-				reason: "上桿時上半身過度向後傾斜", suggestion: "訓練核心力量與軀幹分離，保持脊椎在正確的軸心上旋轉。" }, // 索引 10
-			{ name: "forward_lunge", phase: "I", title: "下桿", posture: "前向弓步",
-				reason: "下桿時上半身過度前移", suggestion: "提升下半身力量與爆發力，讓體重轉移正確。" }, // 索引 11
-			{ name: "hanging_back", phase: "I", title: "擊球", posture: "向後滯留",
-				reason: "下桿時缺乏體重轉移", suggestion: "訓練核心與腿部力量，確保在下桿時將體重完整轉移到前腳。" }, // 索引 12
-			{ name: "casting", phase: "I", title: "下桿", posture: "拋擲",
-				reason: "下桿時過早釋放手腕角度", suggestion: "強化下半身啟動，延遲手腕釋放，以增加桿頭速度。" }, // 索引 13
-			{ name: "scooping", phase: "I", title: "擊球", posture: "撈球",
-				reason: "擊球時試圖將球撈起", suggestion: "強化下半身力量與髖部活動度，專注於向下擊球以獲得穩定力量。" }, // 索引 14
-			{ name: "chicken_wing", phase: "I", title: "擊球", posture: "雞翅膀",
-				reason: "擊球後領先手臂過度彎曲", suggestion: "增強下半身力量，讓身體轉動帶動手臂，保持手臂伸直以增加寬度。" } // 索引 15
-		];
-
-		/**
-		 * 將揮桿階段映射到 tpiAdvices 陣列中的對應索引。
-		 * 用於快速篩選特定階段的揮桿特徵。
-		 * @const {Object<string, Array<number>>}
-		 */
-		const tpiMapping = {
-			'A': [0, 1],
-			'T': [3, 4, 7, 10],
-			'I': [2, 5, 6, 8, 9, 11, 12, 13, 14, 15],
-			'F': []
-		};
-	</script>
 
 	<script>
 		// --- JSP Data to JS Variables ---
@@ -316,9 +247,10 @@ String suggestion = result.optString("expert_suggestion", "");
 		const frontSwingPlaneData = <%= StringUtils.defaultIfEmpty(frontSwingPlane, "null") %>;
 		const initialSideFrame = <%= sideFrames[0] %>; // 側面影片的第一步幀數
 		const initialFrontFrame = <%= frontFrames[0] %>; // 正面影片的第一步幀數
-		// const sideTpiSwingTable = <%= new JSONArray(sideTpiSwingTable).toString() %>;
-		// const frontTpiSwingTable = <%= new JSONArray(frontTpiSwingTable).toString() %>;
 		const combinedTpiSwingTable = <%= new JSONArray(combinedTpiSwingTable).toString() %>;
+		const tpiAdvicesData = '<%= StringUtils.defaultIfEmpty(tpiAdvicesJson, "null") %>';
+
+		console.log(tpiAdvicesData);
 
 		// 假設這是你的 combinedTpiSwingTable 陣列，這裡用一個固定值來模擬
 		// const combinedTpiSwingTable = [1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0];
@@ -549,6 +481,7 @@ String suggestion = result.optString("expert_suggestion", "");
 		function handleButtonClick(event) {
 			// 獲取按鈕上的 data-屬性
 			const phase = event.target.dataset.phase;
+			const effectValue = document.getElementById('img-'+ phase).dataset.effect;
 			const frontFrame = parseInt(event.target.dataset.frontFrame);
 			const sideFrame = parseInt(event.target.dataset.sideFrame);
 
@@ -559,14 +492,14 @@ String suggestion = result.optString("expert_suggestion", "");
 			goToFrame(frontFrame, sideFrame);
 
 			// 根據點擊的階段更新圖片顯示
+			cmpChartManager.updateChartTpiImage(phase, tpiAdvicesData);
 			cmpChartManager.updateChartImage(phase);
 
 			// 處理 TPI 建議顯示
 			tpiManager.updateTable(
-				combinedTpiSwingTable,
 				phase,
-				tpiMapping,
-				tpiAdvices,
+				tpiAdvicesData,
+				effectValue,
 			);
 		}
 
@@ -628,14 +561,15 @@ String suggestion = result.optString("expert_suggestion", "");
 				firstButton.classList.add('stepbutton_selected');
 
 				// 更新與教練比較圖
+				cmpChartManager.updateChartTpiImage(firstButton.dataset.phase, tpiAdvicesData);
 				cmpChartManager.updateChartImage(firstButton.dataset.phase);
 
 				// 處理 TPI 建議顯示
+				const effectValue = document.getElementById('img-'+ firstButton.dataset.phase).dataset.effect;
 				tpiManager.updateTable(
-					combinedTpiSwingTable,
 					firstButton.dataset.phase,
-					tpiMapping,
-					tpiAdvices,
+					tpiAdvicesData,
+					effectValue,
 				);
 			}
 

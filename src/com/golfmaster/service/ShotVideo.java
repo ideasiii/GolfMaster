@@ -1,11 +1,16 @@
 package com.golfmaster.service;
 
+import com.google.gson.Gson;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +24,8 @@ import com.golfmaster.common.ApiResponse;
 import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.service.CallMotionApi;
+import com.golfmaster.service.TpiDataService;
+
 
 public class ShotVideo {
 	private class ParamData {
@@ -40,6 +47,9 @@ public class ShotVideo {
 	public final String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";
 	public final int[] defaultSideTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	public final int[] defaultFrontTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	public final int[] defaultTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	public final String defaultAdvicesJson = "{\"A\":[], \"T\":[], \"I\":[], \"F\":[]}";
+
 	public String processRequest(HttpServletRequest request) {
 		JSONObject jsonResponse = null;
 		CallMotionApi callMotionApi = new CallMotionApi();
@@ -85,7 +95,7 @@ public class ShotVideo {
 			int fPos = 6;
 			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName,
 					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane,
-					defaultSideTpiSwingTable, defaultFrontTpiSwingTable,
+					defaultTpiSwingTable, defaultAdvicesJson
 				};
 		}
 
@@ -107,9 +117,40 @@ public class ShotVideo {
 		String frontSwingPlane = framesData.length > 9 && framesData[9] != null ? (String) framesData[9]
 				: emptySwingPlane;
 		int[] sideTpiSwingTable = framesData.length > 10 && framesData[10] != null ? (int[]) framesData[10]
-				: defaultSideTpiSwingTable;
+				: defaultTpiSwingTable;
 		int[] frontTpiSwingTable = framesData.length > 11 && framesData[11] != null ? (int[]) framesData[11]
-				: defaultFrontTpiSwingTable;
+				: defaultTpiSwingTable;
+
+		// 將前後台的 TPI 數據合併
+		int[] combinedTpiSwingTable = new int[sideTpiSwingTable.length];
+		for (int i = 0; i < sideTpiSwingTable.length; i++) {
+			combinedTpiSwingTable[i] = sideTpiSwingTable[i] | frontTpiSwingTable[i];
+		}
+		// for test
+		// int[] combinedTpiSwingTable = {1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0};
+
+
+		// // 使用 TpiDataService 篩選所有階段的數據
+		System.out.println("DEBUG-PRE: Ready to initialize TpiDataService.");
+
+		Map<String, List<Map<String, String>>> allFilteredAdvices = new HashMap<>();
+		try{
+			// 這行會導致類別載入
+			TpiDataService tpiDataService = new TpiDataService();
+			allFilteredAdvices = tpiDataService.getAllFilteredAdvices(combinedTpiSwingTable);
+		} catch (Exception e) {
+			// 雖然理論上抓不到 Error，但抓 Exception 是對的。
+			System.out.println("processAnalyz caught an exception: " + e.getMessage());
+		}
+
+		// // // 將 Map<String, List> 轉換為 JSON 字串
+		Gson gson = new Gson();
+		String allFilteredAdvicesJson = gson.toJson(allFilteredAdvices);
+		if (allFilteredAdvices.isEmpty()) {
+            allFilteredAdvicesJson = defaultAdvicesJson;
+        } else {
+            allFilteredAdvicesJson = gson.toJson(allFilteredAdvices);
+        }
 
 		// DEBUG
 		System.out.println(
@@ -121,10 +162,12 @@ public class ShotVideo {
 			+ sideSwingPlane + frontSwingPlane
 			+ Arrays.toString(sideTpiSwingTable)
 			+ Arrays.toString(frontTpiSwingTable)
+			+ Arrays.toString(combinedTpiSwingTable)
+			+ allFilteredAdvicesJson
 		);
 		// 確保返回的 Object[] 中沒有 null 值
 		return new Object[] { sideFrames, frontFrames, frontVideoName, sideVideoName, aEffect, tEffect, iEffect,
-				fEffect, sideSwingPlane, frontSwingPlane, sideTpiSwingTable, frontTpiSwingTable, };
+				fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson};
 	}
 
 	private int queryShotVideo(ParamData paramData, JSONObject jsonResponse) {

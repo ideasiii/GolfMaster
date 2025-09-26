@@ -3,7 +3,7 @@
 html, body {
 	height:100%;
 	margin:0;
-	
+
 }
 body {
   font-family: Arial, Helvetica, sans-serif,"Microsoft JhengHei";
@@ -18,7 +18,7 @@ body {
   background-attachment: fixed;
 	justify-content: center;
 	align-items: center;
- 
+
 }
 * {
   margin: 0;
@@ -133,6 +133,12 @@ video {
   height: 100%; /* 讓高度撐滿 analysis-top 容器 */
 }
 
+.chart-img {
+  width: 130px;
+  height: 180px;
+  padding: 10px;
+}
+
 /* === 修改結束 === */
 
 
@@ -207,7 +213,7 @@ h1 {
   font-size: 1em;
 }
 .stepbutton {
-  all: unset;	
+  all: unset;
   height: 40px;
   width: 40px;
   display: flex;
@@ -223,7 +229,7 @@ h1 {
   background-color: black;
 }
 .stepbutton_selected {
- all: unset;	
+ all: unset;
   height: 40px;
   width: 40px;
   display: flex;
@@ -240,20 +246,20 @@ h1 {
 
 /* .p_de{
   display: flex;
-  flex-direction: column;     
-  justify-content: center;   
+  flex-direction: column;
+  justify-content: center;
   align-items: flex-start;
-  padding: 10px;	
+  padding: 10px;
 } */
 
 /* .p_de_title{
-  color:#00a9bc;	
+  color:#00a9bc;
   border-bottom: 3px solid #00a9bc;
-  width: 100%;                      
+  width: 100%;
   font-weight: bold;
   padding-bottom: 3px;
   margin-bottom: 10px;
-  font-size:20px;	
+  font-size:20px;
 } */
 
 /* .p_de p{
@@ -434,8 +440,8 @@ p.s_content {
   text-align: left;
 }
 .strikeeff {
-	
-  width: 60%;	
+
+  width: 60%;
   padding-bottom: 16px;
   border-radius: 60px;
   color: #ffffff;
