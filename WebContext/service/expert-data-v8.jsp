@@ -21,8 +21,8 @@
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
-// Long shot_data_id = result.getLong("shotdata_id");
-Long shot_data_id = 128069L; // test
+Long shot_data_id = result.getLong("shotdata_id");
+// Long shot_data_id = 128069L; // test
 Long exID = result.getLong("id"); // Unused, but kept for context
 
 Object temp[] = shotVideo.processAnalyz(shot_data_id);
