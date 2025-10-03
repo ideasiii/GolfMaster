@@ -1,0 +1,585 @@
+@charset "utf-8";
+/* CSS Document */
+
+/* =================================================================
+ * 1. 重設和基本樣式 (RESET AND BASE STYLES)
+ * ================================================================= */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, Helvetica, sans-serif,"Microsoft JhengHei";
+    display: flex;
+    flex-direction: column;
+    background-color: black;
+    padding: 0;
+    /* 背景設定 */
+    background-image: url('../../page/img/background.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    /* 內容置中 */
+    justify-content: center;
+    align-items: center;
+}
+h1 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: #7C7C7C;
+}
+
+
+/* =================================================================
+ * 2. 主要佈局結構 (MAIN LAYOUT STRUCTURE)
+ * ================================================================= */
+
+/* 主容器：固定寬度並垂直排列內容 (header, main-layout-container) */
+.c_m {
+    width: 1240px;
+    min-height: 710px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 主佈局容器：水平排列左右欄位，並填滿剩餘空間 */
+.main-layout-container {
+    display: flex;
+    width: 100%;
+    flex: 1; /* 佔滿 .c_m 中 header 以下的所有剩餘高度 */
+    margin: 0 auto; /* 置中 */
+    padding-top: 10px;
+}
+
+/* 左欄：固定寬度 (影片 + 揮桿分析) */
+.main-left-column {
+    flex: 0 0 720px; /* 固定寬度為 720px */
+    display: flex;
+    flex-direction: column;
+    padding-right: 20px;
+}
+
+/* 右欄：填滿剩餘空間 (擊球穩定性) */
+.main-right-column {
+    flex: 1; /* 填滿剩餘空間 */
+    display: flex;
+    flex-direction: column;
+    border: 3px solid #00A9BC;
+}
+
+
+/* =================================================================
+ * 3. 頂部元件 (TOP COMPONENTS)
+ * ================================================================= */
+.header {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    padding: 20px 0px 10px 30px;
+    margin-bottom: 0px;
+    flex-shrink: 0;
+}
+.logo {
+    width: 100px;
+    height: auto;
+}
+
+
+/* =================================================================
+ * 4. 影片與畫布 (VIDEO AND CANVAS)
+ * ================================================================= */
+
+/* 影片容器：包含兩個並排影片 */
+.video-section-top {
+    display: flex;
+    gap: 10px;
+    height: 340px;
+    margin-bottom: 10px;
+}
+
+/* 單一影片/畫布的容器 */
+.image_v {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    background-color: #000000;
+}
+
+/* 影片元素：確保影片保持長寬比，不變形 */
+video {
+    object-fit: contain; /* 核心修改：保持長寬比，黑邊留白 */
+    background-color: rgba(0, 0, 0, 0);
+    width: 100%;
+    height: 100%;
+}
+
+/* 疊加畫布：絕對定位，覆蓋在影片上 */
+#overlayCanvas, #overlayCanvas1{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    pointer-events: none; /* 允許點擊穿透到影片控制項 */
+}
+
+/* 播放/暫停按鈕樣式 */
+#player-container #play-pause {
+    cursor: pointer;
+    text-indent: -999999px;
+    height: 40px;
+    width: 40px;
+    z-index: 2;
+    background-repeat: no-repeat !important;
+    background-position: center;
+    background-size: 40px;
+}
+.play {
+    background-image: url("../../page/img/btn_play.png");
+}
+.pause {
+    background-image: url("../../page/img/btn_pause.png");
+}
+
+
+/* =================================================================
+ * 5. 揮桿步驟控制區 (SWING STEPS CONTROL SECTION)
+ * ================================================================= */
+
+/* 揮桿步驟與特徵區的 Flex 容器 */
+.motion-advice-section-bottom {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* 填滿左側欄位剩餘的高度 */
+    background-color: transparent;
+    align-items: stretch;
+}
+
+/* 頂部步驟欄的藍色背景 */
+.steps-bar-top {
+    flex: 0 0 auto;
+    background-color: #00A9BC;
+}
+
+.steps-bar-top .steps {
+    display: flex;
+    justify-content: space-between;
+    padding: 0px 20px;
+}
+
+.steps {
+    border-radius: 0px;
+    padding: 0px 20px;
+}
+
+.step {
+    flex: 0 1 calc(20% - 10px);
+    padding: 10px;
+}
+.step_title {
+    font-size: 1em;
+    font-weight: bold;
+}
+.step_4 {
+    font-size: 1em;
+}
+
+/* 步驟按鈕樣式 */
+.stepbutton {
+    all: unset;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2); /* 讓按鈕在藍色背景下更清楚 */
+    color: white; /* 預設文字顏色為白色 */
+    font-size: 2em;
+}
+.stepbutton:active {
+    background-color: black;
+}
+.stepbutton:hover {
+    background-color: black;
+}
+.stepbutton_selected {
+    all: unset;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: black;
+    color: #00A9BC; /* 選中時為藍色 */
+    font-size: 2em;
+}
+/* 舊有控制項移除 */
+.swing-steps-control {
+    display: none;
+}
+
+
+/* =================================================================
+ * 6. 底部圖表與建議區 (CHART AND ADVICE SECTION)
+ * ================================================================= */
+
+/* 底部圖表與特徵區的容器：讓圖表與特徵並排 */
+.chart-and-advice-bottom {
+    flex: 1; /* 填滿剩餘的高度 */
+    display: flex;
+    background-color: #2a2a2a; /* 底部深色背景 */
+    padding: 0;
+    box-sizing: border-box;
+    align-items: center;
+}
+
+.psystemSection {
+    margin-top: 0px;
+    padding-top: 9px;
+    background-color: #ffffff;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: stretch; /* 確保子元素填滿高度 */
+}
+
+/* 圖表區容器 (左側) */
+.box {
+    /* flex: 0 0 150px; /* 原始樣式，但圖表和建議區是平分的 */
+    /* 這裡使用 psystemSection 內的 box，似乎只用於單一圖表，不應佔用一半空間 */
+    flex: 0 0 150px;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+    border-left: 1px solid #ddd; /* 建議區在 psystemSection 內右側，不應有左邊線 */
+    /* 移除不必要的邊線 */
+    border-left: none;
+}
+
+/* 特徵建議區容器 (右側) */
+.p_de {
+    flex: 1; /* 填滿剩餘空間 */
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-left: 1px solid #ddd;
+
+    justify-content: center;
+}
+
+/* 圖表圖片樣式 */
+.chart-img {
+    width: 100px;
+    height: 150px;
+    object-fit: contain;
+}
+
+
+/* =================================================================
+ * 7. 揮桿特徵細節 (SWING DETAIL/ADVICE STYLES)
+ * ================================================================= */
+
+.p_de table {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 0;
+    border-collapse: separate;
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out; /* 動畫效果 */
+}
+.p_de table td {
+    /* vertical-align: top; */
+    vertical-align: middle;
+    box-sizing: border-box;
+    padding: 10px;
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* 滑動動畫類別 */
+.slide-out {
+    opacity: 0;
+    transform: translateX(-100px);
+}
+.slide-in {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* 標題樣式 */
+.p_de_title_container {
+    text-align: center;
+    width: 100%;
+}
+.p_de_title {
+    color: #00a9bc;
+    border-bottom: 3px solid #00a9bc;
+    width: 100%;
+    font-weight: bold;
+    padding-bottom: 3px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    display: inline-block;
+}
+
+/* 內容行樣式 */
+.p_de_content {
+    font-size: 20px;
+    display: flex;
+    align-items: flex-start;
+    margin: 5px 0;
+    width: 100%;
+}
+
+/* 標籤 (e.g., 特徵、原因) 樣式 - 確保等寬對齊 */
+.p_de_label {
+    display: inline-block;
+    width: 10ch;               /* ✅ 固定 4 個字的空間 */
+    text-align: justify;      /* 文字左右平均分布 */
+    font-weight: bold;
+    color: #333;
+    flex-shrink: 0;
+    font-family: "Microsoft JhengHei", monospace; /* ✅ 確保中文字等寬 */
+    position: relative;
+}
+.p_de_label::after {
+    content: "：";
+    margin-left: 0;
+}
+
+/* 內容文字樣式 - 特徵 */
+.p_de_posture {
+    flex: 1;
+    text-align: left;
+    word-break: break-word;
+    min-width: 0;
+    max-width: calc(100% - 120px);
+    white-space: normal;
+    overflow-wrap: break-word;
+    color: #00A9BC; /* 特徵文字高亮 */
+    font-weight: bold;
+}
+
+/* 內容文字樣式 - 原因 */
+.p_de_re {
+    flex: 1;                  /* 填滿剩餘空間 */
+    text-align: left;
+    word-break: break-word;   /* 自動換行 */
+    min-width: 0;             /* 避免內容撐爆 flex 容器 */
+    max-width: calc(100% - 120px); /* ✅ 限制最大寬度（可依需求調整，例如 600px 或 70%） */
+    white-space: normal;      /* 確保長文字可以換行 */
+    overflow-wrap: break-word;/* 確保英文或長字串斷行 */
+    /* color: #ffffff; /* 原因文字改為白色 */
+    color: #00A9BC; /* 特徵文字高亮 */
+}
+
+
+
+/* =================================================================
+ * 8. 右側分析區 (RIGHT ANALYSIS/STATS)
+ * ================================================================= */
+
+/* .analysis-box {
+    background-color: rgba(34, 34, 34, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    height: 100%;
+    box-sizing: border-box;
+} */
+.analysis-box {
+    background-color: rgba(34, 34, 34, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    height: 100%;
+    box-sizing: border-box;
+    /* 【修改點 1】新增 Flex 屬性，讓內容垂直彈性調整 */
+    display: flex;
+    flex-direction: column; 
+}
+
+.box-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00A9BC;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+
+    text-align: center;
+}
+
+/* 擊球散點圖區域 */
+/* .shot-dispersion-map {
+    text-align: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    height: 350px;
+} */
+.shot-dispersion-map {
+    text-align: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    /* 【修改點 2】將固定高度移除或改為彈性 */
+    height: 320px; /* 刪除或註解此行 */
+    /* flex: 1; */ /* 讓它佔據所有剩餘的垂直空間 */
+    /*  min-height: 200px; *//* 至少保持一個最小高度，以防數據表格過長 */
+    box-sizing: border-box; /* 確保 padding 不會額外撐大 */
+
+    /* 保持原有的對齊屬性 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dispersion-img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+}
+
+/* 擊球數據列表 */
+.stats-table {
+    width: 90%;
+    margin: 0 auto;
+    color: #ffffff;
+    font-size: 18px;
+
+    /* 【修改點 3】減少底下的 margin，將空間釋放給上方的散點圖 */
+    margin-bottom: 10px; /* 從 0 auto 改為 0 auto 10px */
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #333;
+}
+
+.stat-label {
+    flex: 1;
+    text-align: left;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.stat-value {
+    flex: 0 0 80px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.highlight-value {
+    color: #00A9BC; /* 藍色高亮數值 */
+}
+
+.highlight-value-right {
+    color: #00A9BC; /* 藍色高亮數值 */
+}
+
+/* 目標距離控制項樣式 */
+.target-control {
+    display: flex;
+    justify-content: center; /* 讓內容水平居中 */
+    align-items: center;
+    /* padding: 10px 0; */
+    /* margin-bottom: 20px; */ /* 與下方的統計表格分隔 */
+    /* border-top: 1px solid #444; */ /* 可以選擇是否加上邊線分隔 */
+    /* border-bottom: 1px solid #444; */
+}
+
+.target-control label {
+    color: #ffffff; /* 標籤文字顏色為白色 */
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-right: 10px;
+    flex-shrink: 0; /* 避免 label 被壓縮 */
+}
+
+.target-control input#targetDistanceInput {
+    /* 外觀 */
+    background-color: #333333; /* 深色背景 */
+    color: #00A9BC; /* 藍色文字高亮，與主題色一致 */
+    border: 2px solid #00A9BC; /* 藍色邊框 */
+    border-radius: 5px;
+
+    /* 尺寸與排版 */
+    width: 60px; /* 固定輸入框寬度 */
+    padding: 5px 8px;
+    text-align: right; /* 讓輸入的數字靠右 */
+    font-size: 1.2em; /* 字體略大 */
+    font-weight: bold;
+
+    /* 移除原生焦點樣式 */
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* 讓輸入框在焦點時有回饋 */
+.target-control input#targetDistanceInput:focus {
+    border-color: #ffffff; /* 焦點時邊框變白 */
+    box-shadow: 0 0 5px rgba(0, 169, 188, 0.5); /* 輕微藍色陰影 */
+}
+
+
+/* =================================================================
+ * 9. 全螢幕模式修正 (FULLSCREEN OVERRIDES)
+ * ================================================================= */
+
+#videoContainer:fullscreen,
+#videoContainer1:fullscreen,
+#videoContainer:-webkit-full-screen,
+#videoContainer1:-webkit-full-screen {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
+/* =================================================================
+ * 10. 響應式設計 (MEDIA QUERIES)
+ * ================================================================= */
+
+@media screen and (max-width: 712px) {
+    .c_m {
+        width: 100%;
+        margin: auto;
+    }
+    h1 {
+        font-size: 1.4em;
+        margin-top: 10px;
+    }
+    .steps {
+        display: flex;
+        border-radius: 10px;
+        padding: 0px 20px;
+    }
+    .step {
+        padding: 4px 0px;
+    }
+    .step_title {
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .step_4 {
+        font-size: 0.8em;
+    }
+    .psystemSection {
+        flex-wrap: wrap;
+    }
+    .box {
+        width: 100%;
+    }
+}

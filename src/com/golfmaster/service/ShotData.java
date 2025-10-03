@@ -12,7 +12,9 @@ package com.golfmaster.service;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +28,8 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 import com.golfmaster.moduel.LevelSystem;
 import com.golfmaster.moduel.PSystem;
+import com.golfmaster.moduel.ShortGameData;
+
 
 public class ShotData {
 	private class ParamData {
@@ -85,6 +89,55 @@ public class ShotData {
 		return playerBallSpeed;
 	}
 
+	public String processShortGameData(Long shot_data_id) {
+		JSONObject jsonResponse = null;
+		String strResponse = "";
+
+		JSONObject jsb = queryPlayer(shot_data_id);
+		int maxRecords = 100;
+
+		String player = jsb.getString("player");
+		String clubType = jsb.getString("ClubType");
+		String endDate = jsb.getString("Date");
+		// test
+		// String player = "Guest.1";
+		// String clubType = "7Iron";
+		// String clubType = "SandWedge";
+		// String clubType = "GapWedge";
+		// String endDate = "2025-09-30 23:27:14";
+		// String endDate = "2025-10-02 10:32:36";
+
+		if (player != null || !player.isEmpty()) {
+			ShortGameData shortGameData = new ShortGameData();
+			List<ShortGameData.ShortGameShotData> shotDataList = new ArrayList<>();
+
+			shotDataList = queryShortGameData(player, clubType, endDate, maxRecords);
+			jsonResponse = shortGameData.processAnalyz(shotDataList, clubType);
+
+			// System.out.println(
+			// 	"ShortGameData Player: " + player
+			// );
+
+			// System.out.println(
+			// 	"ShortGameData ClubType: " + clubType
+			// );
+
+			// System.out.println(
+			// 	"ShortGameData shotDataList.size(): " + shotDataList.size()
+			// );
+
+			// System.out.println(
+			// 	"ShortGameData.processAnalyz jsonResponse: " + jsonResponse.toString()
+			// );
+
+			if (jsonResponse != null) {
+				strResponse = jsonResponse.toString();
+			}
+		}
+
+		return strResponse;
+	}
+
 	private JSONObject queryPlayer(Long shot_data_id) {
 		Connection conn = null;
 		Statement stmt = null;
@@ -102,6 +155,7 @@ public class ShotData {
 			while (rs.next()) {
 				jsb.put("player", rs.getString("Player"));
 				jsb.put("ClubType", rs.getString("ClubType"));
+				jsb.put("Date", rs.getString("Date"));
 			}
 			System.out.println(player);
 		} catch (Exception e) {
@@ -317,6 +371,86 @@ public class ShotData {
 		DBUtil.close(rs, stmt, conn);
 		jsonResponse.put("result", jarrProjects);
 		return jarrProjects.length();
+	}
+
+	private List<ShortGameData.ShortGameShotData> queryShortGameData(
+		String player,
+		String clubType,
+		String endDate,
+		int maxRecords
+	) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		List<ShortGameData.ShortGameShotData> shotList = new ArrayList<>();
+
+		// query command
+        String strSQL = "SELECT "
+            + "t1.id, t1.Date, "
+            + "t1.Player, t1.ClubType, "
+            + "t1.CarryDistFt, t1.TotalDistFt, t1.LaunchDirection, "
+            + "t1.ClubHeadSpeed, t1.BackSpin, t1.SideSpin, t1.SmashFactor "
+            + "FROM golf_master.shot_data t1 "
+            + "WHERE "
+            + "t1.Player = ? " // 參數 1: Player
+            + "AND t1.ClubType = ? " // 參數 2: ClubType
+            + "AND Date <= ? " // 參數 3: Date 限制 (在指定時間點之前)
+			// + "AND t1.CarryDistFt <= %d "
+			// + "AND t1.ClubHeadSpeed BETWEEN %d AND %d "
+			// + "AND t1.SmashFactor BETWEEN %f AND %f "
+            // 你可以根據需要啟用或停用下面兩行（極值過濾）
+            // + "AND t1.CarryDistFt > 0 "
+            // + "AND ABS(t1.LaunchDirection) < 45 "
+            + "ORDER BY "
+            + "t1.id DESC "
+            + "LIMIT ?"; // 參數 4: maxRecords
+
+		// player, clubName, maxCarryDistFt, minClubSpeed, maxClubSpeed, minSmashFactor, maxSmashFactor, maxRecords
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			// stmt = conn.createStatement();
+			pstmt = conn.prepareStatement(strSQL); // 準備 PreparedStatement
+
+			// 設置參數，取代 SQL 語句中的 ?
+            pstmt.setString(1, player);
+            pstmt.setString(2, clubType);
+			pstmt.setString(3, endDate);
+            pstmt.setInt(4, maxRecords); // 設置 LIMIT 的最大筆數
+
+            rs = pstmt.executeQuery(); // 執行查詢 (不帶參數)
+
+			// 迭代結果集，將每筆資料封裝成 ShortGameShotData 物件並加入 List
+			while (rs.next()) {
+                ShortGameData.ShortGameShotData shot = new ShortGameData.ShortGameShotData();
+
+                shot.setId(rs.getLong("id"));
+                shot.setPlayer(rs.getString("Player"));
+                shot.setClubType(rs.getString("ClubType"));
+
+                // 注意：使用 getDouble() 來取得數值型數據
+                shot.setCarryDistFt(rs.getDouble("CarryDistFt"));
+                shot.setTotalDistFt(rs.getDouble("TotalDistFt"));
+                shot.setLaunchDirection(rs.getDouble("LaunchDirection"));
+
+                shot.setClubHeadSpeed(rs.getDouble("ClubHeadSpeed"));
+                shot.setBackSpin(rs.getDouble("BackSpin"));
+				shot.setSideSpin(rs.getDouble("SideSpin"));
+                shot.setSmashFactor(rs.getDouble("SmashFactor"));
+
+                shot.setDate(rs.getString("Date"));
+
+                shotList.add(shot); // 將物件加入列表
+            }
+
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		} finally {
+			DBUtil.close(rs, pstmt, conn);
+		}
+		return shotList;
 	}
 
 	private JSONObject requestAndTrimParams(HttpServletRequest request, ParamData paramData) {

@@ -52,7 +52,7 @@ function resizeCanvas(videoElement, canvasElement, swingPlaneData, isSideView = 
     canvasElement.style.height = `${videoDisplayHeight}px`;
     canvasElement.width = videoDisplayWidth;
     canvasElement.height = videoDisplayHeight;
-    //console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
+    // console.log("Canvas resized to match video dimensions: " + canvasElement.width + "x" + canvasElement.height);
 
     // 更新畫布大小後，重新繪製輔助線
     const context = canvasElement.getContext('2d');
