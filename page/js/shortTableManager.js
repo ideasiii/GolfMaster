@@ -482,10 +482,12 @@ class ShortTableManager {
         const varX = analysisData.stdev_horizontal_yd ** 2; // X 軸方差 (水平)
         const varY = analysisData.stdev_carry_yd ** 2;      // Y 軸方差 (垂直)
         const covXY = analysisData.covariance_xy || 0;
-        const avgCarry = analysisData.avg_carry_dist_yd;
+        const avgCarry = analysisData.avg_carry_dist_yd || 0;
+        const avgHorizontal = analysisData.avg_horizontal_deviation_yd || 0;
 
         // 雙變量高斯分佈 95% 信賴區間，2 自由度的卡方分佈 (Chi-Squared) 0.95 quantile
         // Chi-Squared (df=2, p=0.95) ≈ 5.991
+        // Chi-Squared (df=2, p=0.5) ≈ 1.386
         const CHI2_QUANTILE_095 = 5.991;
 
         // 1. 計算協方差矩陣的特徵值 (Eigenvalues)
@@ -523,7 +525,7 @@ class ShortTableManager {
 
             // 加上平均點 (0, avgCarry)
             points.push({
-                x: x,
+                x: x + avgHorizontal,
                 y: y + avgCarry
             });
         }
@@ -588,6 +590,8 @@ class ShortTableManager {
     _getChartData(analysisData, colors) {
         const landingPoints = analysisData.landing_points;
         const avgCarry = analysisData.avg_carry_dist_yd;
+        const avgHorizontal = analysisData.avg_horizontal_deviation_yd || 0;
+
         // 【取得目標距離】
         const targetDistance = this.targetDistanceYd;
 
@@ -614,7 +618,7 @@ class ShortTableManager {
 
         // *** 調整資料集順序和層級 (Order: 數字越小越在底層) ***
         const datasets = [
-            // 0. 信賴區間橢圓 (底層, order: 10)
+            // 0. 信賴區間橢圓
             {
                 label: '95% CI 橢圓',
                 data: ellipsePoints,
@@ -626,9 +630,9 @@ class ShortTableManager {
                 showLine: true,
                 type: 'line',
                 tension: 0,
-                order: 10,
+                order: 50,
             },
-            // 1. 舊擊球落點 (次低層, order: 20)
+            // 1. 舊擊球落點
             {
                 label: '擊球落點',
                 data: previousShots,
@@ -640,9 +644,9 @@ class ShortTableManager {
                 pointBorderWidth: 1,
                 tooltipHidden: false,
                 type: 'scatter',
-                order: 20, // 略高於橢圓
+                order: 60, // 略低於橢圓
             },
-            // 【保留】2. 目標點 (Target Point) - order: 97
+            // 【保留】2. 目標點 (Target Point)
             // 使用 colors.colorGoal (亮紅色)
             {
                 label: '目標',
@@ -654,11 +658,11 @@ class ShortTableManager {
                 pointBorderWidth: 2,
                 tooltipHidden: false,
                 type: 'scatter',
-                order: 97, // 確保在擊球點之上，平均點之下
+                order: 5, // 確保在擊球點之上，平均點之下
             },
         ];
 
-        // 3. 最新擊球 (倒數第二高層, order: 98)
+        // 3. 最新擊球
         if (latestShot) {
              datasets.push({
                 label: '最新擊球', // 讓這個點的 Tooltip 標籤不同
@@ -670,26 +674,26 @@ class ShortTableManager {
                 pointBorderWidth: 2,
                 tooltipHidden: false,
                 type: 'scatter',
-                order: 98, // 確保在所有舊點之上
+                order: 1, // 強制置頂
              });
         }
 
-        // 4. 平均點 (最上層, order: 99)
-        // datasets.push(
-        //     {
-        //         // label: '平均點', // 保持隱藏標籤
-        //         data: [{ x: 0, y: avgCarry }],
-        //         backgroundColor: colors.colorAverage, // 保持藍色
-        //         pointRadius: 8,
-        //         pointStyle: 'crossRot',
-        //         pointBorderColor: colors.colorAverage,
-        //         pointBorderWidth: 2,
-        //         showLine: false,
-        //         tooltipHidden: true,
-        //         type: 'scatter',
-        //         order: 99, // 強制置頂
-        //     }
-        // );
+        // 4. 平均點
+        datasets.push(
+            {
+                // label: '平均點', // 保持隱藏標籤
+                data: [{ x: avgHorizontal, y: avgCarry }],
+                backgroundColor: colors.colorAverage, // 保持藍色
+                pointRadius: 8,
+                pointStyle: 'crossRot',
+                pointBorderColor: colors.colorAverage,
+                pointBorderWidth: 2,
+                showLine: false,
+                tooltipHidden: true,
+                type: 'scatter',
+                order: 10,
+            }
+        );
 
         return { datasets };
     }
