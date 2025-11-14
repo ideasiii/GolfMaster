@@ -89,6 +89,23 @@ public class ShotData {
 		return playerBallSpeed;
 	}
 
+	public String processCurrShotData(Long shot_data_id) {
+		JSONObject jsonResponse = null;
+		String strResponse = "";
+
+		JSONObject jsb = queryCurrShotData(shot_data_id);
+
+		if (jsb != null) {
+			strResponse = jsb.toString();
+		}
+
+		System.out.println(
+			"CurrShotData strResponse: " + strResponse
+		);
+
+		return strResponse;
+	}
+
 	public String processShortGameData(Long shot_data_id) {
 		JSONObject jsonResponse = null;
 		String strResponse = "";
@@ -371,6 +388,49 @@ public class ShotData {
 		DBUtil.close(rs, stmt, conn);
 		jsonResponse.put("result", jarrProjects);
 		return jarrProjects.length();
+	}
+
+	private JSONObject queryCurrShotData(Long shot_data_id) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		JSONObject jsonProject = null;
+
+		// query command
+        String strSQL = "SELECT * FROM golf_master.shot_data WHERE id = ?";
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			pstmt = conn.prepareStatement(strSQL); // 準備 PreparedStatement
+			pstmt.setLong(1, shot_data_id); // 設置參數，取代 SQL 語句中的
+
+			rs = pstmt.executeQuery(); // 執行查詢 (不帶參數)
+			while (rs.next()) {
+				jsonProject = new JSONObject();
+				jsonProject.put("id", rs.getInt("id"));
+				jsonProject.put("BallSpeed", rs.getDouble("BallSpeed")); // 單位: mph
+				jsonProject.put("LaunchAngle", rs.getDouble("LaunchAngle")); // 單位: degree
+				jsonProject.put("LaunchDirection", rs.getDouble("LaunchDirection")); // 單位: degree
+				jsonProject.put("ClubHeadSpeed", rs.getDouble("ClubHeadSpeed")); // 單位: mph
+				jsonProject.put("ClubAngleFace", rs.getDouble("ClubAngleFace")); // 單位: degree
+				jsonProject.put("ClubAnglePath", rs.getDouble("ClubAnglePath")); // 單位: degree
+				jsonProject.put("BackSpin", rs.getInt("BackSpin")); // 單位: rpm
+				jsonProject.put("SideSpin", rs.getInt("SideSpin")); // 單位: rpm
+				jsonProject.put("SmashFactor", rs.getDouble("SmashFactor")); // 球桿速度除以球速
+				jsonProject.put("ClubType", rs.getString("ClubType")); // 幾號球桿、材質
+				jsonProject.put("DistToPinFt", rs.getDouble("DistToPinFt")); // 單位: ft 呎
+				jsonProject.put("CarryDistFt", rs.getDouble("CarryDistFt")); // 單位: ft 呎
+				jsonProject.put("TotalDistFt", rs.getDouble("TotalDistFt")); // 單位: ft 呎
+			}
+
+		} catch (Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+			e.printStackTrace();
+		} finally {
+			DBUtil.close(rs, pstmt, conn);
+		}
+		return jsonProject;
 	}
 
 	private List<ShortGameData.ShortGameShotData> queryShortGameData(

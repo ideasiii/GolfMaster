@@ -1,29 +1,39 @@
 @charset "utf-8";
-/* CSS Document */
+
+/* =================================================================
+ * 1. 全域與基礎樣式 (Global & Base Styles)
+ * ================================================================= */
 html, body {
 	height:100%;
 	margin:0;
-
 }
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif,"Microsoft JhengHei";
   display: flex;
   flex-direction: column;
   background-color: black;
-  margin: 0;
-  padding: 0;
   background-image: url('../../page/img/background.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-	justify-content: center;
-	align-items: center;
-
+  justify-content: center;
+  align-items: center;
 }
 * {
   margin: 0;
   padding: 0;
 }
+
+/* =================================================================
+ * 3. 頂部元件 (TOP COMPONENTS)
+ * ================================================================= */
+
 .header {
   display: flex;
   align-items: center;
@@ -35,15 +45,75 @@ body {
   width: 100px;
   height: auto;
 }
+
+/* 導航按鈕容器 */
+.navigation-buttons {
+    display: flex;
+    align-items: center;
+    margin-left: 20px; /* 調整與 Logo 的間距 */
+}
+
+/* 單個按鈕樣式 */
+.nav-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 10px;
+    margin: 0 5px;
+    color: #fff; 
+    transition: opacity 0.3s;
+
+    /* 🌟 預設將非選中按鈕調暗 🌟 */
+    opacity: 0.6;
+}
+
+.nav-button img {
+    width: 40px; /* 調整圖標大小 */
+    height: 40px;
+    margin-bottom: 3px;
+}
+
+/* 狀態 1: 當前頁面 (Current Page) - 最亮 */
+/* 這是由 JavaScript 設置 disabled 後的按鈕 (當前頁面) */
+.nav-button:disabled,
+.nav-button.current-page { /* 確保 current-page 樣式被正確應用 */
+    cursor: default;
+    /* 🌟 讓當前頁面呈現最高亮度/完全透明度 🌟 */
+    opacity: 1.0;
+    /* 通常還會有額外的視覺標記，例如底線或邊框 */
+    /* border-bottom: 2px solid #00FFFF; */ 
+}
+
+/* 狀態 2: 未開放頁面 (Temporarily Disabled) - 最暗 */
+/* 這是由 HTML 設定的，且功能上被 pointer-events 鎖定 */
+.nav-button.temporarily-disabled {
+    cursor: not-allowed;
+    pointer-events: none; /* 禁用點擊 */
+    /* 🌟 比可點擊按鈕更暗 🌟 */
+    opacity: 0.3; 
+}
+
+/* 狀態 3: 可點擊按鈕的懸停效果 */
+.nav-button:hover:not(:disabled):not(.temporarily-disabled) {
+    /* 懸停時稍微亮一點，提供回饋 */
+    opacity: 0.8; 
+}
+
+/* =================================================================
+ * 2. 主要佈局結構 (Main Layout Structure)
+ * ================================================================= */
 .c_m {
   width:1240px;
   height: 710px;
 }
+
 .content {
   display: flex;
   flex-wrap: wrap;
 }
-
 .row {
   margin: 0px 0px 0px 0px;
   flex: 1;
@@ -57,7 +127,6 @@ body {
   position: relative;
   z-index: 1;
   justify-content: space-between;
-  /* gap: 20px; */
 }
 .column {
   flex: 50%;
@@ -69,68 +138,206 @@ body {
   padding: 0px 0px;
 }
 
-/* === 修改開始 === */
-
-/* 重新定義主佈局的左右欄寬度 */
+/* 上半部：影片與分析 */
 .video-column {
-  flex: 0 0 650px; /* 給予影片欄位一個固定的、較大的寬度 */
+  flex: 0 0 650px; /* 重新定義主佈局的左右欄寬度 */
   padding: 0;
 }
 .analysis-column {
-  flex: 1; /* 讓分析欄位自動填滿剩餘空間 */
+  flex: 1;
   padding: 0;
 }
 
-/* 調整影片容器的高度，使其長寬比更適合 4:3 影片 */
+/* 下半部：動作分析與建議 */
+.motion-column {
+  flex: 0 0 650px;
+  padding: 0;
+}
+.advice-column {
+  flex: 1;
+  padding: 0;
+}
+
+/* =================================================================
+ * 3. 影片與畫布區 (Video & Canvas Section)
+ * ================================================================= */
 .image_v {
-  height: 340px; /* 原為 460px，縮小高度以減少 4:3 影片的黑邊 */
+  height: 340px; /* 調整影片容器的高度，使其長寬比更適合 4:3 影片 */
   width: 100%;
   z-index: 1;
 }
 
-/* 確保影片保持長寬比，不變形 */
 video {
-  object-fit: contain; /* 核心修改：從 fill 改為 contain */
-  /* background-color: #000000;  為黑邊提供統一的黑色背景 */
-  background-color: rgba(0, 0, 0, 0); /* 為黑邊提供統一的黑色背景 */
+  object-fit: contain; /* 確保影片保持長寬比，不變形 */
+  background-color: rgba(0, 0, 0, 0);
   width: 100%;
   height: 100%;
 }
 
-/* 同步調整分析區塊的高度以匹配影片區塊 */
+/* 全螢幕模式修正 */
+#videoContainer:fullscreen,
+#videoContainer1:fullscreen,
+#videoContainer:-webkit-full-screen,
+#videoContainer1:-webkit-full-screen {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#overlayCanvas, #overlayCanvas1{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* =================================================================
+ * 4. 彈道與雷達圖分析區 (Trajectory & Radar Chart Section)
+ * ================================================================= */
 .aanalysisSection {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  /*background-color: #222222;*/
-  height: 340px; /* 原為 460px，與影片容器高度保持一致 */
+  height: 340px; /* 同步調整分析區塊的高度以匹配影片區塊 */
 }
 
-/* 調整分析圖 (GIF) 的邊距，以適應新的容器高度 */
-.rida_p img.analysis-gif {
-  width: 90%;
-  height: auto;
-  max-height: 100%;
-  margin-top: 50px;    /* 原為 100px */
-  margin-bottom: 30px; /* 原為 40px */
-}
-
-.motion-column {
-  flex: 0 0 650px; /* 給予影片欄位一個固定的、較大的寬度 */
-  padding: 0;
-}
-.advice-column {
-  flex: 1; /* 讓分析欄位自動填滿剩餘空間 */
-  padding: 0;
-}
-
-.image_v_trajectory { /* Analysis GIF container - Adjusted height */
+.image_v_trajectory {
   width: 100%;
   z-index: 1;
   position: relative;
-  /* background-color: #222222; */
-  height: 100%; /* 讓高度撐滿 analysis-top 容器 */
+  height: 100%;
+}
+
+.strikeeff {
+  width: 60%;
+  padding-bottom: 16px;
+  border-radius: 60px;
+  color: #ffffff;
+  font-size: 1.4em;
+  font-weight: bold;
+  text-align: center;
+  margin: auto;
+  line-height: 1;
+}
+
+.score{
+  color: #00A9BC;
+  font-weight: bold;
+  font-size: 2.0em;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  top:-2px;
+}
+
+.crop-left {
+  padding: 0px 20px;
+  width: 250px;
+  height: 240px;
+  overflow: hidden;
+  position: relative;
+}
+
+.crop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left;
+  display: block;
+}
+
+/* =================================================================
+ * 5. 揮桿步驟與動作分析區 (Swing Steps & Motion Analysis Section)
+ * ================================================================= */
+.custom-div2 {
+  flex: 1;
+  background-color: #00A9BC;
+}
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 0px;
+  padding: 0px 20px;
+}
+
+.step {
+  flex: 0 1 calc(20% - 10px);
+  padding: 10px;
+}
+
+.step_title {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.step_4 {
+  font-size: 1em;
+}
+
+.stepbutton {
+  all: unset;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: black;
+  color: #00A9BC;
+  font-size: 2em;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.stepbutton:active {
+  background-color: black;
+}
+.stepbutton:hover {
+  background-color:black;
+}
+
+.stepbutton_selected {
+  all: unset;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: black;
+  color: #00A9BC;
+  font-size: 2em;
+}
+
+#player-container #play-pause {
+  cursor: pointer;
+  text-indent: -999999px;
+  height: 40px;
+  width: 40px;
+  z-index: 2;
+  background-repeat: no-repeat !important;
+  background-position: center;
+  background-size: 40px;
+}
+.play {
+  background-image: url("../../page/img/btn_play.png");
+}
+.pause {
+  background-image: url("../../page/img/btn_pause.png");
+}
+
+.psystemSection {
+  margin-top: 0px;
+  display: flex;
+  padding-top: 9px;
+  background-color: #ffffff;
+  justify-content: center;
+}
+
+.box {
+  /* 此選擇器在 JSP 中未使用，但保留以防萬一 */
 }
 
 .chart-img {
@@ -139,20 +346,386 @@ video {
   padding: 10px;
 }
 
-/* === 修改結束 === */
-
-
-.bg_b{
-    background-color:#000000;
+/* =================================================================
+ * 6. TPI 建議與 AI 教練建議區 (TPI & AI Coach Advice Section)
+ * ================================================================= */
+#tpi-advices {
+  /* 此區塊的樣式由 p_de 系列 class 控制 */
 }
 
+/* 修改 */
+.p_de {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 10px;
+}
+
+.p_de table {
+    width: 100%;
+    table-layout: fixed; /* 固定表格布局，避免因文字長短改變寬度 */
+    border-spacing: 0;
+    border-collapse: separate;
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.p_de table td {
+    vertical-align: top;
+    box-sizing: border-box;
+    padding: 10px;
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* 用於控制滑動動畫的類別 */
+.slide-out {
+    opacity: 0;
+    transform: translateX(-100px); /* 初始位置，向左移動 100px */
+}
+.slide-in {
+    opacity: 1;
+    transform: translateX(0); /* 最終位置，回到原位 */
+}
+
+.f_content {
+  display: flex;
+  text-align: center;
+  padding: 0px 6px;
+}
+
+.suggestion {
+  text-align: left;
+  border-radius: 0px;
+  padding: 0px 8px;
+}
+
+.vertical-image {
+  flex: 1;
+  width: 83px;
+  margin: 0px 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.inner-text {
+  margin-left: 10px;
+}
+
+p.title {
+  font-size: 1.6em;
+  color: #00A9BC;
+  font-weight: bold;
+  padding: 10px;
+}
+
+p.s_content {
+  padding: 10px;
+  font-size: 1.2em;
+  color: white;
+}
+
+.f_c1{
+	color:#00B2C4;
+}
+
+.cards {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 10px;
+  background-color: rgba(57, 61, 66, 0.5);
+  padding: 20px;
+  width: 100%;
+}
+.card {
+  flex: 0 1 calc(20% - 10px);
+  padding: 10px;
+  margin: 5px;
+}
+.card .title {
+  text-align: center;
+  padding-bottom: 5px;
+  border-bottom: #00A9BC solid 1px;
+  color: white;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+.card .unit {
+  text-align: right;
+  padding: 6px 0px 6px 0px;
+  color: white;
+  font-size: 0.8em;
+}
+.card .number {
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: #00A9BC;
+}
+.videoSection {
+  display: flex;
+  margin: auto;
+}
+.image {
+  width: 100%;
+  height: 410px;
+}
+/* .p_de_title{
+  color:#00a9bc;
+  border-bottom: 3px solid #00a9bc;
+  width: 100%;
+  font-weight: bold;
+  padding-bottom: 3px;
+  margin-bottom: 10px;
+  font-size:20px;
+}
+*/
+/* .p_de p{
+	font-size:20px;
+} */
+/* .p_de_re{
+	color:#00a9bc;
+} */
+/* 新增：標題容器，用於置中 title */
+/* 修改：用於統一揮桿特徵與原因的內容行樣式 */
+.p_de_content {
+    font-size: 20px;
+    display: flex;
+    align-items: flex-start;
+    margin: 5px 0;
+    width: 100%; /* 保持固定寬度，避免彈性伸縮 */
+}
+.p_de_label {
+    display: inline-block;
+    width: 10ch;               /* 固定 4 個字的空間 */
+    text-align: justify;      /* 文字左右平均分布 */
+    font-weight: bold;
+    color: #333;
+    flex-shrink: 0;
+    font-family: "Microsoft JhengHei", monospace; /* ✅ 確保中文字等寬 */
+    position: relative;
+}
+.p_de_label::after {
+    content: "："; /* 統一由 CSS 控制冒號 */
+    margin-left: 0;
+}
+/* 調整 .p_de_posture 和 .p_de_re 的樣式，確保內容靠左且自動換行 */
+.p_de_posture,
+.p_de_re {
+    flex: 1;                  /* 填滿剩餘空間 */
+    text-align: left;
+    word-break: break-word;   /* 自動換行 */
+    min-width: 0;             /* 避免內容撐爆 flex 容器 */
+    max-width: calc(100% - 120px); /* 限制最大寬度 */
+    white-space: normal;      /* 確保長文字可以換行 */
+    overflow-wrap: break-word;/* 確保英文或長字串斷行 */
+}
+.p_de_re {
+    color: #00a9bc;
+}
+/* 其他樣式保持不變 */
+.p_de_title_container {
+    text-align: center;
+    width: 100%;
+}
+.p_de_title {
+    color: #00a9bc;
+    border-bottom: 3px solid #00a9bc;
+    width: 100%;
+    font-weight: bold;
+    padding-bottom: 3px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    display: inline-block;
+}
+.custom-div {
+  flex: 1;
+  margin: 10px 0px;
+  height: 410px;
+}
+.vertical-div {
+  flex: 1;
+  width: 100%;
+  margin: 10px 0px;
+  height: 100%;
+}
+.suggestionsession {
+  text-align: center;
+  margin-top: 20px;
+  padding: 0px 30px 10px 30px;
+}
+.inner-image {
+  flex: 1;
+}
+.rida_p {
+  text-align: center;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+.image_r {
+  width: 280px;
+}
+.aanalysis {
+  text-align: left;
+}
+.aanalysis p {
+  color: #ffffff;
+  padding: 10px 20px;
+}
+.psystem_p {
+  width: 25%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* 修改 */
+/* 新增播放器控制項的樣式 */
+#player-controls, #player-controls1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+/* 播放/暫停按鈕樣式 */
+#video-play-pause, #video-play-pause1 {
+  cursor: pointer;
+  text-indent: -999999px;
+  height: 25px;
+  width: 25px;
+  z-index: 2;
+  /* background-image: url("../../page/img/btn_play.png"); */
+  background-repeat: no-repeat !important;
+  background-position: center;
+  background-size: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 25px;
+}
+/* 進度條樣式 */
+/* #progress-bar, #progress-bar1 {
+  margin: 0 10px;
+} */
+/* 時間顯示樣式 */
+/* #time-display, #time-display1 {
+    color: white;
+    font-family: monospace;
+} */
+/* 全螢幕按鈕樣式 */
+/* #fullscreen-btn, #fullscreen-btn1 {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 5px 10px;
+    cursor: pointer;
+} */
+
+/* =================================================================
+ * 8. 響應式設計 (Responsive Design)
+ * ================================================================= */
+@media screen and (max-width: 712px) {
+  .c_m {
+    width: 100%;
+    margin: auto;
+  }
+  h1 {
+    font-size: 1.4em;
+    margin-top: 10px;
+  }
+  .row {
+    flex: 100%;
+  }
+  .row2 {
+    margin: 0px 0px 0px 0px;
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .column {
+    flex: 100%;
+  }
+  .column2 {
+    max-width: 100%;
+    flex-wrap: wrap;
+    padding: 0px;
+  }
+  /* 在小螢幕上讓影片和分析欄位都佔滿全部寬度 */
+  .video-column, .analysis-column {
+      flex: 1 1 100%;
+  }
+  .steps {
+    display: flex;
+    border-radius: 10px;
+    padding: 0px 20px;
+  }
+  .step {
+    padding: 4px 0px;
+  }
+  .step_title {
+    font-size: 0.8em;
+    font-weight: bold;
+  }
+  .step_4 {
+    font-size: 0.8em;
+  }
+  p.title {
+    font-size: 1.4em;
+    color: #00A9BC;
+    font-weight: bold;
+    padding: 10px;
+  }
+  .aanalysisSection {
+    background-color: #222222;
+  }
+  p.s_content {
+    padding: 10px;
+    font-size: 1.2em;
+    color: white;
+  }
+  .f_content {
+    text-align: center;
+    border: #00A9BC solid 1px;
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  .psystemSection {
+    flex-wrap: wrap;
+  }
+  .box {
+    width: 100%;
+  }
+  .suggestion {
+    padding: 0px;
+  }
+  .vertical-image {
+    width: 100%;
+    flex-wrap: wrap;
+    margin: 0px;
+  }
+}
+
+/* =================================================================
+ * 9. 未使用或已棄用樣式 (Unused or Deprecated Styles)
+ * ================================================================= */
+/*
+  以下樣式在 expert-data-v8.jsp 中目前未使用，
+  但可能在其他頁面或舊版中使用，因此暫時移至此處。
+*/
 h1 {
   margin-top: 10px;
   margin-bottom: 10px;
   color: #7C7C7C;
-}
-.stretch {
-  align-items: stretch;
 }
 .cards {
   display: flex;
@@ -195,191 +768,10 @@ h1 {
   width: 100%;
   height: 410px;
 }
-.steps {
-  display: flex;
-  justify-content: space-between;
-  border-radius: 0px;
-  padding: 0px 20px;
-}
-.step {
-  flex: 0 1 calc(20% - 10px);
-  padding: 10px;
-}
-.step_title {
-  font-size: 1em;
-  font-weight: bold;
-}
-.step_4 {
-  font-size: 1em;
-}
-.stepbutton {
-  all: unset;
-  height: 40px;
-  width: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background-color: black;
-  color: #00A9BC;
-  font-size: 2em;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-.stepbutton:active {
-  background-color: black;
-}
-.stepbutton_selected {
- all: unset;
-  height: 40px;
-  width: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background-color: black;
-  color: #00A9BC;
-  font-size: 2em;
-}
-.stepbutton:hover {
-  background-color:black;
-}
-
-/* .p_de{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 10px;
-} */
-
-/* .p_de_title{
-  color:#00a9bc;
-  border-bottom: 3px solid #00a9bc;
-  width: 100%;
-  font-weight: bold;
-  padding-bottom: 3px;
-  margin-bottom: 10px;
-  font-size:20px;
-} */
-
-/* .p_de p{
-	font-size:20px;
-} */
-
-/* .p_de_re{
-	color:#00a9bc;
-} */
-
-/* 修改 */
-/* 新增：標題容器，用於置中 title */
-/* 修改：用於統一揮桿特徵與原因的內容行樣式 */
-.p_de_content {
-    font-size: 20px;
-    display: flex;
-    align-items: flex-start;
-    margin: 5px 0;
-    width: 100%; /* 保持固定寬度，避免彈性伸縮 */
-}
-
-.p_de_label {
-    display: inline-block;
-    width: 10ch;               /* ✅ 固定 4 個字的空間 */
-    text-align: justify;      /* 文字左右平均分布 */
-    font-weight: bold;
-    color: #333;
-    flex-shrink: 0;
-    font-family: "Microsoft JhengHei", monospace; /* ✅ 確保中文字等寬 */
-    position: relative;
-}
-
-.p_de_label::after {
-    content: "："; /* 統一由 CSS 控制冒號 */
-    margin-left: 0;
-}
-
-/* 調整 .p_de_posture 和 .p_de_re 的樣式，確保內容靠左且自動換行 */
-.p_de_posture,
-.p_de_re {
-    flex: 1;                  /* 填滿剩餘空間 */
-    text-align: left;
-    word-break: break-word;   /* 自動換行 */
-    min-width: 0;             /* 避免內容撐爆 flex 容器 */
-    max-width: calc(100% - 120px); /* ✅ 限制最大寬度（可依需求調整，例如 600px 或 70%） */
-    white-space: normal;      /* 確保長文字可以換行 */
-    overflow-wrap: break-word;/* 確保英文或長字串斷行 */
-}
-
-.p_de_re {
-    color: #00a9bc;
-}
-
-
-/* 其他樣式保持不變 */
-.p_de_title_container {
-    text-align: center;
-    width: 100%;
-}
-.p_de_title {
-    color: #00a9bc;
-    border-bottom: 3px solid #00a9bc;
-    width: 100%;
-    font-weight: bold;
-    padding-bottom: 3px;
-    margin-bottom: 10px;
-    font-size: 20px;
-    display: inline-block;
-}
-.p_de {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 10px;
-}
-.p_de table {
-    width: 100%;
-    table-layout: fixed; /* ✅ 固定表格布局，避免因文字長短改變寬度 */
-    border-spacing: 0;
-    border-collapse: separate;
-
-    /* ✅ 新增：淡入淡出過渡效果 */
-    /* transition: opacity 0.5s ease-in-out; */
-    /* ✅ 新增：同時過渡位移與不透明度 */
-    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
-}
-
-/* ✅ 新增：用於控制滑動動畫的類別 */
-.slide-out {
-    opacity: 0;
-    /* 初始位置，向左移動 100px */
-    transform: translateX(-100px);
-
-    /* 從右側滑出 100% 寬度 */
-    /* transform: translateX(100%); */
-}
-
-.slide-in {
-    opacity: 1;
-    transform: translateX(0); /* 最終位置，回到原位 */
-}
-
-.p_de table td {
-    vertical-align: top;
-    box-sizing: border-box;
-    padding: 10px;
-    word-break: break-word;   /* 文字過長時換行 */
-    white-space: normal;
-}
-/* 修改 */
-
 .custom-div {
   flex: 1;
   margin: 10px 0px;
   height: 410px;
-}
-.custom-div2 {
-  flex: 1;
-  background-color: #00A9BC;
 }
 .vertical-div {
   flex: 1;
@@ -392,38 +784,8 @@ h1 {
   margin-top: 20px;
   padding: 0px 30px 10px 30px;
 }
-.suggestion {
-  text-align: left;
-  border-radius: 0px;
-  padding: 0px 8px;
-}
-.vertical-image {
-  flex: 1;
-  width: 83px;
-  margin: 0px 10px;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
 .inner-image {
   flex: 1;
-}
-.inner-text {
-  margin-left: 10px;
-}
-p.title {
-  font-size: 1.6em;
-  color: #00A9BC;
-  font-weight: bold;
-  padding: 10px;
-}
-p.s_content {
-  padding: 10px;
-  font-size: 1.2em;
-  color: white;
-}
-.f_c1{
-	color:#00B2C4;
 }
 .rida_p {
   text-align: center;
@@ -439,281 +801,61 @@ p.s_content {
 .aanalysis {
   text-align: left;
 }
-.strikeeff {
-
-  width: 60%;
-  padding-bottom: 16px;
-  border-radius: 60px;
-  color: #ffffff;
-  font-size: 1.4em;
-  font-weight: bold;
-  text-align: center;
-  margin: auto;
- text-align: center;
-	line-height: 1;
-}
-
-.score{
-  color: #00A9BC;
-  font-weight: bold;
-  font-size: 2.0em;
- display: inline-block;
-	vertical-align: middle;
-	position: relative;
-	top:-2px;
-}
-
 .aanalysis p {
   color: #ffffff;
   padding: 10px 20px;
-}
-.f_content {
-  display: flex;
-  text-align: center;
-  padding: 0px 6px;
-}
-.psystemSection {
-  margin-top: 0px;
-  display: flex;
-  padding-top: 9px;
-  background-color: #ffffff;
-  justify-content: center;
 }
 .psystem_p {
   width: 25%;
   padding: 10px;
   box-sizing: border-box;
 }
-
-/* 修改 */
-
-/*
-  全螢幕模式修正樣式：
-  確保容器在全螢幕時能完全填滿視窗，解決影片與畫布的對齊問題。
-*/
-#videoContainer:fullscreen,
-#videoContainer1:fullscreen {
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* 針對舊版 WebKit 瀏覽器 (Chrome, Safari) 的相容性寫法 */
-#videoContainer:-webkit-full-screen,
-#videoContainer1:-webkit-full-screen {
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* 新增播放器控制項的樣式 */
-#player-controls, #player-controls1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* 播放/暫停按鈕樣式 */
-#video-play-pause, #video-play-pause1 {
-  cursor: pointer;
-  text-indent: -999999px;
-  height: 25px;
-  width: 25px;
-  z-index: 2;
-  /* background-image: url("../../page/img/btn_play.png"); */
-  background-repeat: no-repeat !important;
-  background-position: center;
-  background-size: 16px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 25px;
-}
-
-/* 進度條樣式 */
-/* #progress-bar, #progress-bar1 {
-  margin: 0 10px;
-} */
-
-/* 時間顯示樣式 */
-/* #time-display, #time-display1 {
-    color: white;
-    font-family: monospace;
-} */
-
-/* 全螢幕按鈕樣式 */
-/* #fullscreen-btn, #fullscreen-btn1 {
-    background: none;
-    border: 1px solid white;
-    color: white;
-    padding: 5px 10px;
-    cursor: pointer;
-} */
-
-/* 修改 */
-
-#overlayCanvas, #overlayCanvas1{
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  pointer-events: none;
-}
-
-#player-container #play-pause {
-  cursor: pointer;
-  text-indent: -999999px;
-  height: 40px;
-  width: 40px;
-  z-index: 2;
-  /* background-image: url("../../page/img/btn_play.png"); */
-  background-repeat: no-repeat !important;
-  background-position: center;
-  background-size: 16px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40px;
-}
-.play {
-  background-image: url("../../page/img/btn_play.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40px;
-}
-
-.pause {
-  background-image: url("../../page/img/btn_pause.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40px;
-}
-.crop-left {
-padding: 0px 20px;
-  width: 250px;
-  height: 240px;
-  overflow: hidden;
-  position: relative;
-}
-
-.crop-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: left;
-  display: block;
-}
-
-
-@media screen and (max-width: 712px) {
-  .c_m {
-    width: 100%;
-    margin: auto;
-  }
-  .row {
-    flex: 100%;
-  }
-  .row2 {
-    margin: 0px 0px 0px 0px;
-    flex: 1;
+/* 舊版 TPI 建議樣式 */
+.p_de_content {
+    font-size: 20px;
     display: flex;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    margin: 5px 0;
+    width: 100%;
+}
+.p_de_label {
+    display: inline-block;
+    width: 10ch;
+    text-align: justify;
+    font-weight: bold;
+    color: #333;
+    flex-shrink: 0;
+    font-family: "Microsoft JhengHei", monospace;
     position: relative;
-    z-index: 1;
-  }
-  .column {
-    flex: 100%;
-  }
-  h1 {
-    font-size: 1.4em;
-    margin-top: 10px;
-  }
-  .column2 {
-    max-width: 100%;
-    flex-wrap: wrap;
-    padding: 0px;
-  }
-  /* 在小螢幕上讓影片和分析欄位都佔滿全部寬度 */
-  .video-column, .analysis-column {
-      flex: 1 1 100%;
-  }
-  .cards {
-    flex-direction: column;
-  }
-  .card {
-    flex: 100%;
-  }
-  .image {
+}
+.p_de_label::after {
+    content: "：";
+    margin-left: 0;
+}
+.p_de_posture,
+.p_de_re {
+    flex: 1;
+    text-align: left;
+    word-break: break-word;
+    min-width: 0;
+    max-width: calc(100% - 120px);
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+.p_de_re {
+    color: #00a9bc;
+}
+.p_de_title_container {
+    text-align: center;
     width: 100%;
-    height: auto;
-  }
-  .custom-div {
-    max-width: 100%;
-    margin: 0;
-  }
-  .steps {
-    display: flex;
-    border-radius: 10px;
-    padding: 0px 20px;
-  }
-  .step {
-    padding: 4px 0px;
-  }
-  .step_title {
-    font-size: 0.8em;
+}
+.p_de_title {
+    color: #00a9bc;
+    border-bottom: 3px solid #00a9bc;
+    width: 100%;
     font-weight: bold;
-  }
-  .step_4 {
-    font-size: 0.8em;
-  }
-  p.title {
-    font-size: 1.4em;
-    color: #00A9BC;
-    font-weight: bold;
-    padding: 10px;
-  }
-  p.s_content {
-    padding: 10px;
-    font-size: 1.2em;
-    color: white;
-  }
-  .aanalysisSection {
-    background-color: #222222;
-  }
-  .aanalysis {
-    width: 100%;
-    flex-wrap: wrap;
-    text-align: center;
-  }
-  .rida_p {
-    width: 100%;
-    text-align: center;
-  }
-  .f_content {
-    text-align: center;
-    border: #00A9BC solid 1px;
-    flex-wrap: wrap;
-    padding: 10px;
-  }
-  .suggestion {
-    padding: 0px;
-  }
-  .vertical-image {
-    width: 100%;
-    flex-wrap: wrap;
-    margin: 0px;
-  }
-  .psystemSection {
-    flex-wrap: wrap;
-  }
-  .box {
-    width: 100%;
-  }
+    padding-bottom: 3px;
+    margin-bottom: 10px;
+    font-size: 20px;
+    display: inline-block;
 }

@@ -3,6 +3,7 @@
 <%@ page import="java.util.ArrayList"%>
 <%@ page import="org.apache.commons.lang3.StringUtils"%>
 
+<%@ page import="com.golfmaster.service.CallLlmAdviseAPI"%>
 <%@ page import="com.golfmaster.service.ExpertData"%>
 <%@ page import="com.golfmaster.service.ShotData"%>
 <%@ page import="com.golfmaster.service.ShotVideo"%>
@@ -18,11 +19,12 @@
 <%!ShotVideo shotVideo = new ShotVideo();%>
 <%!PSystem pSystem = new PSystem();%>
 <%!PSystemJP pSystemJP = new PSystemJP();%>
+<%!CallLlmAdviseAPI callLlmAdviseAPI = new CallLlmAdviseAPI();%>
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 Long shot_data_id = result.getLong("shotdata_id");
-// Long shot_data_id = 128069L; // test
+// Long shot_data_id = 128069L; // test (expert = 128002)
 Long exID = result.getLong("id"); // Unused, but kept for context
 
 Object temp[] = shotVideo.processAnalyz(shot_data_id);
@@ -40,6 +42,7 @@ int[] combinedTpiSwingTable = (int[]) temp[10]; // SwingTable 資料
 String tpiAdvicesJson = (String) temp[11]; // allFilteredAdvicesJson 資料
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
+String currShotDataResult = shotData.processCurrShotData(shot_data_id);
 String shortGameResult = shotData.processShortGameData(shot_data_id);
 
 String psystem = result.optString("expert_p_system", "");
@@ -47,6 +50,13 @@ String trajectory = result.optString("expert_trajectory", "");
 String cause = result.optString("expert_cause", "");
 String suggestion = result.optString("expert_suggestion", "");
 
+String adviceResult = callLlmAdviseAPI.getLlmAdvise(
+	shot_data_id.toString(),
+	currShotDataResult,
+	shortGameResult,
+	tpiAdvicesJson,
+	result.toString()
+);
 %>
 
 <%-- HTML --%>
@@ -71,6 +81,7 @@ String suggestion = result.optString("expert_suggestion", "");
 	<script src="../../page/js/tpiAdvicesManager.js"></script>
 	<script src="../../page/js/cmpChartManager.js"></script>
 	<script src="../../page/js/shortTableManager.js"></script>
+	<script src="../../page/js/headerNavManager.js"></script>
 	<style>
 	</style>
 </head>
@@ -78,6 +89,18 @@ String suggestion = result.optString("expert_suggestion", "");
 	<div class="c_m">
         <div class="header">
             <img src="../../page/img/logo_1.png" alt="Your Logo" class="logo">
+			<div class="navigation-buttons">
+				<button class="nav-button" id="nav-swing" data-page="expert-data-v8.jsp" data-current="true">
+					<img src="../../page/img/swing_icon.png" alt="揮桿分析">
+				</button>
+				<button class="nav-button" id="nav-chip" data-page="expert-data-v8-short.jsp">
+					<img src="../../page/img/chip_icon.png" alt="切桿分析">
+				</button>
+				<%-- 尚未實作 --%>
+				<button class="nav-button temporarily-disabled" id="nav-putt" data-page="expert-data-v8-putt.jsp">
+					<img src="../../page/img/putt_icon.png" alt="推桿分析">
+				</button>
+			</div>
         </div>
 
         <div class="main-layout-container">
@@ -168,11 +191,13 @@ String suggestion = result.optString("expert_suggestion", "");
 		const combinedTpiSwingTable = <%= new JSONArray(combinedTpiSwingTable).toString() %>;
 		const tpiAdvicesData = '<%= StringUtils.defaultIfEmpty(tpiAdvicesJson, "null") %>';
 		const shortGameResultData = '<%= shortGameResult %>';
+		const golfAdviceResult = '<%= adviceResult %>';
 
 		// console.log(sideSwingPlaneData);
 		// console.log(frontSwingPlaneData);
 		// console.log(tpiAdvicesData);
 		// console.log(shortGameResultData);
+		console.log(golfAdviceResult);
 
 		// --- Global DOM & App State Variables ---
 		const frameRate = 60;

@@ -86,6 +86,7 @@ String suggestion = result.optString("expert_suggestion", "");
 	<script src="../../page/js/swingVideo.js"></script>
 	<script src="../../page/js/tpiAdvicesManager.js"></script>
 	<script src="../../page/js/cmpChartManager.js"></script>
+	<script src="../../page/js/headerNavManager.js"></script>
 	<style>
 	</style>
 </head>
@@ -94,6 +95,19 @@ String suggestion = result.optString("expert_suggestion", "");
 		<div class="header">
 			<img src="../../page/img/logo_1.png" alt="Your Logo" class="logo">
 			<!-- <Input Type="Button" Value="重新整理" onClick="window.location.reload();">  -->
+
+			<div class="navigation-buttons">
+				<button class="nav-button" id="nav-swing" data-page="expert-data-v8.jsp" data-current="true">
+					<img src="../../page/img/swing_icon.png" alt="揮桿分析">
+				</button>
+				<button class="nav-button" id="nav-chip" data-page="expert-data-v8-short.jsp">
+					<img src="../../page/img/chip_icon.png" alt="切桿分析">
+				</button>
+				<%-- 尚未實作 --%>
+				<button class="nav-button temporarily-disabled" id="nav-putt" data-page="expert-data-v8-putt.jsp">
+					<img src="../../page/img/putt_icon.png" alt="推桿分析">
+				</button>
+			</div>
 		</div>
 		<div class="row2 ">
 			<div class="column2 video-column">

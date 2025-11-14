@@ -1,5 +1,6 @@
 package com.golfmaster.moduel;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -94,19 +95,19 @@ public class ShortGameData {
         // 步驟 3: 核心統計計算 (專注於聚合和輸出)
         // 1A. 平均落點距離 (Average Carry Distance) -> 單位：碼 (Yd)
         double avgCarryDistYd = yCoordsYd.stream().mapToDouble(d -> d).average().orElse(0.0);
-        jsb.put("avg_carry_dist_yd", avgCarryDistYd);
+        jsb.put("avg_carry_dist_yd", roundDecimal(avgCarryDistYd, 2));
 
         // 計算平均 X 座標
         double avgXCoordYd = xCoordsYd.stream()
             .mapToDouble(d -> d)
             .average().orElse(0.0);
-        jsb.put("avg_horizontal_deviation_yd", avgXCoordYd); 
+        jsb.put("avg_horizontal_deviation_yd", roundDecimal(avgXCoordYd, 2));
 
         // 1B. 平均水平傾向 (Average Launch Direction) -> 單位：角度 (Degree)
         double avgLaunchDirection = processedList.stream()
             .mapToDouble(d -> d.launch_direction_deg)
             .average().orElse(0.0);
-        jsb.put("avg_launch_direction_deg", avgLaunchDirection);
+        jsb.put("avg_launch_direction_deg", roundDecimal(avgLaunchDirection, 2));
 
         // 2. 落點分佈 (Landing Points) -> 單位：碼 (Yd)
         //    用於在前端繪製散佈圖。
@@ -118,19 +119,19 @@ public class ShortGameData {
 
         // 3. 垂直標準差
         double carryStDevYd = calculateStDevFromList(yCoordsYd);
-        jsb.put("stdev_carry_yd", carryStDevYd);
+        jsb.put("stdev_carry_yd", roundDecimal(carryStDevYd, 2));
 
         // 4. 水平標準差 (基於包含側旋修正的 X 座標)
         double horizontalStDevYd = calculateStDevFromList(xCoordsYd);
-        jsb.put("stdev_horizontal_yd", horizontalStDevYd);
+        jsb.put("stdev_horizontal_yd", roundDecimal(horizontalStDevYd, 2));
 
         // 5. 飛行占比
         double avgCarryRatio = processedList.stream()
             .mapToDouble(d -> d.carry_ratio)
             .average().orElse(0.0);
         double avgRollRatio = 100.0 - avgCarryRatio;
-        jsb.put("avg_carry_ratio", avgCarryRatio);
-        jsb.put("avg_roll_ratio", avgRollRatio);
+        jsb.put("avg_carry_ratio", roundDecimal(avgCarryRatio, 2));
+        jsb.put("avg_roll_ratio",  roundDecimal(avgRollRatio, 2));
 
         // 6. 落點一致率
         double toleranceYd = getToleranceByClubType(clubType);
@@ -141,7 +142,7 @@ public class ShortGameData {
             avgCarryDistYd,
             toleranceYd
         );
-        jsb.put("landing_consistency_percent", consistency);
+        jsb.put("landing_consistency_percent", roundDecimal(consistency, 2));
 
         // 7. 最大偏差值
         double maxDeviation = calculateMaxDeviation(
@@ -150,7 +151,7 @@ public class ShortGameData {
             avgXCoordYd,
             avgCarryDistYd
         );
-        jsb.put("max_deviation_yd", maxDeviation);
+        jsb.put("max_deviation_yd", roundDecimal(maxDeviation, 2));
 
         // 計算協方差 (Covariance XY)
         double covarianceXY = calculateCovariance(
@@ -159,7 +160,7 @@ public class ShortGameData {
             avgXCoordYd,
             avgCarryDistYd
         );
-        jsb.put("covariance_xy", covarianceXY);
+        jsb.put("covariance_xy", roundDecimal(covarianceXY, 2));
 
         jsb.put("status", "success");
         return jsb;
@@ -339,7 +340,9 @@ public class ShortGameData {
             }
         }
 
-        return ((double) withinRange / xCoords.size()) * 100.0; // 百分比
+        double oriValue = ((double) withinRange / xCoords.size()) * 100.0;
+
+        return Math.round(oriValue * 100.0) / 100.0; // 百分比
     }
 
     /**
@@ -460,6 +463,23 @@ public class ShortGameData {
             .sum() / (n - 1); // 樣本方差 (Sample Variance)
 
         return Math.sqrt(variance);
+    }
+
+    /**
+     *
+     * @param value 原始數值
+     * @param places 小數點第幾位
+     * @return 樣本標準差。
+     */
+    private double roundDecimal(double value, int places) {
+        if (places < 0) {
+            return value;
+        }
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 
     /**

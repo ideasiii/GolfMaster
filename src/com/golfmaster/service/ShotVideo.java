@@ -128,6 +128,7 @@ public class ShotVideo {
 		}
 		// for test
 		// int[] combinedTpiSwingTable = {1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0};
+		// int[] combinedTpiSwingTable = {1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0};
 
 
 		// // 使用 TpiDataService 篩選所有階段的數據
@@ -354,14 +355,14 @@ public class ShotVideo {
 					JSONArray tpiTableData = tpiTableObj.optJSONArray("data");
 					if (tpiTableData != null) {
 						for (int j = 0; j < tpiTableData.length(); j++) {
-							System.out.println(
-								"side = "
-								+ camPos
-								+ " tpiTableData "
-								+ j
-								+ " = "
-								+ tpiTableData.optInt(j)
-							);
+							// System.out.println(
+							// 	"side = "
+							// 	+ camPos
+							// 	+ " tpiTableData "
+							// 	+ j
+							// 	+ " = "
+							// 	+ tpiTableData.optInt(j)
+							// );
 							if ("side".equals(camPos)) {
 								sideTpiTable.add(tpiTableData.optInt(j));
 							} else if ("front".equals(camPos)) {
@@ -475,8 +476,8 @@ public class ShotVideo {
 				JSONObject scoreData = playerScore.optJSONObject("data");
 				JSONObject impactData = poseImpact.optJSONObject("data");
 
-				System.out.println("scoreData = " + scoreData);
-				System.out.println("impactData = " + impactData);
+				// System.out.println("scoreData = " + scoreData);
+				// System.out.println("impactData = " + impactData);
 
 				if (scoreData != null && impactData != null) {
 					if (scoreData.optDouble("A", 1.0) < scoreThreshold) {
