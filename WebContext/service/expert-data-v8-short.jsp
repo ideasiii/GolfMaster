@@ -43,20 +43,25 @@ String tpiAdvicesJson = (String) temp[11]; // allFilteredAdvicesJson 資料
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 String currShotDataResult = shotData.processCurrShotData(shot_data_id);
-String shortGameResult = shotData.processShortGameData(shot_data_id);
+String shortGameResult = shotData.processShortGameData(shot_data_id, 10);
 
 String psystem = result.optString("expert_p_system", "");
 String trajectory = result.optString("expert_trajectory", "");
 String cause = result.optString("expert_cause", "");
 String suggestion = result.optString("expert_suggestion", "");
 
-String adviceResult = callLlmAdviseAPI.getLlmAdvise(
-	shot_data_id.toString(),
-	currShotDataResult,
-	shortGameResult,
-	tpiAdvicesJson,
-	result.toString()
-);
+String useLLM = request.getParameter("LLM");
+String adviceResult = "";
+if (useLLM != null && useLLM.equals("true")) {
+	adviceResult = callLlmAdviseAPI.getLlmAdvise(
+		shot_data_id.toString(),
+		currShotDataResult,
+		shortGameResult,
+		tpiAdvicesJson,
+		result.toString()
+	);
+}
+
 %>
 
 <%-- HTML --%>
@@ -195,7 +200,7 @@ String adviceResult = callLlmAdviseAPI.getLlmAdvise(
 
 		// console.log(sideSwingPlaneData);
 		// console.log(frontSwingPlaneData);
-		// console.log(tpiAdvicesData);
+		console.log(tpiAdvicesData);
 		// console.log(shortGameResultData);
 		console.log(golfAdviceResult);
 
@@ -367,6 +372,7 @@ String adviceResult = callLlmAdviseAPI.getLlmAdvise(
 				phase,
 				tpiAdvicesData,
 				effectValue,
+				golfAdviceResult,
 			);
 		}
 
@@ -427,6 +433,7 @@ String adviceResult = callLlmAdviseAPI.getLlmAdvise(
 					firstButton.dataset.phase,
 					tpiAdvicesData,
 					effectValue,
+					golfAdviceResult,
 				);
 			}
 

@@ -42,6 +42,7 @@ class TpiAdvicesManager {
 
         this.currentPhase = 'A'; // 預設為 'A'
         this.currentEffectValue = 6; // 預設為 '正常動作' (6)
+        this.golfAdviceResult = '';
     }
 
     /**
@@ -131,53 +132,53 @@ class TpiAdvicesManager {
     // }
 
     /**
-     * 根據後端提供的篩選後 JSON 數據和當前階段更新並渲染表格。
+     * 根據後端提供的篩選後 JSON 數據、當前階段和 LLM 綜合建議更新並渲染表格。
      *
      * @param {string} phase - 要篩選的揮桿階段 ('A', 'T', 'I', 'F')。
-     * @param {string} allFilteredAdvicesJson - 後端 (Java) 輸出的 JSON 字串，包含所有階段篩選後的建議。
+     * @param {string} allFilteredAdvicesJson - 後端 (Java) 輸出的 JSON 字串，包含所有階段篩選後的 TPI 建議。
      * @param {string|number} effectValue - 當前階段的 aEffect, tEffect, iEffect, 或 fEffect 值。
+     * @param {string} golfAdviceResultJson - 後端 (JSP) 輸出的 LLM 綜合建議 JSON 字串。
      */
-    updateTable(phase, allFilteredAdvicesJson, effectValue) {
+    updateTable(phase, allFilteredAdvicesJson, effectValue, golfAdviceResultJson="") {
         if (!this.tableElement) return;
 
         // 1. 清除舊的計時器並重設狀態
         clearInterval(this.intervalId);
         this.displayIndex = 0;
-        // 儲存當前 phase
         this.currentPhase = phase;
-        // 儲存當前 Effect 值
         this.currentEffectValue = effectValue;
 
-
         let allAdvices;
+        let golfAdvice = null; // 初始化 LLM 建議數據
+
+        // 處理 TPI Advices JSON
         try {
-            // 2. 解析 JSON 字串
             allAdvices = JSON.parse(allFilteredAdvicesJson);
         } catch (error) {
             console.error("TpiAdvicesManager: 無法解析 allFilteredAdvicesJson", error);
-            this.renderTable([]); // 傳入空陣列，會顯示「沒有明顯錯誤」
-            return;
+            allAdvices = {}; // 設置為空物件以避免後續錯誤
         }
 
-        if (allAdvices === null || allAdvices === undefined) {
-            console.log("TpiAdvicesManager: 後端傳回空資料 (null)。");
-            this.renderTable([]);
-            return;
+        // 🚨 關鍵修改點 1: 呼叫新的解析函式
+        if (typeof golfAdviceResultJson === 'string' && golfAdviceResultJson.trim().length > 0) {
+            golfAdvice = this._parseGolfAdviceResult(golfAdviceResultJson);
         }
 
-        // 3. 取得當前階段的篩選後數據
-        this.currentData = allAdvices[phase] || [];
-
-        // 檢查是否有 TPI 數據
-        if (this.currentData.length === 0) {
-            console.log(`TpiAdvicesManager: 階段 ${phase} 沒有篩選後的建議。`);
-            // 沒有 TPI 錯誤，但表格的渲染要交由 renderTable 判斷是否有教練比對差異
-            this.renderTable([]); 
-            return;
+        // --- 特殊處理：階段 'F' 顯示 LLM 綜合建議 ---
+        // 🚨 關鍵修改點 2: golfAdvice 現在可能是 null 或一個包含 cause/suggestion 的錯誤物件
+        if (phase === 'F' && golfAdvice) {
+            console.log(`TpiAdvicesManager: 階段 ${phase} 顯示 LLM 綜合建議或錯誤。`);
+            this.currentData = [golfAdvice]; // 使用 LLM 建議數據或錯誤物件
+        } else {
+            // 處理 A, T, I 階段的 TPI 建議
+            this.currentData = allAdvices[phase] || [];
         }
 
-        // 4. 有 TPI 錯誤，啟動初始渲染與動畫（與先前邏輯相同）
-        this.tableElement.classList.add('slide-out'); 
+        // 2. 判斷是否有 TPI 或 LLM 數據需要渲染
+        const hasData = this.currentData.length > 0;
+
+        // 3. 啟動初始渲染與動畫
+        this.tableElement.classList.add('slide-out');
 
         setTimeout(() => {
             this.renderTable(this.currentData);
@@ -189,8 +190,8 @@ class TpiAdvicesManager {
             }, this.timingOptions.animationDuration);
         }, this.timingOptions.initialDelay);
 
-        // 5. 啟動輪播
-        if (this.currentData.length > this.maxDisplayItems) {
+        // 4. 啟動輪播 (只有在有 TPI 數據且數量大於 maxDisplayItems 時才輪播)
+        if (phase !== 'F' && hasData && this.currentData.length > this.maxDisplayItems) {
             this.intervalId = setInterval(() => {
                 this.tableElement.classList.add('slide-out');
 
@@ -213,59 +214,124 @@ class TpiAdvicesManager {
 
     /**
      * 渲染表格內容。
-     * **核心更新：** 在沒有 TPI 錯誤時，根據 `this.currentEffectValue` 顯示不同訊息。
-     * @param {Array<object>} data - 要顯示的揮桿特徵數據。
+     * @param {Array<object>} data - 要顯示的揮桿特徵數據 (TPI Advices) 或單一 LLM Advice 物件陣列。
      */
     renderTable(data) {
-        this.tableElement.innerHTML = ''; 
+        this.tableElement.innerHTML = '';
 
         if (data.length > 0) {
-            // ... (有 TPI 錯誤時的渲染邏輯保持不變)
-            const dataToShow = data.slice(this.displayIndex, this.displayIndex + this.maxDisplayItems);
+            const item = data[this.displayIndex];
 
-            dataToShow.forEach(item => {
-                const row = this.tableElement.insertRow();
-                const cell = row.insertCell();
-
-                // 修正：maxItemsToDisplay 應為 this.maxDisplayItems
-                if (this.maxDisplayItems === 1) { 
-                    cell.colSpan = 2;
-                }
-
-                cell.innerHTML =
-                    '<div class="p_de_title_container">' +
-                    '<div class="p_de_title">' + item.title + '</div>' +
-                    '</div>' +
-                    '<p class="p_de_content">' +
-                    '<span class="p_de_label">揮桿特徵</span>' +
-                    '<span class="p_de_posture">' + item.posture + '</span>' +
-                    '</p>' +
-                    '<p class="p_de_content">' +
-                    '<span class="p_de_label">動作建議</span>' +
-                    '<span class="p_de_re">' + item.suggestion + '</span>' +
-                    '</p>';
-            });
-        } else {
-            // **沒有 TPI 錯誤時的訊息邏輯更新**
-            let message = '';
-            if (this.hasCoachComparisonDifference(this.currentEffectValue)) {
-                // Effect < 6 (例如 0~5) 表示與教練比對有差異
-                message = '您的揮桿動作無明顯TPI特徵，但與標準比對結果顯示有需要注意的部位，請參考影像圖。';
+            if (this.currentPhase === 'F' && data.length === 1 && (item.cause || item.suggestion)) {
+                 // --- 渲染 LLM 綜合建議 (F 階段) ---
+                 this.tableElement.innerHTML =
+                     '<div class="p_de_title_container">' +
+                     '<div class="p_de_title">' + "綜合建議" + '</div>' +
+                     '</div>' +
+                     '<p class="p_de_content">' +
+                     '<span class="p_de_label">擊球成因</span>' +
+                     // item.cause 現在可能是 Worker 提供的成因，或錯誤訊息 'API 呼叫失敗'
+                     '<span class="p_de_posture">' + (item.cause || '未提供成因') + '</span>' +
+                     '</p>' +
+                     '<p class="p_de_content">' +
+                     '<span class="p_de_label">擊球建議</span>' +
+                     // item.suggestion 現在可能是 Worker 提供的建議，或錯誤訊息
+                     '<span class="p_de_re">' + (item.suggestion || '未提供建議') + '</span>' +
+                     '</p>';
             } else {
-                // Effect = 6 表示與教練動作無異
-                message = '恭喜！您的揮桿動作無明顯TPI特徵，與標準動作比較也無明顯差異。';
-            }
-            // this.tableElement.innerHTML = `<tr><td class="p_de_re">${message}</td></tr>`;
+                 // --- 渲染 TPI 建議 (A, T, I 階段) ---
+                 const dataToShow = data.slice(this.displayIndex, this.displayIndex + this.maxDisplayItems);
 
+                 dataToShow.forEach(tpiItem => {
+                     const row = this.tableElement.insertRow();
+                     const cell = row.insertCell();
+
+                     if (this.maxDisplayItems === 1) {
+                         cell.colSpan = 2;
+                     }
+
+                     cell.innerHTML =
+                         '<div class="p_de_title_container">' +
+                         '<div class="p_de_title">' + tpiItem.title + '</div>' +
+                         '</div>' +
+                         '<p class="p_de_content">' +
+                         '<span class="p_de_label">揮桿特徵</span>' +
+                         '<span class="p_de_posture">' + tpiItem.posture + '</span>' +
+                         '</p>' +
+                         '<p class="p_de_content">' +
+                         '<span class="p_de_label">動作建議</span>' +
+                         '<span class="p_de_re">' + tpiItem.suggestion + '</span>' +
+                         '</p>';
+                 });
+            }
+        } else {
+            // **沒有 TPI 或 LLM 錯誤時/未啟用時的訊息邏輯更新**
+            let message = '';
+            const phaseTitle = this.getPhaseTitle(this.currentPhase); // 取得當前階段名稱 ('準備', '上桿', '下桿', '收桿')
+
+            // 🚨 關鍵修改點：將 F 階段的處理邏輯與 A/T/I 階段合併，共同判斷 TPI/比對預設訊息
+            if (this.hasCoachComparisonDifference(this.currentEffectValue)) {
+                 // 有差異圖 (Effect < 6)
+                 message = `您的${phaseTitle}動作大致良好，但與標準比對仍稍微差異。 請對照左側影像的紅色區域，了解需要加強的部分。`;
+            } else {
+                 // 無差異圖 (Effect = 6)
+                 message = `您的${phaseTitle}動作與TPI標準吻合。動作協調性與穩定性都表現出色`;
+            }
+
+            // 渲染無數據或預設訊息
             this.tableElement.innerHTML =
                 '<div class="p_de_title_container">' +
-                '<div class="p_de_title">' + this.getPhaseTitle(this.currentPhase) + '</div>' +
+                '<div class="p_de_title">' + phaseTitle + '</div>' +
                 '</div>' +
                 '<p class="p_de_content">' +
                 '<p class="p_de_content">' +
                 '<span class="p_de_label">動作建議</span>' +
                 '<span class="p_de_re">' + message + '</span>' +
                 '</p>';
+        }
+    }
+
+    /**
+     * 輔助函式：解析 LLM 建議的 JSON 響應。
+     * ...
+     * @returns {object | null} - 成功時返回包含 cause/suggestion 的建議物件，失敗或無數據時返回 null。
+     */
+    _parseGolfAdviceResult(golfAdviceResultJson) {
+        if (typeof golfAdviceResultJson !== 'string' || golfAdviceResultJson.trim().length === 0) {
+            return null;
+        }
+
+        try {
+            const parsedObj = JSON.parse(golfAdviceResultJson);
+
+            // 1. 處理 Java Client 錯誤響應結構: { "success": false, "result": "..." }
+            if (parsedObj.success === false) {
+                console.error("LLM API Call Failed (from Java Client):", parsedObj.result);
+                // 🚨 修改：API 呼叫失敗，直接返回 null，讓頁面顯示 TPI 預設訊息
+                return null;
+            }
+
+            // 2. 處理 Worker 成功響應結構: { "task_id": "...", "status": "completed", "data": {...} }
+            if (parsedObj.status === 'completed' && parsedObj.data && typeof parsedObj.data === 'object') {
+                return parsedObj.data; // 返回純淨的建議數據物件 { cause: ..., suggestion: ... }
+            }
+
+            // 3. 處理 Worker 返回但 status 非 completed 的情況
+            if (parsedObj.status && parsedObj.status !== 'completed') {
+                console.warn("LLM Worker Status Not Completed:", parsedObj.status);
+                // 🚨 修改：Worker 處理失敗，直接返回 null，讓頁面顯示 TPI 預設訊息
+                return null;
+            }
+
+            // 4. 未知結構/無 data 欄位
+            console.warn("LLM Result JSON format unknown or missing data:", parsedObj);
+            return null;
+
+        } catch (error) {
+            // 處理 JSON.parse 失敗的情況
+            console.error("TpiAdvicesManager: 最終 LLM JSON 解析失敗:", error, "原始響應:", golfAdviceResultJson);
+            // 🚨 修改：解析失敗，直接返回 null
+            return null;
         }
     }
 }

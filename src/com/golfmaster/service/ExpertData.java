@@ -54,6 +54,7 @@ public class ExpertData extends DeviceData {
 
 			String expertID = request.getParameter("expert");
 			String tempID = request.getParameter("temp");
+			String fieldID = request.getParameter("LID");
 			if (expertID != null && tempID == null) {
 				expert = this.queryExpertData(Long.parseLong(expertID), tempID);
 //				if (expert != null) {
@@ -107,6 +108,34 @@ public class ExpertData extends DeviceData {
 				boolean result = false;
 
 				expert = this.queryExpertData(Long.parseLong(expertID), tempID);
+				String psystem = expert.getString("expert_p_system");
+				if (psystem != null && !psystem.isEmpty()) {
+					if (psystem.toUpperCase().indexOf("P") >= 0) {
+						String vf = "";
+						String p = psystem.substring(0, 2);
+						if ("P1".equals(p) || "P2".equals(p) || "P3".equals(p) || "P4".equals(p)) {
+							vf = "P1_P10v5.mp4";
+						}
+						if ("P5".equals(p) || "P6".equals(p) || "P7".equals(p)) {
+							vf = "P1_P10v5.mp4";
+						}
+						if ("P8".equals(p) || "P9".equals(p) || "P10".equals(p)) {
+							vf = "P1_P10v5.mp4";
+						}
+
+						result = true;
+						expert.put("video", vf);
+					} else {
+						if (psystem.contains("擊球失敗")) {
+							expert.put("img_name", "warning.png");
+						}
+					}
+				}
+				expert.put("result", result);
+			} else if (expertID == null && tempID == null && fieldID != null) {
+				expert = this.queryExpertDataByLID(fieldID);
+
+				boolean result = false;
 				String psystem = expert.getString("expert_p_system");
 				if (psystem != null && !psystem.isEmpty()) {
 					if (psystem.toUpperCase().indexOf("P") >= 0) {
@@ -293,7 +322,7 @@ public class ExpertData extends DeviceData {
 					jsonExpert = new JSONObject();
 
 					jsonExpert.put("expert_trajectory", "Pull Hook 左拉左曲球");
-					
+
 					jsonExpert.put("expert_p_system", "P5~6 下桿");
 					jsonExpert.put("expert_suggestion", "下桿至Impact階段，左手臂打直、左手腕維持固定");
 					jsonExpert.put("expert_cause", "Impact階段，手腕與教練差異最大，下桿角度過於陡峭，手腕過度彎曲，過度由內而外的路徑");
@@ -310,6 +339,55 @@ public class ExpertData extends DeviceData {
 
 		return jsonExpert;
 	}
+
+	private JSONObject queryExpertDataByLID(String shotData_LID) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String strSQL = null;
+		JSONObject jsonExpert = null;
+
+		// 1. 檢查輸入的 LID 是否有效
+		if (shotData_LID != null && !shotData_LID.trim().isEmpty()) {
+			// 2. 構建 SQL 查詢語句
+			// 變數名稱 shotData_LID 更清晰地表達它來自 shot_data
+			strSQL = String.format("SELECT e.* "
+								+ "FROM expert AS e "
+								+ "INNER JOIN shot_data AS s ON e.shot_data_id = s.id "
+								+ "WHERE s.LID = '%s' " // 用單引號包住 LID，因為它是字元型別
+								+ "ORDER BY s.Date DESC "
+								+ "LIMIT 1", shotData_LID);
+		} else {
+			// 如果 LID 無效，直接返回 null 或拋出異常
+			return null;
+		}
+
+		try {
+			conn = DBUtil.getConnGolfMaster();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(strSQL);
+
+			while (rs.next()) {
+				jsonExpert = new JSONObject();
+
+				jsonExpert.put("expert_trajectory", rs.getString("expert_trajectory"));
+				jsonExpert.put("expert_note", rs.getString("expert_note"));
+				jsonExpert.put("expert_p_system", rs.getString("expert_p_system"));
+				jsonExpert.put("expert_suggestion", rs.getString("expert_suggestion"));
+				jsonExpert.put("expert_cause", rs.getString("expert_cause"));
+				jsonExpert.put("shotdata_id", rs.getLong("shot_data_id"));
+				jsonExpert.put("id", rs.getLong("id"));
+			}
+
+		} catch(Exception e) {
+			Logs.log(Logs.EXCEPTION_LOG, e.toString());
+		} finally {
+			DBUtil.close(rs, stmt, conn);
+		}
+
+		return jsonExpert;
+	}
+
 
 	private void printParam(HttpServletRequest request) {
 		String strRequest = " =========== Request Parameter ============";

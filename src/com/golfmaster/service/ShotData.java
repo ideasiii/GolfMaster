@@ -106,12 +106,14 @@ public class ShotData {
 		return strResponse;
 	}
 
-	public String processShortGameData(Long shot_data_id) {
+	public String processShortGameData(Long shot_data_id, int maxRecords) {
 		JSONObject jsonResponse = null;
 		String strResponse = "";
 
 		JSONObject jsb = queryPlayer(shot_data_id);
-		int maxRecords = 100;
+		if (maxRecords < 10) {
+			maxRecords = 10; // default = 100
+		}
 
 		String player = jsb.getString("player");
 		String clubType = jsb.getString("ClubType");

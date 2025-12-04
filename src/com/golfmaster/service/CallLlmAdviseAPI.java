@@ -24,11 +24,15 @@ import com.golfmaster.common.Logs;
  * 此類別負責組合來自不同來源的擊球數據、動作分析數據和規則建議，
  * 並將其發送到指定的 LLM API 端點。它處理 API 的請求、響應和錯誤，
  * 為使用者提供一個統一的建議生成介面。
+ * for local server "http://127.0.0.1/VLM/service/llm_golf_advice"
+ * for server "http://125.227.141.7:49147/VLM/service/llm_golf_advice"
  * </p>
  */
 public class CallLlmAdviseAPI {
     private static final String LLM_ADVISE_API_URL =
-        "http://127.0.0.1/VLM/service/llm_golf_advice";
+        "http://125.227.141.7:49147/VLM/service/llm_golf_advice";
+    // private static final String LLM_ADVISE_API_URL =
+    //     "http://127.0.0.1/VLM/service/llm_golf_advice";
 
     // API 請求參數
     private static final String PARAM_CLIENT_ID = "client_id";
@@ -339,6 +343,31 @@ public class CallLlmAdviseAPI {
      * @return 包含 API 結果的 JSON 字串。
      * @throws java.io.IOException 如果讀取響應時發生 I/O 錯誤。
      */
+    // private String handleHttpResponse(HttpURLConnection conn)
+    //     throws java.io.IOException {
+    //     int responseCode = conn.getResponseCode();
+    //     System.out.println("Response Code : " + responseCode);
+
+    //     if (responseCode == HttpURLConnection.HTTP_OK) {
+    //         String rawResponse = readStream(
+    //             new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+    //         System.out.println("rawResponse: " + rawResponse);
+    //         return createSuccessResponse(rawResponse);
+    //     } else {
+    //         String errorContent = readStream(
+    //             new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8));
+    //         String logMsg = "API 呼叫失敗，HTTP 錯誤碼: " + responseCode +
+    //                         ", 錯誤內容: " + errorContent;
+    //         String userMsg = "API 請求失敗: " + responseCode;
+    //         return createErrorResponse(logMsg, userMsg, null);
+    //     }
+    // }
+    /**
+     * 處理 HTTP 響應，根據狀態碼返回成功或失敗的 JSON 字串。
+     * @param conn HttpURLConnection 物件。
+     * @return 包含 API 結果的 JSON 字串。
+     * @throws java.io.IOException 如果讀取響應時發生 I/O 錯誤。
+     */
     private String handleHttpResponse(HttpURLConnection conn)
         throws java.io.IOException {
         int responseCode = conn.getResponseCode();
@@ -348,13 +377,20 @@ public class CallLlmAdviseAPI {
             String rawResponse = readStream(
                 new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             System.out.println("rawResponse: " + rawResponse);
-            return createSuccessResponse(rawResponse);
+
+            // 🚨 關鍵修改：不再呼叫 createSuccessResponse 進行二次封裝
+            // 假設 Worker 返回的 JSON 已經包含成功狀態和結果 (例如: {"task_id": "...", "data": {...}})
+            return rawResponse;
+
         } else {
+            // 錯誤處理邏輯保留，因為 Client 仍然需要處理 API 連線和伺服器錯誤
             String errorContent = readStream(
                 new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8));
             String logMsg = "API 呼叫失敗，HTTP 錯誤碼: " + responseCode +
                             ", 錯誤內容: " + errorContent;
             String userMsg = "API 請求失敗: " + responseCode;
+
+            // 錯誤時，仍使用 createErrorResponse 封裝錯誤訊息
             return createErrorResponse(logMsg, userMsg, null);
         }
     }
