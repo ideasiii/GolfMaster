@@ -272,6 +272,11 @@ public class ShortGameData {
      * [步驟 2-1] 數據轉換函式 (單次迭代，高效率)。
      * 將原始擊球數據列表轉換為包含所有衍生座標和比率的列表。
      *
+     * E6模擬器標準(default)：(+) SideSpin -> Left (負X軸)；(-) SideSpin -> Right (正X軸)
+     *   LID = 017, 018, 2000
+     * 工研院模擬器相反：(+) SideSpin -> Right (正X軸)；(-) SideSpin -> Left (負X軸)
+     *   LID = 1000
+     *
      * @param cleanList 清理後的原始數據列表。
      * @return ProcessedShotData 列表。
      */
@@ -288,7 +293,11 @@ public class ShortGameData {
             double sideDeviationFt = carryDistFt * Math.tan(directionRad);
 
             // 側旋修正：根據側旋值計算額外的側向偏移
-            double sideSpinEffectFt = (data.getSideSpin() / 1000.0) * SIDE_SPIN_FT_PER_1000_RPM;
+            double rawSideSpinEffectFt = (data.getSideSpin() / 1000.0) * SIDE_SPIN_FT_PER_1000_RPM;
+
+            // **修正點：反轉側旋修正方向**
+            // E6模擬器標準：(+) SideSpin -> Left (負X軸)；(-) SideSpin -> Right (正X軸)
+            double sideSpinEffectFt = -rawSideSpinEffectFt;
 
             // 總側向偏差
             double totalSideDeviationFt = sideDeviationFt + sideSpinEffectFt;

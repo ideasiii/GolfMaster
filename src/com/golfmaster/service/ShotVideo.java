@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -37,11 +38,23 @@ public class ShotVideo {
 		private boolean callMotionApi = false;
 		private String type;
 	}
+
+	// 影片資料夾基礎路徑
+	private static final String VIDEO_BASE_URL = "../../video/";
+	private static final String FRONT_FOLDER = "analyzVideo_front/";
+	private static final String SIDE_FOLDER = "analyzVideo_side/";
+
+	// 預設影片名稱（通常是教練或範例影片）
+	public final String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
+	public final String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
+
+	// 完整的預設影片路徑
+	public final String defaultFrontVideoPath = VIDEO_BASE_URL + FRONT_FOLDER + defaultFrontVideoName;
+	public final String defaultSideVideoPath = VIDEO_BASE_URL + SIDE_FOLDER + defaultSideVideoName;
+
 	// 預設數據
 	public final int[] defaultSideArray = { 157, 281, 345, 407 };
 	public final int[] defaultFrontArray = { 160, 305, 353, 413 };
-	public final String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
-	public final String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
 	public final String emptySwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.0, 0.0, 0.0, 0.0], \"head\": {\"pt\": [0.0, 0.0], \"h_length\": 0.0, \"v_length\": 0.0, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
 	public final String defaultSideSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.2338863172029194, 0.31861487494574653, 0.6572389100727282, 0.8508367467809607], \"head\": {\"pt\": [0.6572389100727282, 0.31861487494574653], \"h_length\": 0.1572389100727282, \"v_length\": 0.09434808801721643, \"h_pt\": [0.5, 0.31861487494574653], \"v_pt\": [0.6572389100727282, 0.412962962962963]}, \"club\": {\"pt1\": [0.23355263157894737, 0.3990740740740741], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"shoulder\": {\"pt1\": [0.43914473684210525, 0.31851851851851853], \"pt2\": [0.7483552631578947, 0.7981481481481482]}, \"left_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"right_leg\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}}}";
 	public final String defaultFrontSwingPlane = "{\"data\": {\"success\": true, \"bbox\": [0.25553424976490163, 0.2374898910522461, 0.6378592597113715, 0.8286705017089844], \"head\": {\"pt\": [0.44166666666666665, 0.3098958333333333], \"h_length\": 0.10740740740740741, \"v_length\": 0.06041666666666667, \"h_pt\": [0.0, 0.0], \"v_pt\": [0.0, 0.0]}, \"club\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"shoulder\": {\"pt1\": [0.0, 0.0], \"pt2\": [0.0, 0.0]}, \"left_leg\": {\"pt1\": [0.5527777777777778, 0.5125], \"pt2\": [0.575, 0.6364583333333333]}, \"right_leg\": {\"pt1\": [0.34444444444444444, 0.5125], \"pt2\": [0.3111111111111111, 0.6354166666666666]}}}";
@@ -49,6 +62,7 @@ public class ShotVideo {
 	public final int[] defaultFrontTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	public final int[] defaultTpiSwingTable = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	public final String defaultAdvicesJson = "{\"A\":[], \"T\":[], \"I\":[], \"F\":[]}";
+
 
 	public String processRequest(HttpServletRequest request) {
 		JSONObject jsonResponse = null;
@@ -93,7 +107,11 @@ public class ShotVideo {
 			int tPos = 6;
 			int iPos = 6;
 			int fPos = 6;
-			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName,
+			// return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoName, defaultSideVideoName,
+			// 		aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane,
+			// 		defaultTpiSwingTable, defaultAdvicesJson
+			// 	};
+			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoPath, defaultSideVideoPath,
 					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane,
 					defaultTpiSwingTable, defaultAdvicesJson
 				};
@@ -102,8 +120,10 @@ public class ShotVideo {
 		// 確保 framesData 有效，並且所有必須的參數都不為 null
 		int[] sideFrames = framesData[0] != null ? (int[]) framesData[0] : defaultSideArray;
 		int[] frontFrames = framesData[1] != null ? (int[]) framesData[1] : defaultFrontArray;
-		String frontVideoName = framesData[2] != null ? (String) framesData[2] : defaultFrontVideoName;
-		String sideVideoName = framesData[3] != null ? (String) framesData[3] : defaultSideVideoName;
+		// String frontVideoName = framesData[2] != null ? (String) framesData[2] : defaultFrontVideoName;
+		// String sideVideoName = framesData[3] != null ? (String) framesData[3] : defaultSideVideoName;
+		String frontVideoPath = framesData[2] != null ? (String) framesData[2] : defaultFrontVideoPath;
+		String sideVideoPath = framesData[3] != null ? (String) framesData[3] : defaultSideVideoPath;
 		int aEffect = framesData[4] != null ? (int) framesData[4] : 0;
 		int tEffect = framesData[5] != null ? (int) framesData[5] : 0;
 		int iEffect = framesData[6] != null ? (int) framesData[6] : 0;
@@ -158,7 +178,7 @@ public class ShotVideo {
 			"DEBUG framesData :"
 			+ Arrays.toString(sideFrames)
 			+ Arrays.toString(frontFrames)
-			+ frontVideoName + sideVideoName
+			+ frontVideoPath + sideVideoPath
 			+ aEffect + tEffect + iEffect + fEffect
 			+ sideSwingPlane + frontSwingPlane
 			+ Arrays.toString(sideTpiSwingTable)
@@ -167,7 +187,9 @@ public class ShotVideo {
 			+ allFilteredAdvicesJson
 		);
 		// 確保返回的 Object[] 中沒有 null 值
-		return new Object[] { sideFrames, frontFrames, frontVideoName, sideVideoName, aEffect, tEffect, iEffect,
+		// return new Object[] { sideFrames, frontFrames, frontVideoName, sideVideoName, aEffect, tEffect, iEffect,
+		// 		fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson};
+		return new Object[] { sideFrames, frontFrames, frontVideoPath, sideVideoPath, aEffect, tEffect, iEffect,
 				fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson};
 	}
 
@@ -242,8 +264,11 @@ public class ShotVideo {
 					+ "SVS.SwingPlane AS SwingPlane, "
 					+ "SVS.TpiSwingTable As TpiSwingTable, "
 					+ "SV.analyze_shotVideo_front, SV.analyze_shotVideo_side "
-					+ "FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS "
-					+ "WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
+					// + "FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS "
+					// + "WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
+					+ "FROM golf_master.shot_video AS SV "
+					+ "LEFT JOIN golf_master.shot_video_swing AS SVS ON SVS.ShotVideoId = SV.id "
+					+ "WHERE SV.shot_data_id = '%s'",
 				shot_data_id
 			);
 		}
@@ -300,146 +325,416 @@ public class ShotVideo {
 		return jsonResponse.toString();
 	}
 
+	// private Object[] extractFrames(String jsonResponse) {
+	// 	ArrayList<Integer> sideFrames = new ArrayList<>();
+	// 	ArrayList<Integer> frontFrames = new ArrayList<>();
+	// 	// String sideVideoName = "";
+	// 	// String frontVideoName = "";
+	// 	String sideVideoDbData = "";
+    //     String frontVideoDbData = "";
+	// 	String sideSwingPlane = ""; // 新增側面的 SwingPlane 變數
+	// 	String frontSwingPlane = ""; // 新增正面的 SwingPlane 變數
+	// 	ArrayList<Integer> sideTpiTable = new ArrayList<>();
+	// 	ArrayList<Integer> frontTpiTable = new ArrayList<>();
+
+	// 	// parameters
+	// 	int defaultTpiTableSize = 16;
+	// 	double simScoreThreshold = 0.70; // 相似度分數, 最大值為1
+	// 	int postImpactMaxIndex = 6; // 關節部位個數[shoulder, elbow, wrist, hip, knee, ankle]
+
+	// 	// 修改變量以存儲最大值的索引
+	// 	int maxAIndex = -1, maxTIndex = -1, maxIIndex = -1, maxFIndex = -1;
+	// 	try {
+	// 		JSONObject responseObj = new JSONObject(jsonResponse);
+	// 		JSONArray results = responseObj.getJSONArray("result");
+
+	// 		// 檢查 results 陣列是否存在且非空
+	// 		if (results == null || results.length() == 0) {
+	// 			return null;
+	// 		}
+
+	// 		for (int i = 0; i < results.length(); i++) {
+	// 			JSONObject result = results.getJSONObject(i);
+	// 			String camPos = result.optString("CamPos", "");
+
+	// 			System.out.println("result = " + result);
+
+	// 			// 處理 PlayerPSystem
+	// 			String playerPSystemStr = result.optString("PlayerPSystem", "{}");
+	// 			if (!playerPSystemStr.isEmpty()) { // 添加檢查，避免空字串
+	// 				JSONObject playerPSystemObj = new JSONObject(playerPSystemStr);
+	// 				JSONArray data = playerPSystemObj.optJSONArray("data");
+	// 				if (data != null) {
+	// 					for (int j = 0; j < data.length(); j++) {
+	// 						if ("side".equals(camPos)) {
+	// 							sideFrames.add(data.optInt(j));
+	// 						} else if ("front".equals(camPos)) {
+	// 							frontFrames.add(data.optInt(j));
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+
+	// 			// 處理 TpiSwingTable
+	// 			String tpiTableStr = result.optString("TpiSwingTable", "{}");
+	// 			if (!tpiTableStr.isEmpty()) { // 添加檢查，避免空字串
+	// 				JSONObject tpiTableObj = new JSONObject(tpiTableStr);
+	// 				JSONArray tpiTableData = tpiTableObj.optJSONArray("data");
+	// 				if (tpiTableData != null) {
+	// 					for (int j = 0; j < tpiTableData.length(); j++) {
+	// 						// System.out.println(
+	// 						// 	"side = "
+	// 						// 	+ camPos
+	// 						// 	+ " tpiTableData "
+	// 						// 	+ j
+	// 						// 	+ " = "
+	// 						// 	+ tpiTableData.optInt(j)
+	// 						// );
+	// 						if ("side".equals(camPos)) {
+	// 							sideTpiTable.add(tpiTableData.optInt(j));
+	// 						} else if ("front".equals(camPos)) {
+	// 							frontTpiTable.add(tpiTableData.optInt(j));
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+
+	// 			if ("side".equals(camPos)) {
+	// 				// sideVideoName = extractFileName(result.getString("analyze_shotVideo_side"));
+	// 				sideVideoDbData = result.optString("analyze_shotVideo_side", "");
+	// 				sideSwingPlane = result.optString("SwingPlane", null); // 使用 optString 獲取 SwingPlane，允許為 null
+	// 			} else if ("front".equals(camPos)) {
+	// 				// frontVideoName = extractFileName(result.getString("analyze_shotVideo_front"));
+	// 				frontVideoDbData = result.optString("analyze_shotVideo_front", "");
+	// 				frontSwingPlane = result.optString("SwingPlane", null); // 使用 optString 獲取 SwingPlane，允許為 null
+	// 			}
+
+	// 			// 處理PoseImpact數據
+	// 			int[] maxIndexes = processCmpPoseImpact(result, simScoreThreshold, postImpactMaxIndex);
+	// 			maxAIndex = maxIndexes[0];
+	// 			maxTIndex = maxIndexes[1];
+	// 			maxIIndex = maxIndexes[2];
+	// 			maxFIndex = maxIndexes[3];
+	// 		}
+	// 	} catch (Exception e) {
+	// 		e.printStackTrace();
+	// 		return null; // 在發生錯誤時返回null
+	// 	}
+
+
+	// 	// --- 優化預設影片選擇邏輯 ---
+	// 	// 1. 轉換資料庫數據為最終的本地相對路徑
+	// 	String sideVideoPath = getFullPath(sideVideoDbData, defaultSideVideoPath, SIDE_FOLDER);
+	// 	String frontVideoPath = getFullPath(frontVideoDbData, defaultFrontVideoPath, FRONT_FOLDER);
+    //     // 2. 檢查路徑是否為預設路徑 (代表資料庫沒有影片)
+	// 	boolean isSideVideoPresent = !sideVideoPath.equals(defaultSideVideoPath);
+    //     boolean isFrontVideoPresent = !frontVideoPath.equals(defaultFrontVideoPath);
+
+	// 	if (!isSideVideoPresent && !isFrontVideoPresent) {
+    //         // 情況 1: 前後都沒有影片資料
+    //         Logs.log(Logs.RUN_LOG, "Side and Front data missing. Using default values for both.");
+    //         sideFrames = Arrays.stream(defaultSideArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+    //         frontFrames = Arrays.stream(defaultFrontArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+    //         // sideVideoName = defaultSideVideoName;
+    //         // frontVideoName = defaultFrontVideoName;
+    //         sideSwingPlane = emptySwingPlane;
+    //         frontSwingPlane = emptySwingPlane;
+    //     } else if (isSideVideoPresent && !isFrontVideoPresent) {
+    //         // 情況 2: 只有側面有影片資料，正面採用側面預設值
+    //         Logs.log(Logs.RUN_LOG, "Only Side video present. Using Side video for Front default.");
+    //         frontFrames = Arrays.stream(defaultSideArray).boxed().collect(Collectors.toCollection(ArrayList::new)); // 預設的 Side 影格資料
+    //         // frontVideoName = defaultSideVideoName; // 使用側面預設路徑
+	// 		frontVideoPath = defaultSideVideoPath; // 使用側面預設路徑
+    //         frontSwingPlane = emptySwingPlane; // 正面分析無資料，給空
+    //     } else if (!isSideVideoPresent && isFrontVideoPresent) {
+    //         // 情況 3: 只有正面有影片資料，側面採用正面預設值
+    //         Logs.log(Logs.RUN_LOG, "Only Front video present. Using Front video for Side default.");
+    //         sideFrames = Arrays.stream(defaultFrontArray).boxed().collect(Collectors.toCollection(ArrayList::new)); // 預設的 Front 影格資料
+    //         // sideVideoName = defaultFrontVideoName; // 使用正面預設路徑
+	// 		sideVideoPath = defaultFrontVideoPath; // 使用正面預設路徑
+    //         sideSwingPlane = emptySwingPlane; // 側面分析無資料，給空
+    //     }
+    //     // 情況 4: 前後都有影片資料 (isSideVideoPresent && isFrontVideoPresent) - 無需修改，保持提取結果
+
+	// 	// 補充 framesData (影格)
+    //     if (sideFrames.isEmpty()) {
+    //         Logs.log(Logs.RUN_LOG, "Side frames data missing. Using default side frames.");
+    //         sideFrames = Arrays.stream(defaultSideArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+    //     }
+    //     if (frontFrames.isEmpty()) {
+    //         Logs.log(Logs.RUN_LOG, "Front frames data missing. Using default front frames.");
+    //         frontFrames = Arrays.stream(defaultFrontArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+    //     }
+
+	//     // 補充缺少的資料
+	//     // if (sideFrames.isEmpty()) {
+	//     //     Logs.log(Logs.RUN_LOG, "Side data missing. Using default side values.");
+	//     //     sideFrames = new ArrayList<>(Arrays.asList(157, 281, 345, 407));
+	//     //     sideVideoName = defaultSideVideoName;
+	//     //     sideSwingPlane = emptySwingPlane;
+	//     // }
+	//     // if (frontFrames.isEmpty()) {
+	//     //     Logs.log(Logs.RUN_LOG, "Front data missing. Using default front values.");
+	//     //     frontFrames = new ArrayList<>(Arrays.asList(160, 305, 353, 413));
+	//     //     frontVideoName = defaultFrontVideoName;
+	//     //     frontSwingPlane = emptySwingPlane;
+	//     // }
+
+	// 	// 補充 TpiTable
+	// 	if (sideTpiTable.isEmpty()) {
+	// 		for (int j = 0; j < defaultTpiTableSize; j++) {
+	// 			sideTpiTable.add(0);
+	// 		}
+	// 	}
+
+	// 	if (frontTpiTable.isEmpty()) {
+	// 		for (int j = 0; j < defaultTpiTableSize; j++) {
+	// 			frontTpiTable.add(0);
+	// 		}
+	// 	}
+
+	// 	// 補充 SwingPlane
+    //     if (sideSwingPlane == null) {
+    //         sideSwingPlane = emptySwingPlane;
+    //     }
+    //     if (frontSwingPlane == null) {
+    //         frontSwingPlane = emptySwingPlane;
+    //     }
+
+    //     // 補充 PoseImpact 索引
+	// 	if (maxAIndex < 0)
+	// 		maxAIndex = postImpactMaxIndex;
+	// 	if (maxTIndex < 0)
+	// 		maxTIndex = postImpactMaxIndex;
+	// 	if (maxIIndex < 0)
+	// 		maxIIndex = postImpactMaxIndex;
+	// 	if (maxFIndex < 0)
+	// 		maxFIndex = postImpactMaxIndex;
+
+	// 	int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
+	// 	int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
+	// 	int[] sideTpi = sideTpiTable.stream().mapToInt(i -> i).toArray();
+	// 	int[] frontTpi = frontTpiTable.stream().mapToInt(i -> i).toArray();
+
+	// 	// System.out.println(
+	// 	// 	"sideTpi = "
+	// 	// 	+ Arrays.toString(sideTpi)
+	// 	// 	+ " frontTpi = "
+	// 	// 	+ Arrays.toString(frontTpi)
+	// 	// );
+
+	// 	// return new Object[] {
+	// 	// 	sideArray, frontArray, frontVideoName, sideVideoName,
+	// 	// 	maxAIndex, maxTIndex, maxIIndex, maxFIndex,
+	// 	// 	sideSwingPlane, frontSwingPlane, sideTpi, frontTpi
+	// 	// };
+	// 	return new Object[] {
+	// 		sideArray, frontArray, frontVideoPath, sideVideoPath,
+	// 		maxAIndex, maxTIndex, maxIIndex, maxFIndex,
+	// 		sideSwingPlane, frontSwingPlane, sideTpi, frontTpi
+	// 	};
+	// }
+
 	private Object[] extractFrames(String jsonResponse) {
 		ArrayList<Integer> sideFrames = new ArrayList<>();
 		ArrayList<Integer> frontFrames = new ArrayList<>();
-		String sideVideoName = "";
-		String frontVideoName = "";
-		String sideSwingPlane = ""; // 新增側面的 SwingPlane 變數
-		String frontSwingPlane = ""; // 新增正面的 SwingPlane 變數
+		String sideVideoDbData = "";
+		String frontVideoDbData = "";
+		String sideSwingPlane = null;
+		String frontSwingPlane = null;
 		ArrayList<Integer> sideTpiTable = new ArrayList<>();
 		ArrayList<Integer> frontTpiTable = new ArrayList<>();
 
 		// parameters
 		int defaultTpiTableSize = 16;
-		double simScoreThreshold = 0.70; // 相似度分數, 最大值為1
-		int postImpactMaxIndex = 6; // 關節部位個數[shoulder, elbow, wrist, hip, knee, ankle]
+		double simScoreThreshold = 0.70;
+		int postImpactMaxIndex = 6;
 
-		// 修改變量以存儲最大值的索引
 		int maxAIndex = -1, maxTIndex = -1, maxIIndex = -1, maxFIndex = -1;
+		boolean videoPathExtracted = false; // 旗標：確保影片路徑只提取一次
+
 		try {
 			JSONObject responseObj = new JSONObject(jsonResponse);
-			JSONArray results = responseObj.getJSONArray("result");
 
-			// 檢查 results 陣列是否存在且非空
-			if (results == null || results.length() == 0) {
+			// **【修正點 A】**：如果 DB 查詢結果 JSON 標記為不成功，直接返回 null
+			if (!responseObj.optBoolean("success", true)) {
+				Logs.log(Logs.RUN_LOG, "extractFrames received unsuccessful JSON (success=false): " + jsonResponse);
 				return null;
 			}
 
+			JSONArray results = responseObj.getJSONArray("result");
+
+			// **【修正點 B】**：如果結果集為空（shot_data_id 找不到對應的 SV 紀錄）
+			if (results == null || results.length() == 0) {
+				Logs.log(Logs.RUN_LOG, "Query returned no results at all (SV data missing).");
+				return null;
+			}
+
+			// 處理 LEFT JOIN 可能返回的多筆 (CamPos) 或單筆 (CamPos=NULL) 數據
 			for (int i = 0; i < results.length(); i++) {
 				JSONObject result = results.getJSONObject(i);
 				String camPos = result.optString("CamPos", "");
 
-				System.out.println("result = " + result);
+				// 處理影片路徑 (SV 表欄位) - 這些欄位在 LEFT JOIN 時會存在且非 NULL
+				// 由於這些欄位在所有結果行中都是重複的，只需提取一次
+				if (!videoPathExtracted) {
+					sideVideoDbData = result.optString("analyze_shotVideo_side", "");
+					frontVideoDbData = result.optString("analyze_shotVideo_front", "");
+					videoPathExtracted = true;
+				}
 
-				// 處理 PlayerPSystem
-				String playerPSystemStr = result.optString("PlayerPSystem", "{}");
-				if (!playerPSystemStr.isEmpty()) { // 添加檢查，避免空字串
-					JSONObject playerPSystemObj = new JSONObject(playerPSystemStr);
-					JSONArray data = playerPSystemObj.optJSONArray("data");
-					if (data != null) {
-						for (int j = 0; j < data.length(); j++) {
+				// 以下區塊只在 SVS 有數據時執行 (即 CamPos 非空)
+				if (StringUtils.isNotEmpty(camPos)) {
+
+					// 處理 PlayerPSystem (Frames)
+					String playerPSystemStr = result.optString("PlayerPSystem", "{}");
+					if (!playerPSystemStr.isEmpty() && !"{}".equals(playerPSystemStr)) {
+						JSONObject playerPSystemObj = new JSONObject(playerPSystemStr);
+						JSONArray data = playerPSystemObj.optJSONArray("data");
+						if (data != null && data.length() > 0) {
 							if ("side".equals(camPos)) {
-								sideFrames.add(data.optInt(j));
+								sideFrames = new ArrayList<>();
+								for (int j = 0; j < data.length(); j++) sideFrames.add(data.optInt(j));
 							} else if ("front".equals(camPos)) {
-								frontFrames.add(data.optInt(j));
+								frontFrames = new ArrayList<>();
+								for (int j = 0; j < data.length(); j++) frontFrames.add(data.optInt(j));
 							}
 						}
 					}
-				}
 
-				// 處理 TpiSwingTable
-				String tpiTableStr = result.optString("TpiSwingTable", "{}");
-				if (!tpiTableStr.isEmpty()) { // 添加檢查，避免空字串
-					JSONObject tpiTableObj = new JSONObject(tpiTableStr);
-					JSONArray tpiTableData = tpiTableObj.optJSONArray("data");
-					if (tpiTableData != null) {
-						for (int j = 0; j < tpiTableData.length(); j++) {
-							// System.out.println(
-							// 	"side = "
-							// 	+ camPos
-							// 	+ " tpiTableData "
-							// 	+ j
-							// 	+ " = "
-							// 	+ tpiTableData.optInt(j)
-							// );
+					// 處理 TpiSwingTable
+					String tpiTableStr = result.optString("TpiSwingTable", "{}");
+					if (!tpiTableStr.isEmpty() && !"{}".equals(tpiTableStr)) {
+						JSONObject tpiTableObj = new JSONObject(tpiTableStr);
+						JSONArray tpiTableData = tpiTableObj.optJSONArray("data");
+						if (tpiTableData != null && tpiTableData.length() > 0) {
 							if ("side".equals(camPos)) {
-								sideTpiTable.add(tpiTableData.optInt(j));
+								sideTpiTable = new ArrayList<>();
+								for (int j = 0; j < tpiTableData.length(); j++) sideTpiTable.add(tpiTableData.optInt(j));
 							} else if ("front".equals(camPos)) {
-								frontTpiTable.add(tpiTableData.optInt(j));
+								frontTpiTable = new ArrayList<>();
+								for (int j = 0; j < tpiTableData.length(); j++) frontTpiTable.add(tpiTableData.optInt(j));
 							}
 						}
 					}
-				}
 
-				if ("side".equals(camPos)) {
-					sideVideoName = extractFileName(result.getString("analyze_shotVideo_side"));
-					sideSwingPlane = result.optString("SwingPlane", null); // 使用 optString 獲取 SwingPlane，允許為 null
-				} else if ("front".equals(camPos)) {
-					frontVideoName = extractFileName(result.getString("analyze_shotVideo_front"));
-					frontSwingPlane = result.optString("SwingPlane", null); // 使用 optString 獲取 SwingPlane，允許為 null
-				}
+					// 處理 SwingPlane
+					if ("side".equals(camPos)) {
+						sideSwingPlane = result.optString("SwingPlane", null);
+					} else if ("front".equals(camPos)) {
+						frontSwingPlane = result.optString("SwingPlane", null);
+					}
 
-				// 處理PoseImpact數據
-				int[] maxIndexes = processCmpPoseImpact(result, simScoreThreshold, postImpactMaxIndex);
-				maxAIndex = maxIndexes[0];
-				maxTIndex = maxIndexes[1];
-				maxIIndex = maxIndexes[2];
-				maxFIndex = maxIndexes[3];
+					// 處理 PoseImpact 數據
+					int[] maxIndexes = processCmpPoseImpact(result, simScoreThreshold, postImpactMaxIndex);
+					if (maxAIndex < 0) maxAIndex = maxIndexes[0];
+					if (maxTIndex < 0) maxTIndex = maxIndexes[1];
+					if (maxIIndex < 0) maxIIndex = maxIndexes[2];
+					if (maxFIndex < 0) maxFIndex = maxIndexes[3];
+				}
 			}
+
+			// 理論上只要 DB 中有 shot_video 紀錄，videoPathExtracted 就會是 true
+			if (!videoPathExtracted) {
+				Logs.log(Logs.RUN_LOG, "Fatal error: SV path extraction failed unexpectedly.");
+				return null;
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null; // 在發生錯誤時返回null
+			Logs.log(Logs.EXCEPTION_LOG, "Error in extractFrames processing JSON: " + e.getMessage());
+			return null;
 		}
-	    // 補充缺少的資料
-	    if (sideFrames.isEmpty()) {
-	        Logs.log(Logs.RUN_LOG, "Side data missing. Using default side values.");
-	        sideFrames = new ArrayList<>(Arrays.asList(157, 281, 345, 407));
-	        sideVideoName = defaultSideVideoName;
-	        sideSwingPlane = emptySwingPlane;
-	    }
-	    if (frontFrames.isEmpty()) {
-	        Logs.log(Logs.RUN_LOG, "Front data missing. Using default front values.");
-	        frontFrames = new ArrayList<>(Arrays.asList(160, 305, 353, 413));
-	        frontVideoName = defaultFrontVideoName;
-	        frontSwingPlane = emptySwingPlane;
-	    }
 
-		if (sideTpiTable.isEmpty()) {
-			for (int j = 0; j < defaultTpiTableSize; j++) {
-				sideTpiTable.add(0);
+
+		// --- 步驟 1-2: 處理影片路徑和判斷 DB 數據是否存在 ---
+		String sideVideoPath = getFullPath(sideVideoDbData, defaultSideVideoPath, SIDE_FOLDER);
+		String frontVideoPath = getFullPath(frontVideoDbData, defaultFrontVideoPath, FRONT_FOLDER);
+
+		boolean isSideDbPresent = !sideVideoDbData.isEmpty();
+		boolean isFrontDbPresent = !frontVideoDbData.isEmpty();
+
+
+		// --- 步驟 3: 處理使用者影片分析數據缺失回退 ---
+
+		// 側面 (Side) 邏輯：
+		if (isSideDbPresent) {
+			// 保持不變：有使用者影片，分析失敗則使用 default Frames + empty SwingPlane
+			if (sideFrames.isEmpty()) {
+				Logs.log(Logs.RUN_LOG, "User Side DB path present, but side frames missing (Analysis Failed). Using default side frames.");
+				sideFrames = Arrays.stream(defaultSideArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+				sideSwingPlane = emptySwingPlane;
+			} else if (sideSwingPlane == null || sideSwingPlane.isEmpty() || sideSwingPlane.equals("null")) {
+				sideSwingPlane = emptySwingPlane;
 			}
-		}
-
-		if (frontTpiTable.isEmpty()) {
-			for (int j = 0; j < defaultTpiTableSize; j++) {
-				frontTpiTable.add(0);
+			if (sideTpiTable.isEmpty()) {
+				sideTpiTable = Arrays.stream(defaultTpiSwingTable).boxed().collect(Collectors.toCollection(ArrayList::new));
 			}
+		} else {
+			// 情況 3: 無使用者影片
+			Logs.log(Logs.RUN_LOG, "No User Side video path. Using default Side coach data for Frames/TPI, but using empty SwingPlane.");
+			sideFrames = Arrays.stream(defaultSideArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+			sideTpiTable = Arrays.stream(defaultFrontTpiSwingTable).boxed().collect(Collectors.toCollection(ArrayList::new));
+
+			// **【修正點 1】**：無使用者影片時，Frame/TPI 使用教練預設，但 SwingPlane 使用 empty
+			sideSwingPlane = emptySwingPlane;
 		}
 
-		if (maxAIndex < 0)
-			maxAIndex = postImpactMaxIndex;
-		if (maxTIndex < 0)
-			maxTIndex = postImpactMaxIndex;
-		if (maxIIndex < 0)
-			maxIIndex = postImpactMaxIndex;
-		if (maxFIndex < 0)
-			maxFIndex = postImpactMaxIndex;
+		// 正面 (Front) 邏輯：
+		if (isFrontDbPresent) {
+			// 保持不變：有使用者影片，分析失敗則使用 default Frames + empty SwingPlane
+			if (frontFrames.isEmpty()) {
+				Logs.log(Logs.RUN_LOG, "User Front DB path present, but front frames missing (Analysis Failed). Using default front frames.");
+				frontFrames = Arrays.stream(defaultFrontArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+				frontSwingPlane = emptySwingPlane;
+			} else if (frontSwingPlane == null || frontSwingPlane.isEmpty() || frontSwingPlane.equals("null")) {
+				frontSwingPlane = emptySwingPlane;
+			}
+			if (frontTpiTable.isEmpty()) {
+				frontTpiTable = Arrays.stream(defaultTpiSwingTable).boxed().collect(Collectors.toCollection(ArrayList::new));
+			}
+		} else {
+			// 情況 3: 無使用者影片
+			Logs.log(Logs.RUN_LOG, "No User Front video path. Using default Front coach data for Frames/TPI, but using empty SwingPlane.");
+			frontFrames = Arrays.stream(defaultFrontArray).boxed().collect(Collectors.toCollection(ArrayList::new));
+			frontTpiTable = Arrays.stream(defaultFrontTpiSwingTable).boxed().collect(Collectors.toCollection(ArrayList::new));
 
+			// **【修正點 2】**：無使用者影片時，Frame/TPI 使用教練預設，但 SwingPlane 使用 empty
+			frontSwingPlane = emptySwingPlane;
+		}
+
+
+		// --- 步驟 4: 處理單邊缺失的影片路徑替代邏輯 (影片路徑的備援) ---
+
+		// 情境 B: 只有側面使用者影片 (正面使用側面教練影片)
+		if (isSideDbPresent && !isFrontDbPresent) {
+			Logs.log(Logs.RUN_LOG, "Only Side video present. Front uses Side coach video path.");
+			frontVideoPath = defaultSideVideoPath; // **** 替代路徑 (用側面的教練影片) ****
+		}
+
+		// 情境 A: 只有正面使用者影片 (側面使用正面教練影片)
+		if (isFrontDbPresent && !isSideDbPresent) {
+			Logs.log(Logs.RUN_LOG, "Only Front video present. Side uses Front coach video path.");
+			sideVideoPath = defaultFrontVideoPath; // **** 替代路徑 (用正面的教練影片) ****
+		}
+
+
+		// --- 步驟 5: 補充 PoseImpact 索引 ---
+		// 如果 SVS 數據缺失 (CamPos 為空)，maxA/T/I/FIndex 將為 -1。
+		if (maxAIndex < 0) maxAIndex = postImpactMaxIndex;
+		if (maxTIndex < 0) maxTIndex = postImpactMaxIndex;
+		if (maxIIndex < 0) maxIIndex = postImpactMaxIndex;
+		if (maxFIndex < 0) maxFIndex = postImpactMaxIndex;
+
+
+		// --- 步驟 6: 最終轉換並返回 ---
 		int[] sideArray = sideFrames.stream().mapToInt(i -> i).toArray();
 		int[] frontArray = frontFrames.stream().mapToInt(i -> i).toArray();
 		int[] sideTpi = sideTpiTable.stream().mapToInt(i -> i).toArray();
 		int[] frontTpi = frontTpiTable.stream().mapToInt(i -> i).toArray();
 
-		// System.out.println(
-		// 	"sideTpi = "
-		// 	+ Arrays.toString(sideTpi)
-		// 	+ " frontTpi = "
-		// 	+ Arrays.toString(frontTpi)
-		// );
-
 		return new Object[] {
-			sideArray, frontArray, frontVideoName, sideVideoName,
+			sideArray, frontArray, frontVideoPath, sideVideoPath,
 			maxAIndex, maxTIndex, maxIIndex, maxFIndex,
 			sideSwingPlane, frontSwingPlane, sideTpi, frontTpi
 		};
@@ -516,8 +811,30 @@ public class ShotVideo {
 	// --- ---
 
 	private String extractFileName(String url) {
+		if (url == null || url.isEmpty()) return "";
 		return url.substring(url.lastIndexOf('/') + 1);
 	}
+
+	/**
+     * 根據資料庫儲存的檔名/URL，返回 JSP 可用的完整的本地相對路徑。
+     * 即使資料庫存的是完整的下載 URL，也會將其轉換為本地相對路徑。
+     */
+    private String getFullPath(String dbPathOrName, String defaultPath, String folderName) {
+        if (dbPathOrName == null || dbPathOrName.isEmpty()) {
+            return defaultPath; // 資料庫無資料時，使用預設路徑
+        }
+
+        // 從資料庫數據中提取檔名 (適用於資料庫存儲完整的下載 URL 或僅檔名)
+        String fileName = extractFileName(dbPathOrName);
+
+        if (fileName.isEmpty()) {
+            // 如果提取不到檔名，返回預設路徑
+            return defaultPath;
+        } else {
+            // 使用提取到的檔名，拼接成 JSP 可用的本地相對路徑
+            return VIDEO_BASE_URL + folderName + fileName;
+        }
+    }
 
 	// 更新方法以計算數組中最大值的索引
 	private int getMaxIndex(JSONArray array) throws JSONException {

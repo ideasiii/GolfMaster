@@ -91,11 +91,15 @@ public class RealTimeShotData extends DeviceData{
 				port = ":" + String.valueOf(request.getServerPort());
 			}	
 			String basePath = request.getScheme() + "://" + request.getServerName() + port + request.getContextPath() + "/";
-//			String redirectUrl = basePath + "service/expert-data.jsp";//original
-//			String redirectUrl = basePath + "service/expert-data-v2.jsp";//for demo 1.0version
-//			String redirectUrl = basePath + "service/expert-data-v3.jsp";//for demo 2.0version
-			String redirectUrl = basePath + "service/expert-data-v" + Config.getParameter("expert") + ".jsp";
-			
+			// String redirectUrl = basePath + "service/expert-data.jsp";//original
+			// String redirectUrl = basePath + "service/expert-data-v2.jsp";//for demo 1.0version
+			// String redirectUrl = basePath + "service/expert-data-v3.jsp";//for demo 2.0version
+
+			// for all version
+			// String redirectUrl = basePath + "service/expert-data-v" + Config.getParameter("expert") + ".jsp";
+			// only for v8
+			String redirectUrl = basePath + "service/expert-data-v" + Config.getParameter("expert") + "-short" + ".jsp";
+
 			String shotData = request.getParameter("shotData");
 			jsonResponse = this.checkParam(shotData);
 			if (null != jsonResponse) 

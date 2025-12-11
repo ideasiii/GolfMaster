@@ -30,8 +30,10 @@ Long exID = result.getLong("id"); // Unused, but kept for context
 Object temp[] = shotVideo.processAnalyz(shot_data_id);
 int[] sideFrames = (int[]) temp[0];
 int[] frontFrames = (int[]) temp[1];
-String frontVideoName = (String) temp[2];
-String sideVideoName = (String) temp[3];
+// String frontVideoName = (String) temp[2];
+// String sideVideoName = (String) temp[3];
+String frontVideoPath = (String) temp[2];
+String sideVideoPath = (String) temp[3];
 int aEffect = (int) temp[4]; // Address
 int tEffect = (int) temp[5]; // Top
 int iEffect = (int) temp[6]; // Impact
@@ -113,13 +115,15 @@ if (useLLM != null && useLLM.equals("true")) {
                 <div class="video-section-top">
                     <div id="videoContainer" style="position: relative;" class="image_v">
                         <video id="myvideo" controls muted>
-                            <source src="../../video/analyzVideo_front/<%=frontVideoName%>" type="video/mp4" alt="Image 1" />
+                            <%-- <source src="../../video/analyzVideo_front/<%=frontVideoName%>" type="video/mp4" alt="Image 1" /> --%>
+                            <source src="<%=frontVideoPath%>" type="video/mp4" alt="Image 1" />
                         </video>
                         <canvas id="overlayCanvas"></canvas>
                     </div>
                     <div id="videoContainer1" style="position: relative;" class="image_v">
                         <video id="myvideo1" controls muted>
-                            <source src="../../video/analyzVideo_side/<%=sideVideoName%>" type="video/mp4" alt="Image 1" />
+                            <%-- <source src="../../video/analyzVideo_side/<%=sideVideoName%>" type="video/mp4" alt="Image 1" /> --%>
+                            <source src="<%=sideVideoPath%>" type="video/mp4" alt="Image 1" />
                         </video>
                         <canvas id="overlayCanvas1"></canvas>
                     </div>
@@ -197,6 +201,12 @@ if (useLLM != null && useLLM.equals("true")) {
 		const tpiAdvicesData = '<%= StringUtils.defaultIfEmpty(tpiAdvicesJson, "null") %>';
 		const shortGameResultData = '<%= shortGameResult %>';
 		const golfAdviceResult = '<%= adviceResult %>';
+
+		// test
+		const frontVideoPathData = '<%= frontVideoPath %>';
+		const sideVideoPathData = '<%= sideVideoPath %>';
+		console.log(frontVideoPathData);
+		console.log(sideVideoPathData);
 
 		// console.log(sideSwingPlaneData);
 		// console.log(frontSwingPlaneData);
