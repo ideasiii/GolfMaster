@@ -105,7 +105,7 @@ h1 {
     align-items: center;
     padding: 5px 10px;
     margin: 0 5px;
-    color: #fff; 
+    color: #fff;
     transition: opacity 0.3s;
 
     /* 🌟 預設將非選中按鈕調暗 🌟 */
@@ -126,7 +126,7 @@ h1 {
     /* 🌟 讓當前頁面呈現最高亮度/完全透明度 🌟 */
     opacity: 1.0;
     /* 通常還會有額外的視覺標記，例如底線或邊框 */
-    /* border-bottom: 2px solid #00FFFF; */ 
+    /* border-bottom: 2px solid #00FFFF; */
 }
 
 /* 狀態 2: 未開放頁面 (Temporarily Disabled) - 最暗 */
@@ -135,13 +135,13 @@ h1 {
     cursor: not-allowed;
     pointer-events: none; /* 禁用點擊 */
     /* 🌟 比可點擊按鈕更暗 🌟 */
-    opacity: 0.3; 
+    opacity: 0.3;
 }
 
 /* 狀態 3: 可點擊按鈕的懸停效果 */
 .nav-button:hover:not(:disabled):not(.temporarily-disabled) {
     /* 懸停時稍微亮一點，提供回饋 */
-    opacity: 0.8; 
+    opacity: 0.8;
 }
 
 /* =================================================================
@@ -461,7 +461,7 @@ video {
     box-sizing: border-box;
     /* 【修改點 1】新增 Flex 屬性，讓內容垂直彈性調整 */
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
 }
 
 .box-title {
@@ -511,7 +511,7 @@ video {
     color: #ffffff;
     font-size: 18px;
 
-    /* 【修改點 3】減少底下的 margin，將空間釋放給上方的散點圖 */
+    /* 減少底下的 margin，將空間釋放給上方的散點圖 */
     margin-bottom: 10px; /* 從 0 auto 改為 0 auto 10px */
 }
 
@@ -520,28 +520,91 @@ video {
     justify-content: space-between;
     padding: 10px 0;
     border-bottom: 1px solid #333;
+    /* 確保行內元素垂直置中 */
+    align-items: center;
+}
+
+/* 分散度數值 (標準差) 行的樣式，用於置中 */
+.stat-row-dispersion {
+    /* 讓 label 和 value 可以在中間對齊 */
+    align-items: center;
 }
 
 .stat-label {
     flex: 1;
     text-align: left;
-    font-size: 1.2em;
+    font-size: 1.0em;
     font-weight: bold;
 }
 
 .stat-value {
-    flex: 0 0 80px;
+    /* flex: 0 0 80px; */
     text-align: right;
     font-weight: bold;
     font-size: 1.2em;
 }
 
+.stat-value-avg {
+    /* flex: 0 0 80px; */
+    vertical-align: middle; 
+    text-align: right;
+
+    font-weight: bold;
+    font-size: 1.0em;
+
+    color: #ffffff; /* 使用一般白色，只高亮當前數值 */
+}
+
+/* 【新增】分隔線樣式 */
+.stat-separator {
+    color: #555; /* 使用較暗的顏色作為分隔線 */
+    font-weight: bold;
+    font-size: 1.0em;
+    padding: 0 5px; /* 增加分隔符號與數值之間的空間 */
+
+    /* 確保與數值垂直置中 */
+    vertical-align: middle;
+}
+
+/* 【新增】當前數值的樣式 (左邊) */
+.stat-value-current {
+    /* 讓當前數值靠右對齊 */
+    text-align: right;
+    /* 保持高亮顏色 */
+    color: #00A9BC;
+}
+
+/* 【新增】單一數值 (用於標準差) 的容器樣式 */
+.stat-value-single {
+    /* 讓單一數值從 label 之後的空間中置中 */
+    flex: 0 0 100px; /* 給予一個固定的寬度，讓它可以相對 label 置中，或使用 flex: 1 讓它靠右 */
+    /* 為了實現置中，我們讓 label 佔據 50%，剩下的空間讓 singleValue 靠右*/
+    /* 如果要真正置中，需要調整 .stat-row-dispersion 的結構 */
+
+    /* 由於 .stat-row 已經是 flex，要讓它在「單一數值行」置中，我們調整它的對齊方式 */
+    text-align: center; /* 讓值在它自己的 span 裡置中 */
+    /* 為了讓單一數值在右側空間置中，我們將 stat-label 和 stat-value-single 都設為 flex: 1 */
+    flex: 1; /* 讓它佔據剩餘空間，實現中間對齊 */
+    text-align: right; /* 為了保持與其他行對齊，將其設為靠右 */
+    /* 或者，如果目標是數值「獨佔」右邊空間且置中：
+    text-align: center;
+    */
+}
+
+/* 由於我們在 JS 中對分散度行增加了 .stat-row-dispersion class，
+   並讓 .stat-label 和 .stat-value-single 都使用 flex: 1，
+   這裡可以讓 stat-value-single 靠右來保持表格整體對齊。
+   如果想讓單一數值獨立顯示並置中，可以將 .stat-label 設為固定寬度。
+   由於你的預期是標準差佔兩格並置中，我們將 .stat-value-single 設為 **靠右**，
+   這樣看起來會與其他數值對齊。
+*/
+
 .highlight-value {
     color: #00A9BC; /* 藍色高亮數值 */
 }
 
-.highlight-value-right {
-    color: #00A9BC; /* 藍色高亮數值 */
+.default-value {
+    color: #ffffff; /* 藍色高亮數值 */
 }
 
 /* 目標距離控制項樣式 */

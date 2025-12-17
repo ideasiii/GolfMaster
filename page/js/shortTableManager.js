@@ -1,5 +1,8 @@
 /**
- * ShortTableManager 類別
+ * @fileoverview 此檔案定義了 ShortTableManager 類別，
+ * 專門用於管理短桿分析頁面的數據顯示。它包含兩個主要功能：
+ * 1. 動態生成並更新顯示擊球統計數據的表格。
+ * 2. 使用 Chart.js 繪製並更新落點分佈的散點圖，包括信賴區間橢圓和目標點。
  * 負責處理短桿分析的數據顯示，包括統計表格和落點分佈圖。
  */
 class ShortTableManager {
@@ -9,53 +12,76 @@ class ShortTableManager {
      * 數值顯示的順序取決於此陣列的順序。
      * @property {string} id - HTML元素的ID。
      * @property {string} label - 統計數據的中文標籤。
-     * @property {string} sourceKey - 數據 JSON 中的 key 名稱。
+     * @property {string} currentSourceKey - 對應當前擊球數據在 JSON 中的 key。
+     * @property {string} avgSourceKey - 對應平均或統計數據在 JSON 中的 key。
      * @property {function} formatter - 用於格式化顯示數值的函式。
+     * @property {boolean} [isPair=false] - 標記此項目是否為「當前/平均」的配對顯示。
+     * @property {boolean} [isDispersion=false] - 標記此項目是否為單一的分散度指標（用於置中顯示）。
      */
     static STAT_CONFIG = [
+        // 擊球距離
         {
-            id: 'avgCarryDist',
-            label: '平均落點 (yards)',
-            sourceKey: 'avg_carry_dist_yd',
-            // 取小數點後 1 位
-            formatter: (value) => value.toFixed(1) + ' y'
+            id: 'totalDist', // 使用一個通用 ID
+            label: '擊球距離 (yds)',
+            currentSourceKey: 'curr_total_yd', // 當前總距離
+            avgSourceKey: 'avg_total_yd', // 平均總距離
+            // 取小數點後 1 位 (用於當前值和平均值)
+            formatter: (value) => (value !== undefined && value !== null ? value.toFixed(1) + ' y' : 'N/A'),
+            isPair: true // 標記為需要顯示兩個數值的配對項目
         },
+        // 滾動比
         {
             id: 'rollRatio',
             label: '滾動比 (%)',
-            sourceKey: 'avg_roll_ratio',
+            currentSourceKey: 'curr_roll_ratio', // 當前滾動比
+            avgSourceKey: 'avg_roll_ratio', // 平均滾動比
             // 取整數
-            formatter: (value) => Math.round(value) + ' %'
+            formatter: (value) => (value !== undefined && value !== null ? Math.round(value) + ' %' : 'N/A'),
+            isPair: true
         },
+        // 水平偏差
         {
-            id: 'stdevVertical',
-            label: '垂直標準差 (yards)',
-            sourceKey: 'stdev_carry_yd',
-            // 取小數點後 1 位
-            // formatter: (value) => value.toFixed(1)
-            formatter: (value) => value ? value.toFixed(1) + ' y' : 'N/A' // 增加防呆
-        },
-        {
-            id: 'stdevHorizontal',
-            label: '水平標準差 (yards)',
-            sourceKey: 'stdev_horizontal_yd',
-            // 格式化函式會處理方向標註 (L/R)
-            formatter: (value, data) => {
-                // 增加檢查，如果 value 不存在則直接返回 N/A
+            id: 'horizontalDeviation',
+            label: '水平偏差 (yds)',
+            currentSourceKey: 'curr_horizontal_deviation_yd', // 當前水平偏差
+            avgSourceKey: 'avg_horizontal_deviation_yd', // 平均水平偏差
+            // 格式化函式處理 L/R 標註
+            formatter: (value) => {
                 if (value === undefined || value === null) {
                     return 'N/A';
                 }
-                // 判斷平均水平發射方向 (avg_horizontal_deviation_yd)
-                const direction = data.avg_horizontal_deviation_yd > 0 ? 'R' : 'L';
-                return `${direction}${value.toFixed(1)} y`;
-            }
+                // 負值為左 (L)，正值為右 (R)
+                const direction = value > 0.1 ? 'R' : (value < -0.1 ? 'L' : '');
+                const absValue = Math.abs(value).toFixed(1);
+                return `${direction}${absValue} y`;
+            },
+            isPair: true
+        },
+        // 垂直標準差 (單一數值，置中，使用 avgSourceKey 獲取)
+        {
+            id: 'stdevVertical',
+            label: '前後距離分散 (yds)', // 對應預期內容：前後距離分散
+            currentSourceKey: null, // 不使用當前數值
+            avgSourceKey: 'stdev_carry_yd', // 垂直標準差
+            formatter: (value) => (value !== undefined && value !== null ? value.toFixed(1) + ' y' : 'N/A'),
+            isDispersion: true // 標記為分散度數值，在 CSS 中置中
+        },
+        // 水平標準差 (單一數值，置中，使用 avgSourceKey 獲取)
+        {
+            id: 'stdevHorizontal',
+            label: '左右方向分散 (yds)', // 對應預期內容：左右方向分散
+            currentSourceKey: null, // 不使用當前數值
+            avgSourceKey: 'stdev_horizontal_yd', // 水平標準差
+            formatter: (value) => (value !== undefined && value !== null ? value.toFixed(1) + ' y' : 'N/A'),
+            isDispersion: true // 標記為分散度數值，在 CSS 中置中
         },
         // 未來擴充數據只需在這裡新增配置即可
     ];
 
 
     /**
-     * 建構子，初始化 DOM 元素的參考並動態建立統計表格行。
+     * ShortTableManager 的建構子。
+     * 初始化 DOM 元素的參考，動態建立統計表格，並設定目標距離控制項的事件監聽。
      * @param {string} tableContainerId - 統計表格最外層容器的 ID，例如 'shotAnalysisBox'。
      */
     constructor(tableContainerId) {
@@ -90,7 +116,9 @@ class ShortTableManager {
     }
 
     /**
-     * 【新增方法】設定目標距離輸入框的事件監聽。
+     * 初始化目標距離輸入框的事件監聽。
+     * 當輸入框數值改變時，會更新目標距離並重繪落點分佈圖。
+     * @private
      */
     _initTargetControl() {
         // 【注意】這裡假設 targetDistanceInput 元素已經存在於 DOM 中，如果沒有需要手動添加到 this.elements
@@ -125,6 +153,8 @@ class ShortTableManager {
 
     /**
      * 根據 STAT_CONFIG 動態建立表格的 HTML 結構 (stat-row)。
+     * 此方法會清空現有表格內容，並根據靜態配置重新生成所有行和數值顯示元素。
+     * @private
      */
     _generateTableRows() {
         if (!this.statsTableElement) return;
@@ -133,7 +163,6 @@ class ShortTableManager {
         this.statsTableElement.innerHTML = '';
 
         ShortTableManager.STAT_CONFIG.forEach(config => {
-            // 創建 <div class="stat-row">
             const row = document.createElement('div');
             row.className = 'stat-row';
 
@@ -141,22 +170,59 @@ class ShortTableManager {
             const label = document.createElement('span');
             label.className = 'stat-label';
             label.textContent = config.label;
-
-            // 創建 <span class="stat-value highlight-value">
-            const value = document.createElement('span');
-            value.className = 'stat-value highlight-value';
-            value.id = config.id; // 設定 ID
-            value.textContent = 'N/A'; // 預設值
-
-            // 組合結構
             row.appendChild(label);
-            row.appendChild(value);
+
+            if (config.isPair) {
+                // 【修改：配對數值項目】
+                // 創建當前數值元素
+                const currentValue = document.createElement('span');
+                currentValue.className = 'stat-value highlight-value stat-value-current'; // 新增 class
+                currentValue.id = `${config.id}Current`; // 使用更明確的 ID
+                currentValue.textContent = 'N/A';
+
+                // 創建分隔線元素
+                const separator = document.createElement('span');
+                separator.className = 'stat-separator'; // 新增 class
+                separator.textContent = '/'; // 分隔符號
+
+                // 創建平均數值元素
+                const avgValue = document.createElement('span');
+                avgValue.className = 'stat-value-avg'; // 新增 class
+                avgValue.id = `${config.id}Avg`;
+                avgValue.textContent = 'N/A';
+
+                // 組合結構
+                row.appendChild(currentValue);
+                row.appendChild(separator);
+                row.appendChild(avgValue);
+
+                // 儲存數值元素參考
+                this.elements[`${config.id}Current`] = currentValue;
+                this.elements[`${config.id}Avg`] = avgValue;
+            } else if (config.isDispersion) {
+                // 【新增：分散度數值項目 (單一、置中)】
+                row.classList.add('stat-row-dispersion'); // 新增 class 供 CSS 置中
+
+                // 創建單一數值元素
+                const singleValue = document.createElement('span');
+                singleValue.className = 'stat-value default-value stat-value-single'; // 新增 class
+                singleValue.id = config.id;
+                singleValue.textContent = 'N/A';
+
+                // 組合結構 (直接使用 singleValue 作為 stat-value)
+                row.appendChild(singleValue);
+
+                // 儲存數值元素參考
+                this.elements[config.id] = singleValue;
+            }
 
             // 添加到表格容器中
             this.statsTableElement.appendChild(row);
 
-            // 將數值元素儲存到 this.elements 中以供後續更新
-            this.elements[config.id] = value;
+            // 【移除】舊的單一數值元素儲存邏輯 (因為現在被 Pair 和 Dispersion 處理)
+            // if (!config.isPair && !config.isDispersion) {
+            //     this.elements[config.id] = value;
+            // }
         });
     }
 
@@ -188,16 +254,36 @@ class ShortTableManager {
 
         // 1. 遍歷配置清單，更新 DOM 元素
         ShortTableManager.STAT_CONFIG.forEach(config => {
-            const valueElement = this.elements[config.id];
-            const rawValue = data[config.sourceKey]; // 從數據中取得原始數值
+            if (config.isPair) {
+                // 處理 當前數值 / 平均數值 配對
+                const currentElement = this.elements[`${config.id}Current`];
+                const avgElement = this.elements[`${config.id}Avg`];
 
-            if (valueElement && rawValue !== undefined) {
-                // 使用配置中定義的 formatter 函式來格式化數值
-                const formattedValue = config.formatter(rawValue, data);
-                valueElement.textContent = formattedValue;
-            } else if (valueElement) {
-                 // 如果數據中缺少這個 key，則顯示 N/A
-                 valueElement.textContent = 'N/A';
+                // 更新當前數值
+                const currentRawValue = data[config.currentSourceKey];
+                if (currentElement) {
+                    const formattedCurrent = config.formatter(currentRawValue, data);
+                    currentElement.textContent = formattedCurrent;
+                }
+
+                // 更新平均數值
+                const avgRawValue = data[config.avgSourceKey];
+                if (avgElement) {
+                    const formattedAvg = config.formatter(avgRawValue, data);
+                    avgElement.textContent = formattedAvg;
+                }
+
+            } else if (config.isDispersion) {
+                // 處理單一分散度數值 (只顯示 avgSourceKey)
+                const singleElement = this.elements[config.id];
+                const rawValue = data[config.avgSourceKey]; // 從平均數值 key 取得原始數值
+
+                if (singleElement && rawValue !== undefined) {
+                    const formattedValue = config.formatter(rawValue, data);
+                    singleElement.textContent = formattedValue;
+                } else if (singleElement) {
+                    singleElement.textContent = 'N/A';
+                }
             }
         });
 
@@ -209,27 +295,43 @@ class ShortTableManager {
     }
 
     /**
-     * 清空或重設表格顯示。
+     * 清空或重設表格中的所有統計數值為 'N/A'，並清除落點分佈圖。
+     * 當數據無效或需要重置介面時呼叫。
      */
-    clearTable() {
-        // 遍歷所有統計數據 ID，並將其內容設為 N/A
-        ShortTableManager.STAT_CONFIG.forEach(config => {
-            const element = this.elements[config.id];
-            if (element) {
-                element.textContent = 'N/A';
+    clearTable() { 
+        // 遍歷所有統計數據 ID，並將其內容設為 N/A 
+        ShortTableManager.STAT_CONFIG.forEach(config => { 
+            if (config.isPair) {
+                // 清空配對數值
+                const currentElement = this.elements[`${config.id}Current`];
+                const avgElement = this.elements[`${config.id}Avg`];
+                if (currentElement) currentElement.textContent = 'N/A';
+                if (avgElement) avgElement.textContent = 'N/A';
+            } else if (config.isDispersion) {
+                // 清空單一數值
+                const element = this.elements[config.id]; 
+                if (element) element.textContent = 'N/A'; 
             }
-        });
-        if (this.elements.dispersionMap) this.elements.dispersionMap.innerHTML = '';
+        }); 
+        if (this.elements.dispersionMap) this.elements.dispersionMap.innerHTML = ''; 
     }
 
     /**
-     * 顯示數據
+     * 在控制台印出主要的分析數據，方便開發時進行調試。
+     * @param {object} analysisData - 已解析的分析數據物件。
+     * @private
      */
     _printData(analysisData) {
         console.log(
             "total_shots = " + analysisData.total_shots,
             "analyzed_shots = " + analysisData.analyzed_shots,
             "club_type = " + analysisData.club_type,
+            "curr_total_yd = " + analysisData.curr_total_yd,
+            "curr_carry_yd = " + analysisData.curr_carry_yd,
+            "curr_horizontal_deviation_yd = " + analysisData.curr_horizontal_deviation_yd,
+            "curr_carry_ratio = " + analysisData.curr_carry_ratio,
+            "curr_roll_ratio = " + analysisData.curr_roll_ratio,
+            "avg_total_yd  = " + analysisData.avg_total_yd,
             "avg_carry_dist_yd = " + analysisData.avg_carry_dist_yd,
             "avg_horizontal_deviation_yd = " + analysisData.avg_horizontal_deviation_yd,
             "avg_launch_direction_deg = " + analysisData.avg_launch_direction_deg,
@@ -240,12 +342,15 @@ class ShortTableManager {
             "landing_consistency_percent = " + analysisData.landing_consistency_percent,
             "max_deviation_yd = " + analysisData.max_deviation_yd,
             "covariance_xy = " + analysisData.covariance_xy,
+            // "curr_landing_point = " + analysisData.curr_landing_point,
         );
+        console.log(analysisData.curr_landing_point);
     }
 
     /**
      * 繪製落點分佈圖 (Chart.js 散點圖)。
-     * @param {object} analysisData - 包含 landing_points 和 avg_carry_dist_yd 等的完整數據物件。
+     * 此方法會整合所有圖表相關的配置（數據集、座標軸、顏色等），並實例化一個新的 Chart.js 圖表。
+     * @param {object} analysisData - 包含 `landing_points` 和 `avg_carry_dist_yd` 等的完整數據物件。
      * @param {object} [options={}] - 視覺化選項。
      * @param {boolean} [options.showEllipse=true] - 是否顯示標準差橢圓。
      * @param {boolean} [options.showTarget=true] - 是否顯示同心目標圓。
@@ -337,6 +442,7 @@ class ShortTableManager {
 
     /**
      * 定義 Chart.js 圖表使用的顏色變數。
+     * @private
      * @returns {object} 包含所有顏色代碼的物件。
      */
     _getChartColors() {
@@ -364,10 +470,12 @@ class ShortTableManager {
 
     /**
      * 計算圖表 X/Y 座標軸的範圍，並納入視覺平衡邏輯。
-     * 【修正】確保 Y 軸範圍包含 TargetDistanceYd
-     * @param {object} analysisData - 包含 avg_carry_dist_yd, stdev_carry_yd, stdev_horizontal_yd 的數據物件。
+     * 確保 Y 軸範圍能完整顯示平均落點、標準差範圍以及使用者設定的目標距離。
+     * X 軸範圍會根據 Y 軸範圍進行調整，以維持視覺上的平衡。
+     * @param {object} analysisData - 包含 `avg_carry_dist_yd`, `stdev_carry_yd`, `stdev_horizontal_yd` 的數據物件。
      * @param {object} colors - 顏色設定物件。
-     * @returns {object} 包含 min/max 設定的 scales 物件，可直接用於 Chart.js options。
+     * @returns {object} 包含 `x` 和 `y` 座標軸配置的物件，可直接用於 Chart.js options。
+     * @private
      */
     _calculateScales(analysisData, colors) {
         const avgCarry = analysisData.avg_carry_dist_yd;
@@ -400,7 +508,6 @@ class ShortTableManager {
         const yBuffer = (yMax - yMin) * 0.05;
         yMin = Math.max(0, yMin - yBuffer);
         yMax = yMax + yBuffer;
-
 
         // 2. X 軸 (水平偏差) 範圍計算 (包含視覺平衡)
         const xStdevRange = Math.max(MIN_RANGE, stdevHorizontal * STDEV_MULTIPLE);
@@ -442,12 +549,13 @@ class ShortTableManager {
 
       /**
      * 建立 Chart.js Annotation 插件所需的配置物件 (目標圓)。
-     * 【重要】此方法現在僅處理目標圓，**目標點**作為 Dataset 處理。
-     * @param {object} analysisData - 包含所有統計數據 (需包含 covariance_xy)。
+     * 在當前版本中，此函式返回一個空物件，因為所有視覺元素（如目標點、橢圓）都已改為透過 `datasets` 繪製。
+     * @param {object} analysisData - 包含所有統計數據。
      * @param {object} colors - 顏色設定物件。
-     * @param {object} options - 視覺化選項 (showEllipse, showTarget)。
+     * @param {object} options - 視覺化選項。
      * @param {number} targetDistanceYd - 使用者設定的目標距離。
-     * @returns {object} Annotation 配置物件。
+     * @returns {object} 一個空的 Annotation 配置物件。
+     * @private
      */
     _getChartAnnotations(analysisData, colors, options, targetDistanceYd) {
         // 由於我們不再繪製同心圓 Annotation，此方法現在返回一個空物件，
@@ -473,10 +581,12 @@ class ShortTableManager {
     }
 
     /**
-     * 【方法 A】計算 95% 信賴區間橢圓的邊界點 (特徵分解與卡方分佈)。
+     * 計算 95% 信賴區間橢圓的邊界點。
      * 這會生成一系列 (x, y) 點，用於繪製成一個 line dataset，以取代不精確的 Annotation Ellipse。
-     * @param {object} analysisData - 包含 stdev_carry_yd, stdev_horizontal_yd, covariance_xy 的數據。
+     * 演算法基於協方差矩陣的特徵分解與卡方分佈。
+     * @param {object} analysisData - 包含 `stdev_carry_yd`, `stdev_horizontal_yd`, `covariance_xy` 等統計數據的物件。
      * @returns {Array<{x: number, y: number}>} 橢圓邊界點陣列。
+     * @private
      */
     _calculateConfidenceEllipsePoints(analysisData) {
         const varX = analysisData.stdev_horizontal_yd ** 2; // X 軸方差 (水平)
@@ -535,11 +645,11 @@ class ShortTableManager {
 
     /**
      * 根據擊球順序生成漸變顏色陣列。
-     * 注意：此函式從索引 0 開始計算，但我們將在 _getChartData 中將索引 0 替換為特殊顏色。
-     * 顏色將從淺色 (舊擊球) 漸變到深色 (新擊球，但不包含索引 0)。
+     * 顏色會從較不透明（新擊球）漸變至較透明（舊擊球）。
      * @param {number} count - 擊球總數。
      * @param {string} baseColor - 基礎顏色 (例如: 'rgba(255, 206, 86, 0.9)')。
      * @returns {Array<string>} 每個擊球點的顏色代碼陣列。
+     * @private
      */
     _getSequentialColors(count, baseColor) {
         if (count <= 1) return new Array(count).fill(baseColor); // 至少 2 點才需要漸變
@@ -561,13 +671,13 @@ class ShortTableManager {
         const gradientCount = count - 1;
 
         // 索引 0 (最新點) 的顏色將在 _getChartData 中處理，這裡先加入佔位符
-        colors.push(null);
+        // colors.push(null);
 
-        // 從索引 1 (次新點) 開始計算漸變
-        for (let i = 1; i < count; i++) {
-            // i=1 是次新點，i=count-1 是最舊點。
-            // ratio: i=1 時接近 0 (新)，i=count-1 時接近 1 (舊)
-            // 為了讓次新點 (i=1) 較實 (Alpha 大)，最舊點 (i=count-1) 較淡 (Alpha 小)，
+        // 從索引 0 (最新點) 開始計算漸變
+        for (let i = 0; i < count; i++) {
+            // i=0 是最新點，i=count-1 是最舊點。
+            // ratio: i=0 時 0 (新)，i=count-1 時接近 1 (舊)
+            // 為了讓最新點 (i=0) 較實 (Alpha 大)，最舊點 (i=count-1) 較淡 (Alpha 小)，
             // 我們使用 (i - 1) / (gradientCount - 1) 作為比例。
 
             const ratio = (i - 1) / Math.max(1, gradientCount - 1);
@@ -583,11 +693,13 @@ class ShortTableManager {
 
     /**
      * 準備 Chart.js 所需的數據集 (落點、目標點、平均點和信賴區間橢圓)。
-     * @param {object} analysisData - 包含 landing_points 和 avg_carry_dist_yd 的數據物件。
+     * @param {object} analysisData - 包含 `landing_points` 和 `avg_carry_dist_yd` 的數據物件。
      * @param {object} colors - 顏色設定物件。
      * @returns {object} Chart.js data 物件。
+     * @private
      */
     _getChartData(analysisData, colors) {
+        const currPoint = analysisData.curr_landing_point;
         const landingPoints = analysisData.landing_points;
         const avgCarry = analysisData.avg_carry_dist_yd;
         const avgHorizontal = analysisData.avg_horizontal_deviation_yd || 0;
@@ -601,17 +713,18 @@ class ShortTableManager {
             x: x,
             y: landingPoints.y_coords_yd[index]
         }));
+        const currShot = currPoint ? { x: currPoint.x_coord_yd, y: currPoint.y_coord_yd } : null;
 
         // 【分離】分離 最新一桿 (Last Shot) 和 舊點 (Previous Shots)
-        const latestShot = allCarryPoints.length > 0 ? allCarryPoints[0] : null;
-        const previousShots = allCarryPoints.slice(1);
+        // const latestShot = allCarryPoints.length > 0 ? allCarryPoints[0] : null;
+        // const previousShots = allCarryPoints.slice(1);
 
         // 【計算】計算舊點的漸變顏色陣列
-        // 舊點數量為 carryPoints.length - 1
+        // 所有點數量為 carryPoints.length
         const sequenceColors = this._getSequentialColors(
             allCarryPoints.length, // 傳入總數，讓函式知道計算幾組顏色
             colors.colorPrimary
-        ).slice(1); // 只需要從索引 1 開始的顏色 (最新的點顏色由我們手動設定)
+        ).slice(0); // 只需要從索引 0 開始的顏色
 
         // 95% 信賴區間橢圓邊界點
         const ellipsePoints = this._calculateConfidenceEllipsePoints(analysisData);
@@ -635,7 +748,8 @@ class ShortTableManager {
             // 1. 舊擊球落點
             {
                 label: '擊球落點',
-                data: previousShots,
+                // data: previousShots,
+                data: allCarryPoints,
                 // 只使用漸變陣列 (排除了最新一桿的顏色)
                 backgroundColor: sequenceColors,
                 pointRadius: 6,
@@ -663,10 +777,11 @@ class ShortTableManager {
         ];
 
         // 3. 最新擊球
-        if (latestShot) {
+        if (currShot) {
              datasets.push({
                 label: '最新擊球', // 讓這個點的 Tooltip 標籤不同
-                data: [latestShot],
+                // data: [latestShot],
+                data: [currShot],
                 backgroundColor: colors.colorNew, // 假設 colorNew 是亮綠色
                 pointRadius: 8, // 給予較大的半徑，強化可見性
                 pointHoverRadius: 10,
@@ -698,4 +813,3 @@ class ShortTableManager {
         return { datasets };
     }
 }
-

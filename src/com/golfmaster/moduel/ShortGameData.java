@@ -33,9 +33,15 @@ public class ShortGameData {
      *         {
      *           "status": "success",                         // 執行狀態 (success, error, warning)
      *           "message": "...",                            // 狀態說明訊息 (當 status 非 success 時出現)
-     *           "club_type": "SandWedge",                             // 球桿種類
+     *           "club_type": "SandWedge",                    // 球桿種類
      *           "total_shots": 10,                           // 原始總球數
      *           "analyzed_shots": 8,                         // 清理後用於分析的球數
+     *           "curr_total_yd": 50,                         // 當前總距離 (碼)
+     *           "curr_carry_yd": 40,                         // 當前飛行距離 (碼)
+     *           "curr_horizontal_deviation_yd": 2.0,         // 當前水平落點偏差 (碼, 負值為左)
+     *           "curr_carry_ratio": 80,                      // 當前飛行佔比 (%)
+     *           "curr_roll_ratio": 20,                       // 當前滾動速率 (%)
+     *           "avg_total_yd": 60.3,                        // 平均總距離 (碼)
      *           "avg_carry_dist_yd": 55.3,                   // 平均飛行距離 (碼)
      *           "avg_horizontal_deviation_yd": -1.5,         // 平均水平落點偏差 (碼, 負值為左)
      *           "avg_launch_direction_deg": -1.2,            // 平均水平發射方向 (度, 負值為左)
@@ -46,6 +52,10 @@ public class ShortGameData {
      *           "landing_consistency_percent": 75.0,         // 落點一致率 (%)
      *           "max_deviation_yd": 6.8,                     // 最大偏差值 (碼)
      *           "covariance_xy": ,                           // 座標XY協方差
+     *           "curr_landing_point": {                      // 當前擊球的落點座標 (碼)
+     *             "x_coord_yd": -2.1,                        // 水平座標 (X軸, 負為左)
+     *             "y_coord_yd": 54.8,                        // 飛行距離座標 (Y軸)
+     *           }
      *           "landing_points": {                          // 所有擊球的落點座標 (碼)
      *             "x_coords_yd": [ -2.1, 1.5, ... ],         // 水平座標列表 (X軸, 負為左)
      *             "y_coords_yd": [ 54.8, 55.6, ... ]         // 飛行距離座標列表 (Y軸)
@@ -92,7 +102,30 @@ public class ShortGameData {
             .map(d -> d.y_coord_yd)
             .collect(Collectors.toList());
 
+        // 當前數值
+        ShortGameShotData rawCurrShot = rawShotList.get(0);
+        ProcessedShotData currShot = calculateSingleShotPointsAndRatios(rawCurrShot);
+
+        double currRollRatio = 100.0 - currShot.carry_ratio;
+        jsb.put("curr_total_yd", roundDecimal(currShot.total_dist_yd, 2));
+        jsb.put("curr_carry_yd", roundDecimal(currShot.y_coord_yd, 2));
+        jsb.put("curr_horizontal_deviation_yd", roundDecimal(currShot.x_coord_yd, 2));
+        jsb.put("curr_carry_ratio", roundDecimal(currShot.carry_ratio, 2));
+        jsb.put("curr_roll_ratio", roundDecimal(currRollRatio, 2));
+
+        JSONObject currLandingPoint = new JSONObject();
+        currLandingPoint.put("x_coord_yd", roundDecimal(currShot.x_coord_yd, 2));
+        currLandingPoint.put("y_coord_yd", roundDecimal(currShot.y_coord_yd, 2));
+        jsb.put("curr_landing_point", currLandingPoint);
+
         // 步驟 3: 核心統計計算 (專注於聚合和輸出)
+        // 新增: 平均總距離
+        List<Double> totalDistYds = processedList.stream()
+            .map(d -> d.total_dist_yd)
+            .collect(Collectors.toList());
+        double avgTotalDistYd = totalDistYds.stream().mapToDouble(d -> d).average().orElse(0.0);
+        jsb.put("avg_total_yd", roundDecimal(avgTotalDistYd, 2));
+
         // 1A. 平均落點距離 (Average Carry Distance) -> 單位：碼 (Yd)
         double avgCarryDistYd = yCoordsYd.stream().mapToDouble(d -> d).average().orElse(0.0);
         jsb.put("avg_carry_dist_yd", roundDecimal(avgCarryDistYd, 2));
@@ -164,6 +197,44 @@ public class ShortGameData {
 
         jsb.put("status", "success");
         return jsb;
+    }
+
+
+    /**
+     * 計算並加入當前 (最後一筆) 擊球的指標。
+     *
+     * @param jsb JSONObject 輸出容器。
+     * @param lastShot 最後一筆處理過的擊球數據。
+     */
+    private void addCurrentShotMetrics(JSONObject jsb, ProcessedShotData lastShot) {
+        // 從 ProcessedShotData 中計算和設定
+
+        // 1. 當前水平落點偏差 (X 座標)
+        jsb.put("curr_horizontal_deviation_yd", roundDecimal(lastShot.x_coord_yd, 2));
+
+        // 2. 當前飛行佔比
+        double currCarryRatio = lastShot.carry_ratio;
+        jsb.put("curr_carry_ratio", roundDecimal(currCarryRatio, 2));
+
+        // 3. 當前滾動速率
+        double currRollRatio = 100.0 - currCarryRatio;
+        jsb.put("curr_roll_rate", roundDecimal(currRollRatio, 2));
+
+        // 4. 當前總距離 (碼)
+        // 雖然 ProcessedShotData 中沒有 totalDistFt，但我們可以從 y_coord_yd 和 carry_ratio 反推
+        // y_coord_yd (CarryYd) = TotalYd * (CarryRatio / 100)
+        // TotalYd = CarryYd / (CarryRatio / 100)
+        double currCarryDistYd = lastShot.y_coord_yd;
+        double currTotalDistYd;
+
+        if (currCarryRatio > 0.0) {
+            currTotalDistYd = currCarryDistYd / (currCarryRatio / 100.0);
+        } else {
+            // 如果飛行占比為 0 (理論上短桿分析不應該發生)，則總距離等於 Carry 距離 (即滾動為 0)
+            currTotalDistYd = currCarryDistYd;
+        }
+
+        jsb.put("curr_total_yd", roundDecimal(currTotalDistYd, 2));
     }
 
     // ----------------------------------------------------
@@ -269,7 +340,7 @@ public class ShortGameData {
     // ----------------------------------------------------
 
     /**
-     * [步驟 2-1] 數據轉換函式 (單次迭代，高效率)。
+     * 數據轉換函式 (單次迭代，高效率)。
      * 將原始擊球數據列表轉換為包含所有衍生座標和比率的列表。
      *
      * E6模擬器標準(default)：(+) SideSpin -> Left (負X軸)；(-) SideSpin -> Right (正X軸)
@@ -284,6 +355,9 @@ public class ShortGameData {
         return cleanList.stream().map(data -> {
             double carryDistFt = data.getCarryDistFt();
             double totalDistFt = data.getTotalDistFt();
+
+            // 總距離 (碼) = 飛行距離 + 滾動距離
+            double totalDistYd = totalDistFt / FT_TO_YD;
 
             // A. Y 座標 (Carry 距離)
             double yCoordYd = carryDistFt / FT_TO_YD;
@@ -311,9 +385,78 @@ public class ShortGameData {
                 carryRatio = 100.0;
             }
 
+            // return new ProcessedShotData(
+            //     xCoordYd, yCoordYd, carryRatio, data.getLaunchDirection());
             return new ProcessedShotData(
-                xCoordYd, yCoordYd, carryRatio, data.getLaunchDirection());
+                xCoordYd, yCoordYd, totalDistYd, carryRatio, data.getLaunchDirection());
         }).collect(Collectors.toList());
+    }
+
+
+    // 位於 ShortGameData 內部
+    /**
+     * 將單筆原始擊球數據轉換為 ProcessedShotData (包含座標和比率)。
+     * 這是單次處理的專用函式。
+     *
+     * @param data 單筆原始擊球數據。
+     * @return 轉換後的 ProcessedShotData。
+     */
+    private ProcessedShotData calculateSingleShotPointsAndRatios(ShortGameShotData data) {
+        double carryDistFt = data.getCarryDistFt();
+        double totalDistFt = data.getTotalDistFt();
+
+        // A. Y 座標 (Carry 距離)
+        double yCoordYd = carryDistFt / FT_TO_YD;
+        double totalDistYd = totalDistFt / FT_TO_YD;
+
+        // B. X 座標 (水平偏差)
+        double directionRad = Math.toRadians(data.getLaunchDirection());
+        double sideDeviationFt = carryDistFt * Math.tan(directionRad);
+
+        // 側旋修正
+        double rawSideSpinEffectFt = (data.getSideSpin() / 1000.0) * SIDE_SPIN_FT_PER_1000_RPM;
+        double sideSpinEffectFt = -rawSideSpinEffectFt;
+
+        double totalSideDeviationFt = sideDeviationFt + sideSpinEffectFt;
+        double xCoordYd = totalSideDeviationFt / FT_TO_YD;
+
+        // C. 飛行占比
+        double carryRatio;
+        if (totalDistFt > 0) {
+            carryRatio = (carryDistFt / totalDistFt) * 100.0;
+        } else {
+            carryRatio = 100.0;
+        }
+
+        return new ProcessedShotData(
+            xCoordYd,
+            yCoordYd,
+            totalDistYd,
+            carryRatio,
+            data.getLaunchDirection()
+        );
+    }
+
+    /**
+     * 計算清理後列表的平均總距離 (碼)。
+     *
+     * @param cleanList 清理後的原始數據列表。
+     * @return 平均總距離 (碼)。
+     */
+    private double calculateAvgTotalDistYd(List<ShortGameShotData> cleanList) {
+        if (cleanList.isEmpty()) {
+            return 0.0;
+        }
+
+        // 總距離 = 飛行距離 + 滾動距離
+        double totalSumFt = cleanList.stream()
+            .mapToDouble(ShortGameShotData::getTotalDistFt)
+            .sum();
+
+        // 轉換為碼，然後計算平均
+        double avgTotalDistFt = totalSumFt / cleanList.size();
+
+        return avgTotalDistFt / FT_TO_YD;
     }
 
     /**
@@ -342,7 +485,7 @@ public class ShortGameData {
             double dx = xCoords.get(i) - avgX;
             double dy = yCoords.get(i) - avgY;
             // 歐氏距離 (Distance)
-            double dist = Math.sqrt(dx * dx + dy * dy); 
+            double dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist <= toleranceYd) {
                 withinRange++;
@@ -653,17 +796,20 @@ public class ShortGameData {
     private static class ProcessedShotData {
         public final double x_coord_yd; // 最終 X 座標 (碼) - 用於落點圖和水平 StDev
         public final double y_coord_yd; // Carry 距離 (碼) - 用於落點圖和垂直 StDev
+        public final double total_dist_yd; // 總距離 (碼)
         public final double carry_ratio; // 飛行占比 (%)
         public final double launch_direction_deg; // 發射方向 (度)
 
         public ProcessedShotData(
             double x_coord_yd,
             double y_coord_yd,
+            double total_dist_yd,
             double carry_ratio,
             double launch_direction_deg
         ) {
             this.x_coord_yd = x_coord_yd;
             this.y_coord_yd = y_coord_yd;
+            this.total_dist_yd = total_dist_yd;
             this.carry_ratio = carry_ratio;
             this.launch_direction_deg = launch_direction_deg;
         }
