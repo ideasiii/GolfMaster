@@ -33,6 +33,9 @@ h1 {
     color: #7C7C7C;
 }
 
+.hidden-element {
+    display: none !important;
+}
 
 /* =================================================================
  * 2. 主要佈局結構 (MAIN LAYOUT STRUCTURE)
