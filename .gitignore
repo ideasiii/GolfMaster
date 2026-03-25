@@ -23,3 +23,6 @@ build/
 hs_err_pid*
 *log.txt
 /bin/
+
+# vscode
+.devcontainer/
