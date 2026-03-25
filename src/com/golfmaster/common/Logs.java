@@ -1,6 +1,7 @@
 package com.golfmaster.common;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,12 +17,31 @@ public abstract class Logs
 	public static final String	RUN_LOG			= "run_log.txt";
 	public static final String	DEBUG			= "debug_log.txt";
 	public static final String	EXCEPTION_LOG	= "exception_log.txt";
-//	伺服器路徑
-	public static final String	PATH_LOG		= "/logs/golfmaster/";
-//	本機路徑
-//	public static final String	PATH_LOG ="D:\\logs\\golfmaster";
+	public static String	PATH_LOG		= null;
+	
+	private static void initFilePath()
+	{
+		if(null == PATH_LOG)
+		{
+			String OS = System.getProperty("os.name").toLowerCase();
+			if(OS.contains("win"))
+				PATH_LOG = "D:/logs/golf_master/";
+			else
+				PATH_LOG = "/logs/golf_master/";
+			
+			// 如果目錄不存在則建立
+			File uploadDir = new File(PATH_LOG);
+			if (!uploadDir.exists())
+			{
+				uploadDir.mkdirs();
+			}
+		}
+	}
+	
 	public static void log(String strPath, String strMsg)
 	{
+		initFilePath();
+		
 		Throwable throwable = new Throwable();
 		String strClassPath = throwable.getStackTrace()[1].getClassName();
 		String strLogPath = strClassPath + "_" + strPath;
@@ -34,6 +54,8 @@ public abstract class Logs
 
 	public static void error(String strMsg)
 	{
+		initFilePath();
+		
 		Throwable throwable = new Throwable();
 		String strFileName = throwable.getStackTrace()[1].getFileName();
 		String strClassPath = throwable.getStackTrace()[1].getClassName();
@@ -100,7 +122,6 @@ public abstract class Logs
 
 		public void run()
 		{
-
 			String strPathLog = PATH_LOG + GetDate() + "_" + this.m_strPath;
 			String strLogText = GetNow() + " : " + this.m_strMsg;
 			logger(strPathLog, strLogText);
