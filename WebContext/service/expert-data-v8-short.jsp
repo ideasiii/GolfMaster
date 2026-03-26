@@ -42,6 +42,8 @@ String sideSwingPlane = (String) temp[8]; // 側面 SwingPlane 資料
 String frontSwingPlane = (String) temp[9]; // 正面 SwingPlane 資料
 int[] combinedTpiSwingTable = (int[]) temp[10]; // SwingTable 資料
 String tpiAdvicesJson = (String) temp[11]; // allFilteredAdvicesJson 資料
+boolean frontAnalyzReady = (boolean) temp[12]; // 正面 analyze 影片是否已就緒
+boolean sideAnalyzReady = (boolean) temp[13];  // 側面 analyze 影片是否已就緒
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 String currShotDataResult = shotData.processCurrShotData(shot_data_id);
@@ -86,6 +88,7 @@ if (useLLM != null && useLLM.equals("true")) {
 	<script src="../../page/js/chart_4_4_0.umd.min.js"></script>
 	<script src="../../page/js/chartjs-plugin-annotation_3_0_1.min.js"></script>
 	<%-- inner js --%>
+	<script src="../../page/js/videoPollManager.js"></script>
 	<script src="../../page/js/swingVideo.js"></script>
 	<script src="../../page/js/tpiAdvicesManager.js"></script>
 	<script src="../../page/js/cmpChartManager.js"></script>
@@ -245,11 +248,22 @@ if (useLLM != null && useLLM.equals("true")) {
 			'launchAngle': shotResultData[3][0],
 		};
 
-		// test
+		// 影片路徑
 		const frontVideoPathData = '<%= frontVideoPath %>';
 		const sideVideoPathData = '<%= sideVideoPath %>';
-		console.log(frontVideoPathData);
-		console.log(sideVideoPathData);
+
+		// analyze 影片是否已在頁面載入時就緒（DB 有值 = 轉檔完成）
+		const frontAnalyzReady = <%= frontAnalyzReady %>;
+		const sideAnalyzReady = <%= sideAnalyzReady %>;
+
+		// 影片輪詢（等待轉檔完成）— 參數可在此調整
+		const videoPoller = new VideoPollManager({
+			statusUrl: 'VideoStatus',
+			shotDataId: '<%= shot_data_id %>',
+			interval: 3000,       // 每 3 秒檢查一次
+			maxAttempts: 40,      // 最多 40 次（約 2 分鐘）
+			initialDelay: 3000,   // 頁面載入後 3 秒開始檢查
+		});
 
 		// console.log(sideSwingPlaneData);
 		// console.log(frontSwingPlaneData);
@@ -484,6 +498,10 @@ if (useLLM != null && useLLM.equals("true")) {
 			// // 初始化影片事件
 			setupVideoEvents(video, canvas, frontSwingPlaneData, initialFrontFrame, frameRate, false);
 			setupVideoEvents(video1, canvas1, sideSwingPlaneData, initialSideFrame, frameRate, true);
+
+			// 僅在 analyze 影片尚未就緒時啟動輪詢
+			if (!frontAnalyzReady) videoPoller.watch(video, 'front');
+			if (!sideAnalyzReady)  videoPoller.watch(video1, 'side');
 
 			// 首次載入時顯示第一組數據
 			// 預設載入時選取 'A' 按鈕並顯示內容

@@ -139,7 +139,8 @@ public class ShotVideo {
 			// 	};
 			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoPath, defaultSideVideoPath,
 					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane,
-					defaultTpiSwingTable, defaultAdvicesJson
+					defaultTpiSwingTable, defaultAdvicesJson,
+					false, false  // [12],[13] analyze 影片尚未就緒
 				};
 		}
 
@@ -166,6 +167,8 @@ public class ShotVideo {
 				: defaultTpiSwingTable;
 		int[] frontTpiSwingTable = framesData.length > 11 && framesData[11] != null ? (int[]) framesData[11]
 				: defaultTpiSwingTable;
+		boolean isFrontAnalyzReady = framesData.length > 12 && framesData[12] != null && (boolean) framesData[12];
+		boolean isSideAnalyzReady = framesData.length > 13 && framesData[13] != null && (boolean) framesData[13];
 
 		// 將前後台的 TPI 數據合併
 		int[] combinedTpiSwingTable = new int[sideTpiSwingTable.length];
@@ -216,7 +219,8 @@ public class ShotVideo {
 		// return new Object[] { sideFrames, frontFrames, frontVideoName, sideVideoName, aEffect, tEffect, iEffect,
 		// 		fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson};
 		return new Object[] { sideFrames, frontFrames, frontVideoPath, sideVideoPath, aEffect, tEffect, iEffect,
-				fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson};
+				fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson,
+				isFrontAnalyzReady, isSideAnalyzReady};
 	}
 
 	private int queryShotVideo(ParamData paramData, JSONObject jsonResponse) {
@@ -762,7 +766,8 @@ public class ShotVideo {
 		return new Object[] {
 			sideArray, frontArray, frontVideoPath, sideVideoPath,
 			maxAIndex, maxTIndex, maxIIndex, maxFIndex,
-			sideSwingPlane, frontSwingPlane, sideTpi, frontTpi
+			sideSwingPlane, frontSwingPlane, sideTpi, frontTpi,
+			isFrontDbPresent, isSideDbPresent  // [12],[13] analyze URL 是否已存在於 DB
 		};
 	}
 

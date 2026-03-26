@@ -40,6 +40,8 @@ String sideSwingPlane = (String) temp[8]; // 側面 SwingPlane 資料
 String frontSwingPlane = (String) temp[9]; // 正面 SwingPlane 資料
 int[] combinedTpiSwingTable = (int[]) temp[10]; // SwingTable 資料
 String tpiAdvicesJson = (String) temp[11]; // allFilteredAdvicesJson 資料
+boolean frontAnalyzReady = (boolean) temp[12]; // 正面 analyze 影片是否已就緒
+boolean sideAnalyzReady = (boolean) temp[13];  // 側面 analyze 影片是否已就緒
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 
@@ -86,6 +88,7 @@ String suggestion = result.optString("expert_suggestion", "");
 	<script src="../../page/js/chart_3_5_1.min.js"></script>
 	<%-- inner js --%>
 	<script src="../../page/js/radarChart.js"></script>
+	<script src="../../page/js/videoPollManager.js"></script>
 	<script src="../../page/js/swingVideo.js"></script>
 	<script src="../../page/js/tpiAdvicesManager.js"></script>
 	<script src="../../page/js/cmpChartManager.js"></script>
@@ -300,6 +303,23 @@ String suggestion = result.optString("expert_suggestion", "");
 		const initialFrontFrame = <%= frontFrames[0] %>; // 正面影片的第一步幀數
 		const combinedTpiSwingTable = <%= new JSONArray(combinedTpiSwingTable).toString() %>;
 		const tpiAdvicesData = '<%= StringUtils.defaultIfEmpty(tpiAdvicesJson, "null") %>';
+
+		// 影片路徑
+		const frontVideoPathData = '<%= frontVideoPath %>';
+		const sideVideoPathData = '<%= sideVideoPath %>';
+
+		// analyze 影片是否已在頁面載入時就緒（DB 有值 = 轉檔完成）
+		const frontAnalyzReady = <%= frontAnalyzReady %>;
+		const sideAnalyzReady = <%= sideAnalyzReady %>;
+
+		// 影片輪詢（等待轉檔完成）— 參數可在此調整
+		const videoPoller = new VideoPollManager({
+			statusUrl: 'VideoStatus',
+			shotDataId: '<%= shot_data_id %>',
+			interval: 3000,       // 每 3 秒檢查一次
+			maxAttempts: 40,      // 最多 40 次（約 2 分鐘）
+			initialDelay: 3000,   // 頁面載入後 3 秒開始檢查
+		});
 
 		console.log(tpiAdvicesData);
 
@@ -603,6 +623,10 @@ String suggestion = result.optString("expert_suggestion", "");
 			// 初始化影片事件
 			setupVideoEvents(video, canvas, frontSwingPlaneData, initialFrontFrame, frameRate, false);
 			setupVideoEvents(video1, canvas1, sideSwingPlaneData, initialSideFrame, frameRate, true);
+
+			// 僅在 analyze 影片尚未就緒時啟動輪詢
+			if (!frontAnalyzReady) videoPoller.watch(video, 'front');
+			if (!sideAnalyzReady)  videoPoller.watch(video1, 'side');
 
 			// 初始化擊球分數
 			document.getElementById("ballscore").innerText = calculateBallScore(
