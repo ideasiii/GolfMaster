@@ -20,6 +20,22 @@
 					webAppMount="/downloads/video" /> 
 	</Resources>
 
+	<!-- 影片基礎路徑 (對應 Tomcat DirResourceSet 映射，相對於 JSP 所在的 service/ 目錄) -->
+	<Environment name="videoBaseUrl" value="../downloads/video/"
+		type="java.lang.String" override="false" />
+	<!-- 分析影片資料夾名稱 -->
+	<Environment name="videoFrontFolder" value="analyzVideo_front"
+		type="java.lang.String" override="false" />
+	<Environment name="videoSideFolder" value="analyzVideo_side"
+		type="java.lang.String" override="false" />
+	<!-- 預設教練影片檔名 (DB 無資料時的 fallback) -->
+	<Environment name="defaultFrontVideo"
+		value="Player0_shotVideo_front_160230_202405151602.mp4"
+		type="java.lang.String" override="false" />
+	<Environment name="defaultSideVideo"
+		value="Player0_shotVideo_side_160230_202405151602.mp4"
+		type="java.lang.String" override="false" />
+
 	<Environment name="expert" value="8"
 		type="java.lang.String" override="false" />
 </Context>

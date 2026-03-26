@@ -39,18 +39,44 @@ public class ShotVideo {
 		private String type;
 	}
 
-	// 影片資料夾基礎路徑
-	private static final String VIDEO_BASE_URL = "../../video/";
-	private static final String FRONT_FOLDER = "analyzVideo_front/";
-	private static final String SIDE_FOLDER = "analyzVideo_side/";
+	// 影片基礎路徑、資料夾、預設教練影片（從 context.xml 讀取，可客製化）
+	private final String VIDEO_BASE_URL;
+	private final String FRONT_FOLDER;
+	private final String SIDE_FOLDER;
+	private final String defaultFrontVideoPath;
+	private final String defaultSideVideoPath;
 
-	// 預設影片名稱（通常是教練或範例影片）
-	public final String defaultFrontVideoName = "Player0_shotVideo_front_160230_202405151602.mp4";
-	public final String defaultSideVideoName = "Player0_shotVideo_side_160230_202405151602.mp4";
+	{
+		// 影片基礎路徑（context.xml: videoBaseUrl）
+		String baseUrl = Config.getParameter("videoBaseUrl");
+		VIDEO_BASE_URL = (baseUrl != null && !baseUrl.isEmpty())
+			? (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/")
+			: "/downloads/video/";
 
-	// 完整的預設影片路徑
-	public final String defaultFrontVideoPath = VIDEO_BASE_URL + FRONT_FOLDER + defaultFrontVideoName;
-	public final String defaultSideVideoPath = VIDEO_BASE_URL + SIDE_FOLDER + defaultSideVideoName;
+		// 分析影片資料夾（context.xml: videoFrontFolder / videoSideFolder）
+		String cfgFrontFolder = Config.getParameter("videoFrontFolder");
+		FRONT_FOLDER = (cfgFrontFolder != null && !cfgFrontFolder.isEmpty())
+			? (cfgFrontFolder.endsWith("/") ? cfgFrontFolder : cfgFrontFolder + "/")
+			: "analyzVideo_front/";
+
+		String cfgSideFolder = Config.getParameter("videoSideFolder");
+		SIDE_FOLDER = (cfgSideFolder != null && !cfgSideFolder.isEmpty())
+			? (cfgSideFolder.endsWith("/") ? cfgSideFolder : cfgSideFolder + "/")
+			: "analyzVideo_side/";
+
+		// 預設教練影片檔名（context.xml: defaultFrontVideo / defaultSideVideo）
+		String cfgFront = Config.getParameter("defaultFrontVideo");
+		defaultFrontVideoPath = VIDEO_BASE_URL + FRONT_FOLDER
+			+ ((cfgFront != null && !cfgFront.isEmpty())
+				? cfgFront
+				: "Player0_shotVideo_front_160230_202405151602.mp4");
+
+		String cfgSide = Config.getParameter("defaultSideVideo");
+		defaultSideVideoPath = VIDEO_BASE_URL + SIDE_FOLDER
+			+ ((cfgSide != null && !cfgSide.isEmpty())
+				? cfgSide
+				: "Player0_shotVideo_side_160230_202405151602.mp4");
+	}
 
 	// 預設數據
 	public final int[] defaultSideArray = { 157, 281, 345, 407 };
@@ -810,31 +836,45 @@ public class ShotVideo {
 
 	// --- ---
 
-	private String extractFileName(String url) {
+	/**
+	 * 從 DB 的完整 URL 中提取「資料夾/檔名」部分。
+	 * 例：http://127.0.0.1:8080/downloads/video/analyzVideo_front/Player0_xxx.mp4
+	 *   → analyzVideo_front/Player0_xxx.mp4
+	 */
+	private String extractRelativePath(String url) {
 		if (url == null || url.isEmpty()) return "";
+		// 嘗試從 "/video/" 之後截取（適用於完整 URL）
+		int idx = url.indexOf("/video/");
+		if (idx >= 0) {
+			return url.substring(idx + "/video/".length());
+		}
+		// 若無 "/video/"，嘗試取最後兩段（資料夾/檔名）
+		int lastSlash = url.lastIndexOf('/');
+		if (lastSlash > 0) {
+			int secondLastSlash = url.lastIndexOf('/', lastSlash - 1);
+			if (secondLastSlash >= 0) {
+				return url.substring(secondLastSlash + 1);
+			}
+		}
+		// fallback：只取檔名
 		return url.substring(url.lastIndexOf('/') + 1);
 	}
 
 	/**
-     * 根據資料庫儲存的檔名/URL，返回 JSP 可用的完整的本地相對路徑。
-     * 即使資料庫存的是完整的下載 URL，也會將其轉換為本地相對路徑。
-     */
-    private String getFullPath(String dbPathOrName, String defaultPath, String folderName) {
-        if (dbPathOrName == null || dbPathOrName.isEmpty()) {
-            return defaultPath; // 資料庫無資料時，使用預設路徑
-        }
+	 * 根據資料庫儲存的 URL，返回 JSP 可用的影片路徑。
+	 * 使用 context.xml 的 videoBaseUrl 作為基礎路徑，不依賴 DB 中的 IP/Port。
+	 */
+	private String getFullPath(String dbPathOrName, String defaultPath, String folderName) {
+		if (dbPathOrName == null || dbPathOrName.isEmpty()) {
+			return defaultPath;
+		}
 
-        // 從資料庫數據中提取檔名 (適用於資料庫存儲完整的下載 URL 或僅檔名)
-        String fileName = extractFileName(dbPathOrName);
-
-        if (fileName.isEmpty()) {
-            // 如果提取不到檔名，返回預設路徑
-            return defaultPath;
-        } else {
-            // 使用提取到的檔名，拼接成 JSP 可用的本地相對路徑
-            return VIDEO_BASE_URL + folderName + fileName;
-        }
-    }
+		String relativePath = extractRelativePath(dbPathOrName);
+		if (relativePath.isEmpty()) {
+			return defaultPath;
+		}
+		return VIDEO_BASE_URL + relativePath;
+	}
 
 	// 更新方法以計算數組中最大值的索引
 	private int getMaxIndex(JSONArray array) throws JSONException {
