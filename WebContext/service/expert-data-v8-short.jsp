@@ -79,10 +79,12 @@ if (useLLM != null && useLLM.equals("true")) {
 	<%-- <script
 		src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
 	</script> --%>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script> 
-	<script
+	<%-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script> --%>
+	<%-- <script
 		src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js">
-	</script>
+	</script> --%>
+	<script src="../../page/js/chart_4_4_0.umd.min.js"></script>
+	<script src="../../page/js/chartjs-plugin-annotation_3_0_1.min.js"></script>
 	<%-- inner js --%>
 	<script src="../../page/js/swingVideo.js"></script>
 	<script src="../../page/js/tpiAdvicesManager.js"></script>
@@ -129,7 +131,10 @@ if (useLLM != null && useLLM.equals("true")) {
                     </div>
                 </div>
 
-				<div class="motion-advice-section-bottom">
+				<div class="motion-advice-section-bottom data-mode">
+					<%-- 影片分析原有內容 (暫時隱藏) --%>
+					<div id="motionAnalysisContent" style="display:none; position:relative;">
+					<button class="motion-toggle-btn" onclick="toggleMotionPanel()" title="切換顯示">&#x21C4;</button>
                     <div class="steps-bar-top">
                         <div class="steps">
                             <div class="step">
@@ -169,6 +174,36 @@ if (useLLM != null && useLLM.equals("true")) {
 							</div>
 						</div>
 					</div>
+					</div><%-- end motionAnalysisContent --%>
+					<%-- 擊球數據面板 --%>
+					<div id="shotDataPanel" class="data-panel">
+						<button class="motion-toggle-btn" onclick="toggleMotionPanel()" title="切換顯示">&#x21C4;</button>
+						<div class="card">
+							<div class="title">距離</div>
+							<div class="unit">yards</div>
+							<div id="val-distance" class="number">--</div>
+						</div>
+						<div class="card">
+							<div class="title">球速</div>
+							<div class="unit">mph</div>
+							<div id="val-ballSpeed" class="number">--</div>
+						</div>
+						<div class="card">
+							<div class="title">桿頭速度</div>
+							<div class="unit">mph</div>
+							<div id="val-clubSpeed" class="number">--</div>
+						</div>
+						<div class="card">
+							<div class="title">後旋</div>
+							<div class="unit">rpm</div>
+							<div id="val-backSpin" class="number">--</div>
+						</div>
+						<div class="card">
+							<div class="title">發射角度</div>
+							<div class="unit">°</div>
+							<div id="val-launchAngle" class="number">--</div>
+						</div>
+					</div>
 				</div>
             </div>
 
@@ -201,6 +236,14 @@ if (useLLM != null && useLLM.equals("true")) {
 		const tpiAdvicesData = '<%= StringUtils.defaultIfEmpty(tpiAdvicesJson, "null") %>';
 		const shortGameResultData = '<%= shortGameResult %>';
 		const golfAdviceResult = '<%= adviceResult %>';
+		const shotResultData = <%= new JSONArray(shotResult).toString() %>;
+		const userShotData = {
+			'distance': shotResultData[2][0],
+			'ballSpeed': shotResultData[0][0],
+			'clubSpeed': shotResultData[1][0],
+			'backSpin': shotResultData[4][0],
+			'launchAngle': shotResultData[3][0],
+		};
 
 		// test
 		const frontVideoPathData = '<%= frontVideoPath %>';
@@ -387,6 +430,22 @@ if (useLLM != null && useLLM.equals("true")) {
 		}
 
 
+		// 切換影片分析與數據面板
+		function toggleMotionPanel() {
+			const section = document.querySelector('.motion-advice-section-bottom');
+			const analysis = document.getElementById('motionAnalysisContent');
+			const dataPanel = document.getElementById('shotDataPanel');
+			if (analysis.style.display === 'none') {
+				analysis.style.display = '';
+				dataPanel.style.display = 'none';
+				section.classList.remove('data-mode');
+			} else {
+				analysis.style.display = 'none';
+				dataPanel.style.display = '';
+				section.classList.add('data-mode');
+			}
+		}
+
 		// --- Initialization ---
 		function init() {
 			// console.log("init");
@@ -458,6 +517,21 @@ if (useLLM != null && useLLM.equals("true")) {
 			// 初始化兩個播放器
 			// setupPlayerControls(video, playPauseBtn, progressBar, timeDisplay, volumeBar, fullscreenBtn, videoContainer);
 			// setupPlayerControls(video1, playPauseBtn1, progressBar1, timeDisplay1, fullscreenBtn1, videoContainer1);
+
+			// 填入擊球數據面板
+			const dataMapping = {
+				'val-distance': userShotData.distance,
+				'val-ballSpeed': userShotData.ballSpeed,
+				'val-clubSpeed': userShotData.clubSpeed,
+				'val-backSpin': userShotData.backSpin,
+				'val-launchAngle': userShotData.launchAngle
+			};
+			for (const [id, value] of Object.entries(dataMapping)) {
+				const el = document.getElementById(id);
+				if (el) {
+					el.innerText = (typeof value === 'number') ? value.toFixed(1) : '--';
+				}
+			}
 		}
 
 		document.addEventListener("DOMContentLoaded", init);

@@ -214,6 +214,78 @@ video {
     flex: 1; /* 填滿左側欄位剩餘的高度 */
     background-color: transparent;
     align-items: stretch;
+    position: relative;
+}
+.motion-advice-section-bottom.data-mode {
+    flex: 0 0 auto; /* 數據模式時縮到內容大小 */
+}
+
+/* 擊球數據面板 (暫時取代影片分析) */
+.data-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    padding: 15px;
+    box-sizing: border-box;
+    gap: 10px;
+    height: 260px; /* 大約對齊右側水平偏差行高度 */
+    position: relative;
+}
+.data-panel .card {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: rgba(57, 61, 66, 0.6);
+    border: 1px solid rgba(0, 169, 188, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+}
+.data-panel .card .title {
+    text-align: center;
+    padding-bottom: 5px;
+    border-bottom: #00A9BC solid 1px;
+    color: white;
+    font-size: 1.4em;
+    font-weight: bold;
+}
+.data-panel .card .unit {
+    text-align: center;
+    padding: 6px 0;
+    color: white;
+    font-size: 0.8em;
+}
+.data-panel .card .number {
+    text-align: center;
+    font-size: 2em;
+    font-weight: bold;
+    color: #00A9BC;
+}
+/* 切換按鈕 */
+.motion-toggle-btn {
+    all: unset;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 10;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.motion-toggle-btn:hover {
+    background: rgba(0, 169, 188, 0.4);
+    color: #fff;
 }
 
 /* 頂部步驟欄的藍色背景 */

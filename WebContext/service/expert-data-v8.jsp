@@ -80,9 +80,10 @@ String suggestion = result.optString("expert_suggestion", "");
 	<title>Expert</title>
 	<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 	<%-- outer js --%>
-	<script
+	<%-- <script
 		src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
-	</script>
+	</script> --%>
+	<script src="../../page/js/chart_3_5_1.min.js"></script>
 	<%-- inner js --%>
 	<script src="../../page/js/radarChart.js"></script>
 	<script src="../../page/js/swingVideo.js"></script>
@@ -192,6 +193,9 @@ String suggestion = result.optString("expert_suggestion", "");
 
 		<div class="row2 stretch">
 			<div class="column2 motion-column">
+				<button class="motion-toggle-btn" onclick="toggleMotionPanel()" title="切換顯示">&#x21C4;</button>
+				<%-- 影片分析原有內容 (暫時隱藏) --%>
+				<div id="motionAnalysisContent" style="display:none">
 				<div class="custom-div2">
 					<div class="steps">
 						<div class="step">
@@ -232,6 +236,35 @@ String suggestion = result.optString("expert_suggestion", "");
 								</table>
 							</div>
 						</div>
+					</div>
+				</div>
+				</div><%-- end motionAnalysisContent --%>
+				<%-- 擊球數據面板 --%>
+				<div id="shotDataPanel" class="data-panel">
+					<div class="card">
+						<div class="title">距離</div>
+						<div class="unit">yards</div>
+						<div id="val-distance" class="number">--</div>
+					</div>
+					<div class="card">
+						<div class="title">球速</div>
+						<div class="unit">mph</div>
+						<div id="val-ballSpeed" class="number">--</div>
+					</div>
+					<div class="card">
+						<div class="title">桿頭速度</div>
+						<div class="unit">mph</div>
+						<div id="val-clubSpeed" class="number">--</div>
+					</div>
+					<div class="card">
+						<div class="title">後旋</div>
+						<div class="unit">rpm</div>
+						<div id="val-backSpin" class="number">--</div>
+					</div>
+					<div class="card">
+						<div class="title">發射角度</div>
+						<div class="unit">°</div>
+						<div id="val-launchAngle" class="number">--</div>
 					</div>
 				</div>
 			</div>
@@ -521,6 +554,19 @@ String suggestion = result.optString("expert_suggestion", "");
 			);
 		}
 
+		// 切換影片分析與數據面板
+		function toggleMotionPanel() {
+			const analysis = document.getElementById('motionAnalysisContent');
+			const dataPanel = document.getElementById('shotDataPanel');
+			if (analysis.style.display === 'none') {
+				analysis.style.display = '';
+				dataPanel.style.display = 'none';
+			} else {
+				analysis.style.display = 'none';
+				dataPanel.style.display = '';
+			}
+		}
+
 		// --- Initialization ---
 		function init() {
 			// Setup event listeners
@@ -594,6 +640,21 @@ String suggestion = result.optString("expert_suggestion", "");
 			// 初始化兩個播放器
 			// setupPlayerControls(video, playPauseBtn, progressBar, timeDisplay, volumeBar, fullscreenBtn, videoContainer);
 			// setupPlayerControls(video1, playPauseBtn1, progressBar1, timeDisplay1, fullscreenBtn1, videoContainer1);
+
+			// 填入擊球數據面板
+			const dataMapping = {
+				'val-distance': userShotData.distance,
+				'val-ballSpeed': userShotData.ballSpeed,
+				'val-clubSpeed': userShotData.clubSpeed,
+				'val-backSpin': userShotData.backSpin,
+				'val-launchAngle': userShotData.launchAngle
+			};
+			for (const [id, value] of Object.entries(dataMapping)) {
+				const el = document.getElementById(id);
+				if (el) {
+					el.innerText = (typeof value === 'number') ? value.toFixed(1) : '--';
+				}
+			}
 		}
 
 		document.addEventListener("DOMContentLoaded", init);

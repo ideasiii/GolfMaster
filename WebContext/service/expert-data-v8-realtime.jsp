@@ -80,9 +80,10 @@ String suggestion = result.optString("expert_suggestion", "");
 	<title>Expert</title>
 	<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 	<%-- outer js --%>
-	<script
+	<%-- <script
 		src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.js">
-	</script>
+	</script> --%>
+	<script src="../../page/js/chart_3_5_1.min.js"></script>
 	<%-- inner js --%>
 	<script src="../../page/js/radarChart.js"></script>
 	<script src="../../page/js/swingVideo.js"></script>
@@ -135,7 +136,7 @@ String suggestion = result.optString("expert_suggestion", "");
 
 					<div class="data-row">
 						<div class="card">
-							<div class="title">倒旋</div>
+							<div class="title">後旋</div>
 							<div class="unit">rpm</div>
 							<div id="val-backSpin" class="number">--</div>
 						</div>
