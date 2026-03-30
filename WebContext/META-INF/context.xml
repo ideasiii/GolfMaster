@@ -36,7 +36,7 @@
 		value="Player0_shotVideo_side_160230_202405151602.mp4"
 		type="java.lang.String" override="false" />
 
-	<Environment name="expert" value="8"
+	<Environment name="expert" value="8-short"
 		type="java.lang.String" override="false" />
 </Context>
 
