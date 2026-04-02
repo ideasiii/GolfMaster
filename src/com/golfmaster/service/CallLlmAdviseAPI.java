@@ -25,12 +25,12 @@ import com.golfmaster.common.Logs;
  * 並將其發送到指定的 LLM API 端點。它處理 API 的請求、響應和錯誤，
  * 為使用者提供一個統一的建議生成介面。
  * for local server "http://127.0.0.1/VLM/service/llm_golf_advice"
- * for server "http://125.227.141.7:49147/VLM/service/llm_golf_advice"
+ * for server "http://124.9.6.11:49147/VLM/service/llm_golf_advice"
  * </p>
  */
 public class CallLlmAdviseAPI {
     private static final String LLM_ADVISE_API_URL =
-        "http://125.227.141.7:49147/VLM/service/llm_golf_advice";
+        "http://124.9.6.11:49147/VLM/service/llm_golf_advice";
     // private static final String LLM_ADVISE_API_URL =
     //     "http://127.0.0.1/VLM/service/llm_golf_advice";
 
