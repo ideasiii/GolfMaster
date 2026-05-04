@@ -14,7 +14,7 @@ import org.json.JSONObject;
 import com.golfmaster.common.Logs;
 
 public class CallMotionApi {
-	private static final String URL_STRING = "http://124.9.6.11:49147/GolfVisionAnalytics/service/anl_video";
+	private static final String URL_STRING = "http://172.16.78.11:49147/GolfVisionAnalytics/service/anl_video";
 
 	public void requestApi(JSONObject jsonObj) throws IOException {
 		URL url = new URL(URL_STRING);

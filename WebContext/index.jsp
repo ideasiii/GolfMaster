@@ -9,6 +9,9 @@
 </head>
 <body>
 	Golf Master<P>
-	Version 20250509
+	Version 20260402<P>
+	
+	GolfMaster: 124.9.6.12 -> 172.16.78.12<P>
+	III-Server: 124.9.6.11 -> 172.16.78.11<P>
 </body>
 </html>
