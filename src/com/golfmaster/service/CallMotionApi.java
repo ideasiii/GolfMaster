@@ -14,10 +14,33 @@ import org.json.JSONObject;
 import com.golfmaster.common.Logs;
 
 public class CallMotionApi {
-	private static final String URL_STRING = "http://172.16.78.11:49147/GolfVisionAnalytics/service/anl_video";
+	// Fallback (context.xml 讀取失敗時使用)
+	private static final String DEFAULT_API_BASE_URL = "http://172.16.78.11:49147";
+	private static final String DEFAULT_MOTION_API_PATH = "/GolfVisionAnalytics/service/anl_video";
+
+	/**
+	 * 從 context.xml 讀取外部 API 完整 URL，失敗則使用預設值。
+	 */
+	private static String resolveMotionApiUrl() {
+		String base = Config.getParameter("apiBaseUrl");
+		if (base == null || base.isEmpty()) {
+			base = DEFAULT_API_BASE_URL;
+		}
+		if (base.endsWith("/")) {
+			base = base.substring(0, base.length() - 1);
+		}
+		String path = Config.getParameter("motionApiPath");
+		if (path == null || path.isEmpty()) {
+			path = DEFAULT_MOTION_API_PATH;
+		}
+		if (!path.startsWith("/")) {
+			path = "/" + path;
+		}
+		return base + path;
+	}
 
 	public void requestApi(JSONObject jsonObj) throws IOException {
-		URL url = new URL(URL_STRING);
+		URL url = new URL(resolveMotionApiUrl());
 		HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 
 		try {

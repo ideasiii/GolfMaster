@@ -38,6 +38,17 @@
 
 	<Environment name="expert" value="8"
 		type="java.lang.String" override="false" />
+
+	<!-- 外部 API 主機位址 (CallLlmAdviseAPI / CallMotionApi 共用)；切換 IP/Port 時只需修改此處 -->
+	<Environment name="apiBaseUrl" value="http://172.16.78.11:49147"
+		type="java.lang.String" override="false" />
+	<!-- 本機測試用: <Environment name="apiBaseUrl" value="http://127.0.0.1" type="java.lang.String" override="false" /> -->
+
+	<!-- 各外部 API 路徑 (相對 apiBaseUrl) -->
+	<Environment name="llmAdviseApiPath" value="/VLM/service/llm_golf_advice"
+		type="java.lang.String" override="false" />
+	<Environment name="motionApiPath" value="/GolfVisionAnalytics/service/anl_video"
+		type="java.lang.String" override="false" />
 </Context>
 
 <!-- 內 -->

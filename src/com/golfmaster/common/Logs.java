@@ -18,7 +18,7 @@ public abstract class Logs
 	public static final String	DEBUG			= "debug_log.txt";
 	public static final String	EXCEPTION_LOG	= "exception_log.txt";
 	public static String	PATH_LOG		= null;
-	
+
 	private static void initFilePath()
 	{
 		if(null == PATH_LOG)
@@ -28,7 +28,8 @@ public abstract class Logs
 				PATH_LOG = "D:/logs/golf_master/";
 			else
 				PATH_LOG = "/logs/golf_master/";
-			
+				// PATH_LOG = "/opt/tomcat-8.0.52/logs/golfmaster/";
+
 			// 如果目錄不存在則建立
 			File uploadDir = new File(PATH_LOG);
 			if (!uploadDir.exists())
@@ -37,11 +38,11 @@ public abstract class Logs
 			}
 		}
 	}
-	
+
 	public static void log(String strPath, String strMsg)
 	{
 		initFilePath();
-		
+
 		Throwable throwable = new Throwable();
 		String strClassPath = throwable.getStackTrace()[1].getClassName();
 		String strLogPath = strClassPath + "_" + strPath;
@@ -55,7 +56,7 @@ public abstract class Logs
 	public static void error(String strMsg)
 	{
 		initFilePath();
-		
+
 		Throwable throwable = new Throwable();
 		String strFileName = throwable.getStackTrace()[1].getFileName();
 		String strClassPath = throwable.getStackTrace()[1].getClassName();

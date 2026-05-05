@@ -29,10 +29,30 @@ import com.golfmaster.common.Logs;
  * </p>
  */
 public class CallLlmAdviseAPI {
-    private static final String LLM_ADVISE_API_URL =
-        "http://172.16.78.11:49147/VLM/service/llm_golf_advice";
-    // private static final String LLM_ADVISE_API_URL =
-    //     "http://127.0.0.1/VLM/service/llm_golf_advice";
+    // Fallback (context.xml 讀取失敗時使用)
+    private static final String DEFAULT_API_BASE_URL = "http://172.16.78.11:49147";
+    private static final String DEFAULT_LLM_ADVISE_API_PATH = "/VLM/service/llm_golf_advice";
+
+    /**
+     * 從 context.xml 讀取外部 API 完整 URL，失敗則使用預設值。
+     */
+    private static String resolveLlmAdviseApiUrl() {
+        String base = Config.getParameter("apiBaseUrl");
+        if (base == null || base.isEmpty()) {
+            base = DEFAULT_API_BASE_URL;
+        }
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        String path = Config.getParameter("llmAdviseApiPath");
+        if (path == null || path.isEmpty()) {
+            path = DEFAULT_LLM_ADVISE_API_PATH;
+        }
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        return base + path;
+    }
 
     // API 請求參數
     private static final String PARAM_CLIENT_ID = "client_id";
@@ -92,7 +112,7 @@ public class CallLlmAdviseAPI {
         // ===================================
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(LLM_ADVISE_API_URL);
+            URL url = new URL(resolveLlmAdviseApiUrl());
             conn = (HttpURLConnection) url.openConnection();
             setupHttpConnection(conn);
 
