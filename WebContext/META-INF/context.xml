@@ -16,7 +16,7 @@
 
 	<Resources>
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
-					base="/opt/golfmaster/video/"
+					base="/opt/tomcat-8.0.52/webapps/video/"
 					webAppMount="/downloads/video" /> 
 	</Resources>
 
