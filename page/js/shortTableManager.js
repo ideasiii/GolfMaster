@@ -237,13 +237,13 @@ class ShortTableManager {
             data = JSON.parse(dataString);
         } catch (error) {
             console.error("ShortTableManager：解析 JSON 字串失敗。", error);
-            this.clearTable();
+            this.clearTable('擊球資料格式錯誤，無法顯示穩定性分析');
             return;
         }
 
         if (data.status !== 'success') {
              console.warn("ShortTableManager：分析數據狀態非 success。不更新表格。", data.message);
-             this.clearTable();
+             this.clearTable(this._friendlyStatusMessage(data.message));
              return;
         }
 
@@ -297,10 +297,11 @@ class ShortTableManager {
     /**
      * 清空或重設表格中的所有統計數值為 'N/A'，並清除落點分佈圖。
      * 當數據無效或需要重置介面時呼叫。
+     * @param {string} [message] - 可選的提示訊息，會顯示在落點圖區域，告知使用者資料狀況。
      */
-    clearTable() { 
-        // 遍歷所有統計數據 ID，並將其內容設為 N/A 
-        ShortTableManager.STAT_CONFIG.forEach(config => { 
+    clearTable(message) {
+        // 遍歷所有統計數據 ID，並將其內容設為 N/A
+        ShortTableManager.STAT_CONFIG.forEach(config => {
             if (config.isPair) {
                 // 清空配對數值
                 const currentElement = this.elements[`${config.id}Current`];
@@ -309,11 +310,57 @@ class ShortTableManager {
                 if (avgElement) avgElement.textContent = 'N/A';
             } else if (config.isDispersion) {
                 // 清空單一數值
-                const element = this.elements[config.id]; 
-                if (element) element.textContent = 'N/A'; 
+                const element = this.elements[config.id];
+                if (element) element.textContent = 'N/A';
             }
-        }); 
-        if (this.elements.dispersionMap) this.elements.dispersionMap.innerHTML = ''; 
+        });
+
+        // 銷毀現有圖表（避免殘留）
+        if (this.dispersionChart) {
+            this.dispersionChart.destroy();
+            this.dispersionChart = null;
+        }
+
+        if (this.elements.dispersionMap) {
+            if (message) {
+                this.elements.dispersionMap.innerHTML =
+                    '<div style="display:flex; align-items:center; justify-content:center; '
+                    + 'height:100%; min-height:200px; padding:24px; text-align:center; '
+                    + 'color:rgba(255,255,255,0.75); font-size:15px; line-height:1.5;">'
+                    + this._escapeHtml(message)
+                    + '</div>';
+            } else {
+                this.elements.dispersionMap.innerHTML = '';
+            }
+        }
+    }
+
+    /**
+     * 將後端回傳的英文訊息轉為使用者友善的中文提示。
+     * @param {string} serverMessage
+     * @returns {string}
+     * @private
+     */
+    _friendlyStatusMessage(serverMessage) {
+        if (!serverMessage) return '尚無足夠擊球資料，無法顯示穩定性分析';
+        if (/insufficient/i.test(serverMessage)) {
+            return '擊球資料不足，無法顯示穩定性分析\n（需累積更多筆有效擊球紀錄）';
+        }
+        return '無法顯示擊球穩定性：' + serverMessage;
+    }
+
+    /**
+     * 簡易 HTML escape，避免後端訊息中的特殊字元造成 XSS。
+     * @private
+     */
+    _escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/\n/g, '<br>');
     }
 
     /**

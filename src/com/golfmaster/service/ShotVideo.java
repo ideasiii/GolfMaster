@@ -140,7 +140,8 @@ public class ShotVideo {
 			return new Object[] { defaultSideArray, defaultFrontArray, defaultFrontVideoPath, defaultSideVideoPath,
 					aPos, tPos, iPos, fPos, defaultSideSwingPlane, defaultFrontSwingPlane,
 					defaultTpiSwingTable, defaultAdvicesJson,
-					false, false  // [12],[13] analyze 影片尚未就緒
+					false, false, // [12],[13] id_analyzeVideo 尚未寫入（分析未完成）
+					false, false  // [14],[15] raw_shotVideo 尚未存在（廠商未送）
 				};
 		}
 
@@ -169,6 +170,8 @@ public class ShotVideo {
 				: defaultTpiSwingTable;
 		boolean isFrontAnalyzReady = framesData.length > 12 && framesData[12] != null && (boolean) framesData[12];
 		boolean isSideAnalyzReady = framesData.length > 13 && framesData[13] != null && (boolean) framesData[13];
+		boolean isFrontExpected = framesData.length > 14 && framesData[14] != null && (boolean) framesData[14];
+		boolean isSideExpected = framesData.length > 15 && framesData[15] != null && (boolean) framesData[15];
 
 		// 將前後台的 TPI 數據合併
 		int[] combinedTpiSwingTable = new int[sideTpiSwingTable.length];
@@ -220,7 +223,8 @@ public class ShotVideo {
 		// 		fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson};
 		return new Object[] { sideFrames, frontFrames, frontVideoPath, sideVideoPath, aEffect, tEffect, iEffect,
 				fEffect, sideSwingPlane, frontSwingPlane, combinedTpiSwingTable, allFilteredAdvicesJson,
-				isFrontAnalyzReady, isSideAnalyzReady};
+				isFrontAnalyzReady, isSideAnalyzReady,
+				isFrontExpected, isSideExpected};
 	}
 
 	private int queryShotVideo(ParamData paramData, JSONObject jsonResponse) {
@@ -293,7 +297,9 @@ public class ShotVideo {
 					+ "SVS.PoseImpact AS PoseImpact, "
 					+ "SVS.SwingPlane AS SwingPlane, "
 					+ "SVS.TpiSwingTable As TpiSwingTable, "
-					+ "SV.analyze_shotVideo_front, SV.analyze_shotVideo_side "
+					+ "SV.raw_shotVideo_front, SV.raw_shotVideo_side, "
+					+ "SV.analyze_shotVideo_front, SV.analyze_shotVideo_side, "
+					+ "SV.id_analyzeVideo_front, SV.id_analyzeVideo_side "
 					// + "FROM golf_master.shot_video AS SV, golf_master.shot_video_swing AS SVS "
 					// + "WHERE SV.shot_data_id = '%s' AND SVS.ShotVideoId = SV.id",
 					+ "FROM golf_master.shot_video AS SV "
@@ -331,6 +337,10 @@ public class ShotVideo {
 				jsonProject.put("PoseImpact", rs.getString("PoseImpact") != null ? rs.getString("PoseImpact") : "");
 				jsonProject.put("SwingPlane", rs.getString("SwingPlane") != null ? rs.getString("SwingPlane") : "");
 				jsonProject.put("TpiSwingTable", rs.getString("TpiSwingTable") != null ? rs.getString("TpiSwingTable") : "");
+				jsonProject.put("raw_shotVideo_front", rs.getString("raw_shotVideo_front") != null ? rs.getString("raw_shotVideo_front") : "");
+				jsonProject.put("raw_shotVideo_side", rs.getString("raw_shotVideo_side") != null ? rs.getString("raw_shotVideo_side") : "");
+				jsonProject.put("id_analyzeVideo_front", rs.getString("id_analyzeVideo_front") != null ? rs.getString("id_analyzeVideo_front") : "");
+				jsonProject.put("id_analyzeVideo_side", rs.getString("id_analyzeVideo_side") != null ? rs.getString("id_analyzeVideo_side") : "");
 
 				jarrProjects.put(jsonProject);
 			}
@@ -570,6 +580,10 @@ public class ShotVideo {
 		ArrayList<Integer> frontFrames = new ArrayList<>();
 		String sideVideoDbData = "";
 		String frontVideoDbData = "";
+		String rawFrontDbData = "";
+		String rawSideDbData = "";
+		String idAnalyzeFrontDbData = "";
+		String idAnalyzeSideDbData = "";
 		String sideSwingPlane = null;
 		String frontSwingPlane = null;
 		ArrayList<Integer> sideTpiTable = new ArrayList<>();
@@ -610,6 +624,10 @@ public class ShotVideo {
 				if (!videoPathExtracted) {
 					sideVideoDbData = result.optString("analyze_shotVideo_side", "");
 					frontVideoDbData = result.optString("analyze_shotVideo_front", "");
+					rawSideDbData = result.optString("raw_shotVideo_side", "");
+					rawFrontDbData = result.optString("raw_shotVideo_front", "");
+					idAnalyzeSideDbData = result.optString("id_analyzeVideo_side", "");
+					idAnalyzeFrontDbData = result.optString("id_analyzeVideo_front", "");
 					videoPathExtracted = true;
 				}
 
@@ -763,11 +781,19 @@ public class ShotVideo {
 		int[] sideTpi = sideTpiTable.stream().mapToInt(i -> i).toArray();
 		int[] frontTpi = frontTpiTable.stream().mapToInt(i -> i).toArray();
 
+		// [12],[13] analysis ready：id_analyzeVideo_X 是否已寫入（影像分析完成的訊號，與轉檔不同）
+		// [14],[15] expected：raw_shotVideo_X 是否存在（廠商有送這部影片的訊號）
+		boolean isFrontAnalysisReady = !idAnalyzeFrontDbData.isEmpty();
+		boolean isSideAnalysisReady = !idAnalyzeSideDbData.isEmpty();
+		boolean isFrontExpected = !rawFrontDbData.isEmpty();
+		boolean isSideExpected = !rawSideDbData.isEmpty();
+
 		return new Object[] {
 			sideArray, frontArray, frontVideoPath, sideVideoPath,
 			maxAIndex, maxTIndex, maxIIndex, maxFIndex,
 			sideSwingPlane, frontSwingPlane, sideTpi, frontTpi,
-			isFrontDbPresent, isSideDbPresent  // [12],[13] analyze URL 是否已存在於 DB
+			isFrontAnalysisReady, isSideAnalysisReady,
+			isFrontExpected, isSideExpected
 		};
 	}
 

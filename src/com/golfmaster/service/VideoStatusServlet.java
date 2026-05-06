@@ -17,16 +17,24 @@ import com.golfmaster.common.DBUtil;
 import com.golfmaster.common.Logs;
 
 /**
- * 檢查轉檔後的分析影片是否已寫入資料庫（表示轉檔完成）。
+ * 檢查轉檔影片是否就緒、且影像分析是否完成。
  *
- * Python 端轉檔流程：轉檔成功 → 才寫入 analyze_shotVideo_front / analyze_shotVideo_side URL 到 DB。
- * 因此 DB 有值 = 轉檔完成、檔案可用。
+ * 三個欄位的角色：
+ *   raw_shotVideo_X      → 廠商會送這部影片（expected）
+ *   analyze_shotVideo_X  → 轉檔完成 + 對應的 mp4 URL（影片本體可用）
+ *   id_analyzeVideo_X    → 影像分析完成（PSystem / SwingPlane / TPI / PoseImpact 已寫入 SVS）
  *
  * GET /service/VideoStatus?shotDataId=12345
  * 回傳 JSON:
  * {
- *   "front": { "ready": true, "url": "../downloads/video/analyzVideo_front/xxx.mp4" },
- *   "side":  { "ready": false, "url": "" }
+ *   "front": {
+ *     "expected": true,           // 廠商會送這部
+ *     "ready": true,              // (legacy) 轉檔完成 — 給舊的 watch() 用
+ *     "url": "../downloads/...",  // 轉檔完成的影片相對路徑
+ *     "analysisReady": false      // 影像分析完成
+ *   },
+ *   "side":  { ... 同上 ... },
+ *   "shouldReload": false         // 所有 expected 邊都已 analysisReady，且至少有一邊 expected
  * }
  */
 @WebServlet("/service/VideoStatus")
@@ -61,52 +69,74 @@ public class VideoStatusServlet extends HttpServlet {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
+		String rawFront = "", rawSide = "";
+		String analyzeFront = "", analyzeSide = "";
+		String idAnalyzeFront = "", idAnalyzeSide = "";
+
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			ps = conn.prepareStatement(
-				"SELECT analyze_shotVideo_front, analyze_shotVideo_side "
+				"SELECT raw_shotVideo_front, raw_shotVideo_side, "
+				+ "analyze_shotVideo_front, analyze_shotVideo_side, "
+				+ "id_analyzeVideo_front, id_analyzeVideo_side "
 				+ "FROM golf_master.shot_video "
 				+ "WHERE shot_data_id = ? LIMIT 1"
 			);
 			ps.setString(1, shotDataId);
 			rs = ps.executeQuery();
 
-			String frontDbUrl = "";
-			String sideDbUrl = "";
-
 			if (rs.next()) {
-				String f = rs.getString("analyze_shotVideo_front");
-				String s = rs.getString("analyze_shotVideo_side");
-				frontDbUrl = (f != null) ? f : "";
-				sideDbUrl = (s != null) ? s : "";
+				rawFront = nz(rs.getString("raw_shotVideo_front"));
+				rawSide = nz(rs.getString("raw_shotVideo_side"));
+				analyzeFront = nz(rs.getString("analyze_shotVideo_front"));
+				analyzeSide = nz(rs.getString("analyze_shotVideo_side"));
+				idAnalyzeFront = nz(rs.getString("id_analyzeVideo_front"));
+				idAnalyzeSide = nz(rs.getString("id_analyzeVideo_side"));
 			}
-
-			json.put("front", buildStatus(frontDbUrl));
-			json.put("side", buildStatus(sideDbUrl));
-
 		} catch (Exception e) {
 			Logs.log(Logs.EXCEPTION_LOG, "VideoStatusServlet error: " + e.getMessage());
 			json.put("error", "db query failed");
+			writeResponse(response, json);
+			return;
 		} finally {
 			try { if (rs != null) rs.close(); } catch (Exception ignored) {}
 			try { if (ps != null) ps.close(); } catch (Exception ignored) {}
 			try { if (conn != null) conn.close(); } catch (Exception ignored) {}
 		}
 
+		boolean frontExpected = !rawFront.isEmpty();
+		boolean sideExpected = !rawSide.isEmpty();
+		boolean frontVideoReady = !analyzeFront.isEmpty();
+		boolean sideVideoReady = !analyzeSide.isEmpty();
+		boolean frontAnalysisReady = !idAnalyzeFront.isEmpty();
+		boolean sideAnalysisReady = !idAnalyzeSide.isEmpty();
+
+		JSONObject frontStatus = new JSONObject();
+		frontStatus.put("expected", frontExpected);
+		frontStatus.put("ready", frontVideoReady);
+		frontStatus.put("url", frontVideoReady ? toFrontendPath(analyzeFront) : "");
+		frontStatus.put("analysisReady", frontAnalysisReady);
+
+		JSONObject sideStatus = new JSONObject();
+		sideStatus.put("expected", sideExpected);
+		sideStatus.put("ready", sideVideoReady);
+		sideStatus.put("url", sideVideoReady ? toFrontendPath(analyzeSide) : "");
+		sideStatus.put("analysisReady", sideAnalysisReady);
+
+		// 至少一邊 expected，且每個 expected 邊都 analysisReady → 可以 reload 拿完整結果
+		boolean shouldReload = (frontExpected || sideExpected)
+			&& (!frontExpected || frontAnalysisReady)
+			&& (!sideExpected || sideAnalysisReady);
+
+		json.put("front", frontStatus);
+		json.put("side", sideStatus);
+		json.put("shouldReload", shouldReload);
+
 		writeResponse(response, json);
 	}
 
-	/**
-	 * 根據 DB 中的 analyze URL 產生狀態物件。
-	 * DB 有值 = 轉檔完成（Python 端轉檔成功才寫入）。
-	 * 回傳的 url 會轉成前端可用的相對路徑。
-	 */
-	private JSONObject buildStatus(String dbUrl) {
-		JSONObject status = new JSONObject();
-		boolean ready = !dbUrl.isEmpty();
-		status.put("ready", ready);
-		status.put("url", ready ? toFrontendPath(dbUrl) : "");
-		return status;
+	private static String nz(String s) {
+		return s == null ? "" : s;
 	}
 
 	/**

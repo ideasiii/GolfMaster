@@ -42,8 +42,10 @@ String sideSwingPlane = (String) temp[8]; // 側面 SwingPlane 資料
 String frontSwingPlane = (String) temp[9]; // 正面 SwingPlane 資料
 int[] combinedTpiSwingTable = (int[]) temp[10]; // SwingTable 資料
 String tpiAdvicesJson = (String) temp[11]; // allFilteredAdvicesJson 資料
-boolean frontAnalyzReady = (boolean) temp[12]; // 正面 analyze 影片是否已就緒
-boolean sideAnalyzReady = (boolean) temp[13];  // 側面 analyze 影片是否已就緒
+boolean frontAnalyzReady = (boolean) temp[12]; // 正面影像分析是否完成 (id_analyzeVideo_front)
+boolean sideAnalyzReady = (boolean) temp[13];  // 側面影像分析是否完成 (id_analyzeVideo_side)
+boolean frontExpected = (boolean) temp[14];    // 廠商會送 front 影片 (raw_shotVideo_front)
+boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_shotVideo_side)
 
 float[][] shotResult = shotData.processPlayerReq(shot_data_id);
 String currShotDataResult = shotData.processCurrShotData(shot_data_id);
@@ -231,10 +233,11 @@ if (useLLM != null && useLLM.equals("true")) {
 
 	<script>
 		// --- JSP Data to JS Variables ---
-		const sideSwingPlaneData = <%= StringUtils.defaultIfEmpty(sideSwingPlane, "null") %>;
-		const frontSwingPlaneData = <%= StringUtils.defaultIfEmpty(frontSwingPlane, "null") %>;
-		const initialSideFrame = <%= sideFrames[0] %>; // 側面影片的第一步幀數
-		const initialFrontFrame = <%= frontFrames[0] %>; // 正面影片的第一步幀數
+		// 注意：SwingPlane 與 initialFrame 用 let，方便分析完成時透過 AJAX 即時補上
+		let sideSwingPlaneData = <%= StringUtils.defaultIfEmpty(sideSwingPlane, "null") %>;
+		let frontSwingPlaneData = <%= StringUtils.defaultIfEmpty(frontSwingPlane, "null") %>;
+		let initialSideFrame = <%= sideFrames[0] %>; // 側面影片的第一步幀數
+		let initialFrontFrame = <%= frontFrames[0] %>; // 正面影片的第一步幀數
 		const combinedTpiSwingTable = <%= new JSONArray(combinedTpiSwingTable).toString() %>;
 		const tpiAdvicesData = '<%= StringUtils.defaultIfEmpty(tpiAdvicesJson, "null") %>';
 		const shortGameResultData = '<%= shortGameResult %>';
@@ -252,9 +255,12 @@ if (useLLM != null && useLLM.equals("true")) {
 		const frontVideoPathData = '<%= frontVideoPath %>';
 		const sideVideoPathData = '<%= sideVideoPath %>';
 
-		// analyze 影片是否已在頁面載入時就緒（DB 有值 = 轉檔完成）
+		// 影像分析是否已在頁面載入時完成（id_analyzeVideo_X 有值）
 		const frontAnalyzReady = <%= frontAnalyzReady %>;
 		const sideAnalyzReady = <%= sideAnalyzReady %>;
+		// 廠商會送哪部影片（raw_shotVideo_X 有值）— 不送的那邊永遠不會 ready，不需追蹤
+		const frontExpected = <%= frontExpected %>;
+		const sideExpected = <%= sideExpected %>;
 
 		// 影片輪詢（等待轉檔完成）— 參數可在此調整
 		const videoPoller = new VideoPollManager({
@@ -460,6 +466,44 @@ if (useLLM != null && useLLM.equals("true")) {
 			}
 		}
 
+		// 分析完成時，AJAX 拿到單邊資料後，補上該邊的 SwingPlane 覆蓋線、frame index、A 幀位置
+		function applyAnalysisUpdate(camera, sideData) {
+			if (!sideData) return;
+			const swingPlane = sideData.swingPlane || null;
+			const frames = Array.isArray(sideData.frames) ? sideData.frames : null;
+			const phaseOrder = ['A', 'T', 'I', 'F'];
+
+			if (camera === 'front') {
+				if (swingPlane) frontSwingPlaneData = swingPlane;
+				if (frames && frames.length === 4) {
+					initialFrontFrame = frames[0];
+					document.querySelectorAll('.steps button[data-phase]').forEach(btn => {
+						const idx = phaseOrder.indexOf(btn.dataset.phase);
+						if (idx >= 0) btn.setAttribute('data-front-frame', frames[idx]);
+					});
+					try {
+						video.pause();
+						video.currentTime = initialFrontFrame / frameRate;
+					} catch (e) { console.warn('[applyAnalysisUpdate] front seek failed', e); }
+				}
+				resizeCanvas(video, canvas, frontSwingPlaneData, false);
+			} else if (camera === 'side') {
+				if (swingPlane) sideSwingPlaneData = swingPlane;
+				if (frames && frames.length === 4) {
+					initialSideFrame = frames[0];
+					document.querySelectorAll('.steps button[data-phase]').forEach(btn => {
+						const idx = phaseOrder.indexOf(btn.dataset.phase);
+						if (idx >= 0) btn.setAttribute('data-side-frame', frames[idx]);
+					});
+					try {
+						video1.pause();
+						video1.currentTime = initialSideFrame / frameRate;
+					} catch (e) { console.warn('[applyAnalysisUpdate] side seek failed', e); }
+				}
+				resizeCanvas(video1, canvas1, sideSwingPlaneData, true);
+			}
+		}
+
 		// --- Initialization ---
 		function init() {
 			// console.log("init");
@@ -499,9 +543,25 @@ if (useLLM != null && useLLM.equals("true")) {
 			setupVideoEvents(video, canvas, frontSwingPlaneData, initialFrontFrame, frameRate, false);
 			setupVideoEvents(video1, canvas1, sideSwingPlaneData, initialSideFrame, frameRate, true);
 
-			// 僅在 analyze 影片尚未就緒時啟動輪詢
-			if (!frontAnalyzReady) videoPoller.watch(video, 'front');
-			if (!sideAnalyzReady)  videoPoller.watch(video1, 'side');
+			// 啟動分析輪詢：等廠商送進來的影片都分析完成（id_analyzeVideo_X 寫入）
+			// 兩部影片情境會先 AJAX 補上先 ready 那邊的覆蓋線（左上角陸續顯示）；
+			// 等所有 expected 邊都 ready 才整頁 reload（左下角 TPI/教練比較才有完整資料）
+			videoPoller.start({
+				frontExpected: frontExpected,
+				sideExpected: sideExpected,
+				frontReady: frontAnalyzReady,
+				sideReady: sideAnalyzReady,
+				onAnalysisUpdate: applyAnalysisUpdate,
+				// 轉檔完成就先換 src（不等分析），讓使用者更早看到自己的影片
+				onVideoReady: function (camera, url) {
+					const videoEl = (camera === 'front') ? video : video1;
+					const sourceEl = videoEl.querySelector('source');
+					if (!sourceEl || sourceEl.getAttribute('src') === url) return;
+					sourceEl.setAttribute('src', url);
+					videoEl.load();
+					console.log('[onVideoReady] swapped ' + camera + ' to ' + url);
+				},
+			});
 
 			// 首次載入時顯示第一組數據
 			// 預設載入時選取 'A' 按鈕並顯示內容
