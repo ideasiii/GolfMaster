@@ -17,7 +17,12 @@
 	<Resources>
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
 					base="/opt/tomcat-8.0.52/webapps/video/"
-					webAppMount="/downloads/video" /> 
+						webAppMount="/downloads/video" /> 
+	<!-- <Resources>
+		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
+					base="/opt/golfmaster/video/"
+					webAppMount="/downloads/video" />  -->
+
 	</Resources>
 
 	<!-- 影片基礎路徑 (對應 Tomcat DirResourceSet 映射，相對於 JSP 所在的 service/ 目錄) -->
@@ -40,9 +45,10 @@
 		type="java.lang.String" override="false" />
 
 	<!-- 外部 API 主機位址 (CallLlmAdviseAPI / CallMotionApi 共用)；切換 IP/Port 時只需修改此處 -->
-	<Environment name="apiBaseUrl" value="http://172.16.78.11:49147"
+	<Environment name="apiBaseUrl" value="http://127.0.0.1:49147"
 		type="java.lang.String" override="false" />
-	<!-- 本機測試用: <Environment name="apiBaseUrl" value="http://127.0.0.1" type="java.lang.String" override="false" /> -->
+	<!-- 本機測試用: <Environment name="apiBaseUrl" value="http://172.16.78.11:49147"
+		type="java.lang.String type="java.lang.String" override="false" /> -->
 
 	<!-- 各外部 API 路徑 (相對 apiBaseUrl) -->
 	<Environment name="llmAdviseApiPath" value="/VLM/service/llm_golf_advice"
