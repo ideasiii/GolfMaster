@@ -1,0 +1,276 @@
+/*
+ * GM08_pdf_modal.css — 紀念 PDF 下載按鈕 + Modal 樣式
+ * 由 expert-data-v8.jsp / expert-data-v8-short.jsp 共用
+ */
+
+/* ============ 觸發按鈕 ============ */
+/*
+ * 注意：刻意不使用 .nav-button class，避免被 headerNavManager.js 攔截 click 事件。
+ * 此按鈕是「動作按鈕」，不是「頁面切換按鈕」，語意上應該分開。
+ */
+.pdf-download-btn {
+    background: linear-gradient(135deg, #ffb540 0%, #ff8a3d 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 8px;
+    box-shadow: 0 2px 6px rgba(255, 138, 61, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    font-family: inherit;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.pdf-download-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(255, 138, 61, 0.55);
+}
+
+.pdf-download-btn:disabled,
+.pdf-download-btn[aria-busy="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ============ Modal ============ */
+.pdf-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: "Microsoft JhengHei", "Heiti TC", "PingFang TC", sans-serif;
+}
+
+.pdf-modal.is-open {
+    display: flex;
+}
+
+.pdf-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.pdf-modal-dialog {
+    position: relative;
+    background: #ffffff;
+    width: 420px;
+    max-width: 92vw;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    color: #1a1a1a;
+    overflow: hidden;
+    animation: pdfModalIn 0.18s ease-out;
+}
+
+@keyframes pdfModalIn {
+    from { transform: translateY(8px) scale(0.97); opacity: 0; }
+    to   { transform: translateY(0) scale(1);     opacity: 1; }
+}
+
+.pdf-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e5e8ee;
+    background: linear-gradient(135deg, #1a3a6e, #2c5aa0);
+    color: #fff;
+}
+
+.pdf-modal-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.pdf-modal-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.8;
+}
+
+.pdf-modal-close:hover { opacity: 1; }
+
+.pdf-modal-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pdf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #1a1a1a;
+}
+
+.pdf-field span {
+    font-weight: 600;
+    color: #555;
+}
+
+.pdf-field input[type="text"] {
+    border: 1px solid #c9cfdb;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1a1a1a;
+    background: #fafbfd;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pdf-field input[type="text"]:focus {
+    border-color: #1a3a6e;
+    box-shadow: 0 0 0 3px rgba(26, 58, 110, 0.15);
+}
+
+.pdf-field-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #555;
+    user-select: none;
+    cursor: pointer;
+}
+
+.pdf-field-inline input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+}
+
+.pdf-primary-btn {
+    position: relative;
+    background: linear-gradient(135deg, #1a3a6e, #2c5aa0);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.pdf-primary-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.pdf-primary-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.pdf-btn-spinner {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: pdfSpin 0.8s linear infinite;
+}
+
+.pdf-primary-btn[aria-busy="true"] .pdf-btn-spinner { display: inline-block; }
+
+@keyframes pdfSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.pdf-status {
+    font-size: 12px;
+    color: #555;
+    min-height: 16px;
+    text-align: center;
+}
+
+.pdf-status.is-error { color: #b54a4a; }
+.pdf-status.is-ok    { color: #2c8a4a; }
+
+/* ============ QR Code ============ */
+.pdf-qr-wrap {
+    background: #f4f6fa;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 6px;
+}
+
+.pdf-qr-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a3a6e;
+    margin-bottom: 8px;
+}
+
+.pdf-qr-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pdf-qr-canvas {
+    width: 132px;
+    height: 132px;
+    background: #fff;
+    border: 1px solid #d5dae3;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.pdf-qr-canvas img,
+.pdf-qr-canvas canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+.pdf-qr-loading {
+    color: #888;
+    font-size: 11px;
+    text-align: center;
+    padding: 0 6px;
+}
+
+.pdf-qr-canvas.is-ready .pdf-qr-loading { display: none; }
+
+.pdf-qr-tip {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.pdf-qr-emoji {
+    font-size: 20px;
+    margin-right: 4px;
+}

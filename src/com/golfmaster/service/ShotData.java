@@ -106,6 +106,16 @@ public class ShotData {
 		return strResponse;
 	}
 
+	/**
+	 * 取一桿擊球的 meta 資料：player、ClubType、Date。
+	 * 內部沿用 queryPlayer，回傳的 JSONObject 至少含 player / ClubType / Date 三個欄位。
+	 * 查不到時回傳空 JSONObject。
+	 */
+	public JSONObject processShotMeta(Long shot_data_id) {
+		JSONObject meta = queryPlayer(shot_data_id);
+		return meta != null ? meta : new JSONObject();
+	}
+
 	public String processShortGameData(Long shot_data_id, int maxRecords) {
 		JSONObject jsonResponse = null;
 		String strResponse = "";

@@ -29,13 +29,20 @@ function getLevelForRadar(value, range) {
  * @param {HTMLCanvasElement} radarChartElement The canvas element where the chart will be drawn.
  * @param {object} userShotData An object containing the user's current and average shot data.
  * @param {object} expertLevels An object containing the level thresholds for different metrics.
+ * @param {object} [options] Optional config.
+ * @param {boolean} [options.pdfMode=false] When true, swaps white labels/grid to dark colors for white-bg PDF rendering.
  */
-function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
+function initializeRadarChart(radarChartElement, userShotData, expertLevels, options) {
     // Early return if the canvas element is not valid.
     if (radarChartElement === undefined || radarChartElement === null) {
         console.warn("initializeRadarChart: radarChart is undefined or null");
         return;
     }
+    const _opts = options || {};
+    // 主題色（pdfMode = 白底，需要深色字與灰色格線；其他 = 黑底原本的白色）
+    const _themeText = _opts.pdfMode ? '#1a1a1a' : '#FFFFFF';
+    const _themeGrid = _opts.pdfMode ? 'rgba(60,60,60,0.45)' : 'white';
+    const _themePointBorder = _opts.pdfMode ? '#1a3a6e' : '#fff';
 
     // Alias for better readability
     const L = expertLevels;
@@ -115,8 +122,8 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
                 backgroundColor: 'rgba(0, 169, 188, 0.2)',
                 borderColor: 'rgba(0, 169, 188, 1)',
                 pointBackgroundColor: 'rgba(0, 169, 188, 1)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
+                pointBorderColor: _themePointBorder,
+                pointHoverBackgroundColor: _themePointBorder,
                 pointHoverBorderColor: 'rgba(0, 169, 188, 1)'
             }, {
                 label: '擊球歷程',
@@ -137,8 +144,8 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
                 backgroundColor: "rgba(240, 129, 86, 0.2)",
                 borderColor: "rgba(240, 129, 86, 1)",
                 pointBackgroundColor: "rgba(240, 129, 86, 1)",
-                pointBorderColor: "#fff",
-                pointHoverBackgroundColor: "#fff",
+                pointBorderColor: _themePointBorder,
+                pointHoverBackgroundColor: _themePointBorder,
                 pointHoverBorderColor: "rgba(240, 129, 86, 1)"
             }, {
                 // This hidden dataset is a trick to ensure the radar chart's scale is always from 1 to 7.
@@ -159,6 +166,9 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
             type: 'radar',
             data: radarData,
             options: {
+                // PDF 模式關動畫：html2canvas 在「沒影片」流程下會在動畫中途截圖，
+                // 雷達點還在從中心往外動的暫態，看起來都擠在中心
+                animation: _opts.pdfMode ? false : undefined,
                 scales: {
                     r: { // Radial axis configuration
                         ticks: {
@@ -169,11 +179,11 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
                             max: 7,  // Set the maximum value of the scale to 7
                             stepSize: 1,  // Set the step size to 1
                         },
-                        angleLines: { display: true }, // Show lines from center to point labels
-                        grid: { color: 'white' }, // Set the color of the grid lines
+                        angleLines: { display: true, color: _themeGrid }, // Show lines from center to point labels
+                        grid: { color: _themeGrid }, // Set the color of the grid lines
                         pointLabels: { // Configuration for the labels at the corners (e.g., '後旋')
                             font: { size: 16, family: "'Arial', sans-serif", weight: 'bold' },
-                            color: '#FFFFFF'
+                            color: _themeText
                         },
                     },
                 },
@@ -181,7 +191,7 @@ function initializeRadarChart(radarChartElement, userShotData, expertLevels) {
                     legend: {
                         labels: {
                             // Configuration for the legend labels ('本次擊球', '擊球歷程')
-                            color: 'white',
+                            color: _themeText,
                             font: { size: 16, family: "'Arial', sans-serif", weight: 'bold' }
                         }
                     }

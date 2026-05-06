@@ -1,0 +1,486 @@
+/*
+ * GM08_pdf.css — 紀念版 PDF 渲染專用樣式
+ *
+ * 用於 expert-data-v8-pdf.jsp，呈現兩個 A4 直式版面（.pdf-page），
+ * 由父視窗用 html2canvas 將每個 .pdf-page 各別擷取成圖片，再用 jsPDF 合成 PDF。
+ *
+ * A4 @ 96dpi: 794 x 1123 px
+ */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    background: #2a2a2a;
+    color: #1a1a1a;
+    font-family: "Microsoft JhengHei", "Heiti TC", "PingFang TC", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.pdf-doc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 0;
+}
+
+.pdf-page {
+    width: 794px;
+    min-height: 1123px;
+    background: #ffffff;
+    color: #1a1a1a;
+    padding: 32px 36px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.pdf-page.is-hidden {
+    display: none;
+}
+
+/* ============ 紀念抬頭 ============ */
+.pdf-header {
+    border-bottom: 2px solid #1a3a6e;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.pdf-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pdf-header-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a3a6e;
+    letter-spacing: 1px;
+}
+
+.pdf-header-subtitle {
+    font-size: 13px;
+    color: #555;
+}
+
+.pdf-header-right {
+    text-align: right;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.7;
+}
+
+.pdf-header-right .record-id {
+    font-family: "Courier New", monospace;
+    font-weight: 700;
+    color: #1a3a6e;
+    font-size: 13px;
+}
+
+.pdf-meta-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 10px 14px;
+    background: #f4f6fa;
+    border-left: 4px solid #1a3a6e;
+    font-size: 12px;
+}
+
+.pdf-meta-bar .meta-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-meta-bar .meta-label {
+    color: #888;
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.pdf-meta-bar .meta-value {
+    color: #1a1a1a;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* ============ 第一頁 主內容 ============ */
+.pdf-main {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.pdf-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pdf-card {
+    background: #f4f6fa;
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: center;
+    border-left: 4px solid #1a3a6e;
+}
+
+.pdf-card.highlight {
+    background: linear-gradient(135deg, #1a3a6e, #2c5aa0);
+    color: #fff;
+    border-left: 4px solid #ffd24a;
+}
+
+.pdf-card.highlight .pdf-card-label,
+.pdf-card.highlight .pdf-card-unit {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.pdf-card.highlight .pdf-card-value {
+    color: #fff;
+}
+
+.pdf-card-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.pdf-card-label {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.pdf-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a3a6e;
+    line-height: 1;
+}
+
+.pdf-card.highlight .pdf-card-value {
+    font-size: 36px;
+}
+
+.pdf-card-unit {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* ============ 右側分析區 ============ */
+.pdf-analysis {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 12px;
+}
+
+.pdf-score-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.pdf-score-box {
+    background: #f4f6fa;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e4ec;
+}
+
+.pdf-score-box .score-label {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.pdf-score-box .score-value {
+    font-size: 42px;
+    font-weight: 700;
+    color: #1a3a6e;
+    line-height: 1;
+}
+
+.pdf-trajectory {
+    background: #fafbfd;
+    border-radius: 8px;
+    padding: 8px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e4ec;
+}
+
+.pdf-trajectory img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.pdf-radar {
+    background: #fafbfd;
+    border-radius: 8px;
+    padding: 8px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e4ec;
+}
+
+.pdf-radar canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* ============ 教練建議 ============ */
+.pdf-advice {
+    background: #fff8e8;
+    border-left: 4px solid #ffb540;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+}
+
+.pdf-advice .advice-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #b27500;
+    margin-bottom: 8px;
+}
+
+.pdf-advice .advice-line {
+    font-size: 13px;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.pdf-advice .advice-line .label {
+    font-weight: 700;
+    color: #1a3a6e;
+}
+
+/* ============ 第二頁區塊 ============ */
+.pdf-section {
+    margin-bottom: 18px;
+}
+
+.pdf-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a3a6e;
+    border-bottom: 1px solid #1a3a6e;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+}
+
+.pdf-section-banner {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.pdf-section-empty {
+    background: #f4f6fa;
+    color: #888;
+    text-align: center;
+    padding: 20px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+/* 影像 4x2 grid（front 一排 / side 一排） */
+.pdf-frames {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pdf-frames-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.pdf-frames-row.full-width {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.pdf-frame-cell {
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdf-frame-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.pdf-frame-cell .frame-label {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffd24a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 2px;
+}
+
+.pdf-frames-row-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 2px;
+}
+
+/* TPI 列表 */
+.pdf-tpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.pdf-tpi-phase {
+    border: 1px solid #e0e4ec;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: #fafbfd;
+}
+
+.pdf-tpi-phase-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a3a6e;
+    margin-bottom: 4px;
+}
+
+.pdf-tpi-item {
+    font-size: 11px;
+    line-height: 1.45;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed #e0e4ec;
+}
+
+.pdf-tpi-item:last-child {
+    border-bottom: none;
+}
+
+.pdf-tpi-item .tpi-title {
+    font-weight: 700;
+    color: #b27500;
+}
+
+.pdf-tpi-item .tpi-posture,
+.pdf-tpi-item .tpi-suggestion {
+    color: #1a1a1a;
+}
+
+.pdf-tpi-empty-msg {
+    font-size: 11px;
+    color: #4a8a4a;
+    font-style: italic;
+}
+
+/* 擊球穩定性 */
+.pdf-stability {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 12px;
+    align-items: start;
+}
+
+.pdf-stability-chart {
+    background: #fafbfd;
+    border-radius: 6px;
+    padding: 8px;
+    height: 240px;
+    border: 1px solid #e0e4ec;
+}
+
+.pdf-stability-chart canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.pdf-stability-table {
+    font-size: 12px;
+}
+
+.pdf-stability-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pdf-stability-table th,
+.pdf-stability-table td {
+    border: 1px solid #e0e4ec;
+    padding: 5px 8px;
+    text-align: center;
+}
+
+.pdf-stability-table th {
+    background: #1a3a6e;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ============ 頁尾 ============ */
+.pdf-footer {
+    position: absolute;
+    left: 36px;
+    right: 36px;
+    bottom: 24px;
+    border-top: 1px solid #d0d4dc;
+    padding-top: 8px;
+    font-size: 10px;
+    color: #888;
+    line-height: 1.5;
+}
+
+.pdf-footer .privacy {
+    color: #b54a4a;
+    margin-bottom: 3px;
+}
+
+.pdf-footer .copyright {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ============ 關閉 page2 時要把 page1 footer 變固定底 ============ */
+.pdf-page.last-page .pdf-footer {
+    border-top-color: #1a3a6e;
+}

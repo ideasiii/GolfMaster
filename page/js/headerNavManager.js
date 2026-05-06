@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function() {
     navButtons.forEach(button => {
         const targetPage = button.getAttribute('data-page');
 
+        // 防呆：沒有 data-page 屬性的按鈕跳過（例如純動作按鈕誤掛 nav-button class）
+        if (!targetPage) return;
+
         // 檢查目標頁面是否是當前頁面
         if (targetPage === currentPath) {
             // 禁用當前頁面按鈕

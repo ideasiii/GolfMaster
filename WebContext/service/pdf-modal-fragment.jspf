@@ -1,0 +1,97 @@
+<%--
+  pdf-modal-fragment.jspf — 紀念 PDF 下載 Modal 片段。
+
+  使用方式：在 v8.jsp / v8-short.jsp 等 caller 頁面結尾用靜態 include：
+      <%@ include file="pdf-modal-fragment.jspf" %>
+
+  caller 必須在 page 範圍內預先宣告下列變數（值用於注入 PDF_CONTEXT）：
+      Long shot_data_id        — 當前擊球資料 ID
+      boolean frontExpected    — 廠商會否送 front 影片
+      boolean sideExpected     — 廠商會否送 side 影片
+
+  可選：
+      caller 用 request.setAttribute("__pdfPageMode", "swing"|"short")
+      指定該頁是揮桿頁還是切桿頁（給未來 pdf.jsp 切版面用，目前未使用）。
+
+  caller 也必須在 <head> 引入：
+      <link href="../../page/css/GM08_pdf_modal.css" rel="stylesheet">
+      <script src="../../page/js/lib/html2canvas.min.js"></script>
+      <script src="../../page/js/lib/jspdf.umd.min.js"></script>
+      <script src="../../page/js/lib/qrcode.min.js"></script>
+  以及在 .navigation-buttons 區塊內放觸發按鈕：
+      <button class="pdf-download-btn" id="btn-download-pdf" type="button">下載 PDF</button>
+--%>
+<%--
+  Fragment 必須自宣告 pageEncoding，否則 Tomcat 在某些環境用系統預設編碼讀檔，
+  本檔內的中文字（modal 標籤、隱私提醒等）會變亂碼。
+--%>
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="org.json.JSONObject"%>
+<%
+  // 在 fragment 內取暱稱預設值（從 shot_data.Player）
+  // 注意：這裡用 caller 的 shotData 變數（v8.jsp / v8-short.jsp 都已有）
+  JSONObject __pdfMeta = shotData.processShotMeta(shot_data_id);
+  String __pdfDefaultNickname = __pdfMeta.optString("player", "Guest");
+  String __pdfPageMode = (String) request.getAttribute("__pdfPageMode");
+  if (__pdfPageMode == null || __pdfPageMode.isEmpty()) {
+      __pdfPageMode = "swing";
+  }
+%>
+
+<%-- ============== 紀念 PDF 下載 Modal ============== --%>
+<div id="pdf-modal" class="pdf-modal" aria-hidden="true">
+    <div class="pdf-modal-backdrop" data-pdf-close="1"></div>
+    <div class="pdf-modal-dialog" role="dialog" aria-labelledby="pdf-modal-title">
+        <div class="pdf-modal-header">
+            <h3 id="pdf-modal-title">下載紀念 PDF</h3>
+            <button type="button" class="pdf-modal-close" data-pdf-close="1" aria-label="關閉">&times;</button>
+        </div>
+        <div class="pdf-modal-body">
+            <label class="pdf-field">
+                <span>暱稱</span>
+                <input type="text" id="pdf-input-nickname" maxlength="40" placeholder="Guest.1">
+            </label>
+            <label class="pdf-field">
+                <span>場地（選填）</span>
+                <input type="text" id="pdf-input-venue" maxlength="60" placeholder="室內高爾夫模擬器">
+            </label>
+            <label class="pdf-field-inline">
+                <input type="checkbox" id="pdf-input-remember" checked>
+                <span>記住這些資訊（下次自動帶入）</span>
+            </label>
+
+            <button type="button" id="pdf-btn-download" class="pdf-primary-btn" disabled>
+                <span class="pdf-btn-label">下載到電腦</span>
+                <span class="pdf-btn-spinner" aria-hidden="true"></span>
+            </button>
+            <div id="pdf-status" class="pdf-status" aria-live="polite"></div>
+
+            <div class="pdf-qr-wrap">
+                <div class="pdf-qr-title">或掃 QR Code 下載到手機</div>
+                <div class="pdf-qr-row">
+                    <div id="pdf-qr-canvas" class="pdf-qr-canvas">
+                        <div class="pdf-qr-loading">PDF 生成中...</div>
+                    </div>
+                    <div class="pdf-qr-tip">
+                        <span class="pdf-qr-emoji">📱</span>
+                        請先連接場館 WiFi<br>再掃描下載
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%-- 隱藏 iframe 容器，pdf.jsp 渲染就放這裡 --%>
+<div id="pdf-host" style="position:absolute;left:-99999px;top:-99999px;width:794px;height:1px;overflow:hidden;"></div>
+
+<script>
+window.PDF_CONTEXT = {
+    shotDataId: '<%= shot_data_id %>',
+    defaultNickname: '<%= __pdfDefaultNickname.replace("\\", "\\\\").replace("'", "\\'") %>',
+    frontExpected: <%= frontExpected %>,
+    sideExpected: <%= sideExpected %>,
+    pageMode: '<%= __pdfPageMode %>'
+};
+</script>
+<script src="../../page/js/pdfDownloadManager.js"></script>

@@ -83,14 +83,19 @@ class ShortTableManager {
      * ShortTableManager 的建構子。
      * 初始化 DOM 元素的參考，動態建立統計表格，並設定目標距離控制項的事件監聽。
      * @param {string} tableContainerId - 統計表格最外層容器的 ID，例如 'shotAnalysisBox'。
+     * @param {object} [options] - 可選配置。
+     * @param {boolean} [options.pdfMode=false] - PDF 紀念版模式：略過目標距離控制項與目標點繪製，
+     *   Y 軸只圍繞「平均擊球距離 ± 3σ」，無目標輸入框監聽。
      */
-    constructor(tableContainerId) {
+    constructor(tableContainerId, options = {}) {
         this.containerElement = document.getElementById(tableContainerId);
 
         // 儲存當前的分析數據 (用於重繪圖表)
         this.currentAnalysisData = null;
         // 目標距離，預設為 50 碼
         this.targetDistanceYd = 50;
+        // PDF 模式旗標 — 為 true 時略過目標相關 UI 與資料集
+        this.pdfMode = !!options.pdfMode;
 
         if (!this.containerElement) {
             console.error(`ShortTableManager：找不到 ID 為 ${tableContainerId} 的容器。`);
@@ -106,8 +111,10 @@ class ShortTableManager {
         // 動態生成表格結構並儲存數值元素的參考
         this._generateTableRows();
 
-        // 初始化目標距離的事件監聽
-        this._initTargetControl();
+        // 初始化目標距離的事件監聽（PDF 模式略過：頁面上沒有 input）
+        if (!this.pdfMode) {
+            this._initTargetControl();
+        }
 
         // 檢查落點圖元素是否找到
         if (!this.elements.dispersionMap) {
@@ -434,6 +441,9 @@ class ShortTableManager {
             type: 'scatter',
             data: data,
             options: {
+                // PDF 模式關掉動畫：html2canvas 截圖時資料點要在最終位置，
+                // 否則「擷取影像中…」階段沒影片時會在動畫中途截到，點全擠在 Y=0
+                animation: this.pdfMode ? false : undefined,
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
@@ -493,6 +503,26 @@ class ShortTableManager {
      * @returns {object} 包含所有顏色代碼的物件。
      */
     _getChartColors() {
+        // PDF 模式：白底 → 文字、格線、中心線都改深色，避免白底白字看不到
+        if (this.pdfMode) {
+            return {
+                colorNew: 'rgba(0, 170, 90, 1)',         // 擊球落點：暗綠
+                colorPrimary: 'rgba(220, 165, 30, 0.95)',// 擊球落點：暗黃橘
+                colorAverage: 'rgba(26, 58, 110, 1)',    // 平均點：深藍
+                colorText: 'rgba(40, 40, 40, 0.95)',     // 文字：深灰
+                colorGridLine: 'rgba(60, 60, 60, 0.25)', // 網格線：淺灰
+                colorCenterLine: 'rgba(60, 60, 60, 0.6)',// 中心線：中灰
+
+                colorGoal: 'rgba(200, 50, 80, 1)',       // 不顯示但保留 key（pdfMode 已 filter 掉「目標」dataset）
+
+                colorSigma1Fill: 'rgba(26, 58, 110, 0.12)',
+                colorSigma1Border: 'rgba(26, 58, 110, 0.85)',
+                colorSigma2Border: 'rgba(120, 80, 200, 0.6)',
+
+                colorTarget3Border: 'rgba(50, 150, 150, 0.85)',
+                colorTarget1Border: 'rgba(200, 50, 80, 1)',
+            };
+        }
         return {
             colorNew: 'rgba(0, 255, 132, 1)', // 擊球落點：亮綠色
             colorPrimary: 'rgba(255, 206, 86, 0.9)', // 擊球落點：亮黃色
@@ -545,14 +575,41 @@ class ShortTableManager {
         let yMax = avgCarry + yRange;
 
         // 【修正】確保目標距離及其 3 碼圓也在 Y 軸視野內 (即使不顯示圓，也確保點在視野內)
-        const targetMin = targetDistance - 3;
-        const targetMax = targetDistance + 3;
+        // PDF 模式：紀念版不顯示目標，改用「實際落點 min/max」當 Y 軸基準，緊貼資料縮放，
+        // 避免 stdev 過大時點被擠到圖表底部
+        if (!this.pdfMode) {
+            const targetMin = targetDistance - 3;
+            const targetMax = targetDistance + 3;
 
-        yMin = Math.min(yMin, targetMin);
-        yMax = Math.max(yMax, targetMax);
+            yMin = Math.min(yMin, targetMin);
+            yMax = Math.max(yMax, targetMax);
+        } else {
+            const lp = analysisData.landing_points;
+            if (lp && Array.isArray(lp.y_coords_yd) && lp.y_coords_yd.length > 0) {
+                let dataMin = Infinity, dataMax = -Infinity;
+                for (let i = 0; i < lp.y_coords_yd.length; i++) {
+                    const v = lp.y_coords_yd[i];
+                    if (typeof v === 'number' && isFinite(v)) {
+                        if (v < dataMin) dataMin = v;
+                        if (v > dataMax) dataMax = v;
+                    }
+                }
+                if (isFinite(dataMin) && isFinite(dataMax)) {
+                    // 把平均點也納入確保它在視野內
+                    dataMin = Math.min(dataMin, avgCarry);
+                    dataMax = Math.max(dataMax, avgCarry);
+                    // 至少 MIN_RANGE 寬度，避免所有點重疊時圖表崩塌
+                    const dataSpan = Math.max(dataMax - dataMin, MIN_RANGE);
+                    const center   = (dataMin + dataMax) / 2;
+                    yMin = center - dataSpan / 2;
+                    yMax = center + dataSpan / 2;
+                }
+            }
+        }
 
         // 稍微增加緩衝，讓圖表更好看
-        const yBuffer = (yMax - yMin) * 0.05;
+        // PDF 模式緩衝放大到 12% 讓邊邊不貼齊軸線；非 PDF 維持 5%
+        const yBuffer = (yMax - yMin) * (this.pdfMode ? 0.12 : 0.05);
         yMin = Math.max(0, yMin - yBuffer);
         yMax = yMax + yBuffer;
 
@@ -857,6 +914,11 @@ class ShortTableManager {
             }
         );
 
-        return { datasets };
+        // PDF 模式：移除「目標」星號資料集（紀念版不顯示目標）
+        const finalDatasets = this.pdfMode
+            ? datasets.filter(d => d.label !== '目標')
+            : datasets;
+
+        return { datasets: finalDatasets };
     }
 }

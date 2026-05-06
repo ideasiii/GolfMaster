@@ -81,6 +81,7 @@ String suggestion = result.optString("expert_suggestion", "");
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="../../page/css/GM08_3.css" rel="stylesheet" type="text/css">
+	<link href="../../page/css/GM08_pdf_modal.css" rel="stylesheet" type="text/css">
 	<title>Expert</title>
 	<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 	<%-- outer js --%>
@@ -95,6 +96,9 @@ String suggestion = result.optString("expert_suggestion", "");
 	<script src="../../page/js/tpiAdvicesManager.js"></script>
 	<script src="../../page/js/cmpChartManager.js"></script>
 	<script src="../../page/js/headerNavManager.js"></script>
+	<script src="../../page/js/lib/html2canvas.min.js"></script>
+	<script src="../../page/js/lib/jspdf.umd.min.js"></script>
+	<script src="../../page/js/lib/qrcode.min.js"></script>
 	<style>
 	</style>
 </head>
@@ -114,6 +118,9 @@ String suggestion = result.optString("expert_suggestion", "");
 				<%-- 尚未實作 --%>
 				<button class="nav-button temporarily-disabled" id="nav-putt" data-page="expert-data-v8-putt.jsp">
 					<img src="../../page/img/putt_icon.png" alt="推桿分析">
+				</button>
+				<button class="pdf-download-btn" id="btn-download-pdf" type="button" title="下載紀念 PDF">
+					下載 PDF
 				</button>
 			</div>
 		</div>
@@ -743,6 +750,11 @@ String suggestion = result.optString("expert_suggestion", "");
 
 		document.addEventListener("DOMContentLoaded", init);
 	</script>
+
+	<%-- 紀念 PDF 下載 Modal (HTML / PDF_CONTEXT / pdfDownloadManager.js) --%>
+	<% request.setAttribute("__pdfPageMode", "swing"); %>
+	<%@ include file="pdf-modal-fragment.jspf" %>
+
 	<script>
 		// TODO
 

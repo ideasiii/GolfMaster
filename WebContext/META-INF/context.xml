@@ -17,13 +17,43 @@
 	<Resources>
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
 					base="/opt/tomcat-8.0.52/webapps/video/"
-						webAppMount="/downloads/video" /> 
-	<!-- <Resources>
+						webAppMount="/downloads/video" />
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
-					base="/opt/golfmaster/video/"
-					webAppMount="/downloads/video" />  -->
-
+					base="/opt/tomcat-8.0.52/webapps/pdf-temp/"
+					webAppMount="/downloads/pdf-temp" />
 	</Resources>
+
+	<!-- <Resources> -->
+		<!-- <PreResources className="org.apache.catalina.webresources.DirResourceSet"
+					base="/opt/golfmaster/video/"
+					webAppMount="/downloads/video" /> -->
+		<!-- 紀念 PDF 暫存目錄外掛：對應 pdfTempDir / pdfTempUrlPath -->
+		<!-- <PreResources className="org.apache.catalina.webresources.DirResourceSet"
+					base="/opt/golfmaster/pdf-temp/"
+					webAppMount="/downloads/pdf-temp" /> -->
+	<!-- </Resources> -->
+
+	
+	<!-- 紀念 PDF 對外 URL 路徑 (webapp 根 + 此路徑 = QR Code 連結基底)。
+	     此值必須對應上方 <PreResources webAppMount="..." /> + "/"。
+	     pdf-upload.jsp 會用 application.getRealPath(此值) 推導實際檔案系統路徑，
+	     所以不需要再額外宣告 server 端絕對路徑 — 改 <PreResources base> 自動跟著走。
+
+	     部署時請手動 mkdir <PreResources base> 對應的目錄並給 Tomcat 寫入權：
+	         mkdir -p /opt/golfmaster/pdf-temp
+	         chown tomcat:tomcat /opt/golfmaster/pdf-temp -->
+	<Environment name="pdfTempUrlPath"
+		value="/downloads/pdf-temp/"
+		type="java.lang.String" override="false" />
+
+	<!-- 紀念 PDF QR Code 對外 host（手機 WiFi 看得到的伺服器 IP）。
+	     若不設、留空，Servlet 會自動從 request 取，再 fallback 到 detectLanIp()。
+	     伺服器有多張網卡（docker0 / 虛擬橋接 / 多實體 NIC）時務必設定，
+	     否則 QR 可能帶到 docker bridge 的 172.x，手機連不到。
+	     ★ 範例：填寫該場館 WiFi 那條網路的伺服器 IP，例如 192.168.1.10
+	     <Environment name="pdfPublicHost" value="192.168.1.10"
+	         type="java.lang.String" override="false" /> -->
+
 
 	<!-- 影片基礎路徑 (對應 Tomcat DirResourceSet 映射，相對於 JSP 所在的 service/ 目錄) -->
 	<Environment name="videoBaseUrl" value="../downloads/video/"
@@ -55,6 +85,7 @@
 		type="java.lang.String" override="false" />
 	<Environment name="motionApiPath" value="/GolfVisionAnalytics/service/anl_video"
 		type="java.lang.String" override="false" />
+
 </Context>
 
 <!-- 內 -->
