@@ -2,24 +2,24 @@
 <Context>
 	<Resource name="jdbc/golfmaster" auth="Container"
 		type="javax.sql.DataSource" driverClassName="com.mysql.cj.jdbc.Driver"
-		url="jdbc:mysql://127.0.0.1:3306/golf_master?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
+		url="jdbc:mysql://124.9.6.12:3306/golf_master?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
 		username="wU4bTAacqiCiSvZvQmmJew=="
 		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
 		maxTotal="100" />
 
 	<Resource name="jdbc/golfcontroller" auth="Container"
 		type="javax.sql.DataSource" driverClassName="com.mysql.cj.jdbc.Driver"
-		url="jdbc:mysql://127.0.0.1:3306/golf_2022?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
+		url="jdbc:mysql://124.9.6.12:3306/golf_2022?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
 		username="wU4bTAacqiCiSvZvQmmJew=="
 		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
 		maxTotal="100" />
 
 	<Resources>
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
-					base="/opt/tomcat-8.0.52/webapps/video/"
+					base="/opt/golfmaster/video/"
 						webAppMount="/downloads/video" />
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
-					base="/opt/tomcat-8.0.52/webapps/pdf-temp/"
+					base="/opt/golfmaster/pdf-temp/"
 					webAppMount="/downloads/pdf-temp" />
 	</Resources>
 
@@ -75,7 +75,7 @@
 		type="java.lang.String" override="false" />
 
 	<!-- 外部 API 主機位址 (CallLlmAdviseAPI / CallMotionApi 共用)；切換 IP/Port 時只需修改此處 -->
-	<Environment name="apiBaseUrl" value="http://127.0.0.1:49147"
+	<Environment name="apiBaseUrl" value="http://124.9.6.11:49147"
 		type="java.lang.String" override="false" />
 	<!-- 本機測試用: <Environment name="apiBaseUrl" value="http://172.16.78.11:49147"
 		type="java.lang.String type="java.lang.String" override="false" /> -->
