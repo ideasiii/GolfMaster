@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
+
+<!--  
 	<Resource name="jdbc/golfmaster" auth="Container"
 		type="javax.sql.DataSource" driverClassName="com.mysql.cj.jdbc.Driver"
 		url="jdbc:mysql://124.9.6.12:3306/golf_master?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
@@ -12,14 +14,42 @@
 		url="jdbc:mysql://124.9.6.12:3306/golf_2022?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false"
 		username="wU4bTAacqiCiSvZvQmmJew=="
 		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
-		maxTotal="100" />
+		maxTotal="100"	/>
+-->
+	
+	<Resource name="jdbc/golfmaster" auth="Container"
+		type="javax.sql.DataSource" driverClassName="com.mysql.cj.jdbc.Driver"
+		url="jdbc:mysql://127.0.0.1:3306/golf_master?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false&amp;connectTimeout=5000&amp;socketTimeout=30000&amp;tcpKeepAlive=true"
+		username="wU4bTAacqiCiSvZvQmmJew=="
+		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
+		maxTotal="100"
+		validationQueryTimeout="3"
+		testOnBorrow="true"
+		testWhileIdle="true"
+		timeBetweenEvictionRunsMillis="30000"
+		minEvictableIdleTimeMillis="300000"
+		numTestsPerEvictionRun="-1" />
+		
+	<Resource name="jdbc/golfcontroller" auth="Container"
+		type="javax.sql.DataSource" driverClassName="com.mysql.cj.jdbc.Driver"
+		url="jdbc:mysql://127.0.0.1:3306/golf_2022?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;verifyServerCertificate=false&amp;connectTimeout=5000&amp;socketTimeout=30000&amp;tcpKeepAlive=true"
+		username="wU4bTAacqiCiSvZvQmmJew=="
+		password="ckv5iGnb2b2wwnPucgguHg==" maxWaitMillis="10000" maxIdle="30"
+		maxTotal="100"
+		validationQueryTimeout="3"
+		testOnBorrow="true"
+		testWhileIdle="true"
+		timeBetweenEvictionRunsMillis="30000"
+		minEvictableIdleTimeMillis="300000"
+		numTestsPerEvictionRun="-1" />
+
 
 	<Resources>
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
-					base="/opt/golfmaster/video/"
+					base="/opt/tomcat-8.0.52/webapps/video"
 						webAppMount="/downloads/video" />
 		<PreResources className="org.apache.catalina.webresources.DirResourceSet"
-					base="/opt/golfmaster/pdf-temp/"
+					base="/opt/tomcat-8.0.52/webapps/pdf-temp/"
 					webAppMount="/downloads/pdf-temp" />
 	</Resources>
 
