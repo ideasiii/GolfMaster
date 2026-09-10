@@ -1,0 +1,974 @@
+@charset "utf-8";
+/* =================================================================
+ * GM08_putt.css — 推桿教練端頁面（expert-data-v8-putt.jsp）
+ *
+ * 從 GM08_short.css 複製後改。第 1〜4 節（重設、主佈局、頁首、影片）
+ * 與 GM08_short.css 保持一致，⛔ 不要在這裡改動那幾節的共用值，
+ * 否則推桿頁與切桿頁的頁首／影片區會對不齊。
+ *
+ * 規劃文件：docs/expert-data-v8-putt-plan.md
+ * 這一輪（§6.1 第 3 項）只立版面，卡片邏輯在下一輪。
+ * ================================================================= */
+
+/* =================================================================
+ * 1. 重設和基本樣式 (RESET AND BASE STYLES)
+ * ================================================================= */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, Helvetica, sans-serif,"Microsoft JhengHei";
+    display: flex;
+    flex-direction: column;
+    background-color: black;
+    padding: 0;
+    background-image: url('../../page/img/background.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden-element {
+    display: none !important;
+}
+
+/* =================================================================
+ * 2. 主要佈局結構 (MAIN LAYOUT STRUCTURE)
+ * ================================================================= */
+/*
+ * ⚠️ 尺寸一律比照 GM08_short.css，⛔ 不要自己另訂：
+ *     .c_m 1240 x min-height 710、影片區 340、左欄 720、右欄填滿剩餘。
+ * ⛔ 不要再用 height:100vh 或 --putt-col-h 那種寫法 ——
+ *    三個分頁切換時大小要一樣，⛔ 推桿頁不可以比另外兩頁高。
+ */
+.c_m {
+    width: 1240px;
+    min-height: 710px;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-layout-container {
+    display: flex;
+    width: 100%;
+    flex: 1;
+    margin: 0 auto;
+    padding-top: 10px;
+    align-items: stretch;
+    min-height: 0;
+}
+
+/* 左欄：影片 ＋ 界標列 ＋ 數值面板。回答「這一推怎麼動的」 */
+.main-left-column {
+    flex: 0 0 720px;
+    display: flex;
+    flex-direction: column;
+    padding-right: 20px;
+    box-sizing: content-box;
+    min-height: 0;
+}
+
+/* 右欄：一致性 ＋ 綜合評價 ＋ 問題卡片。回答「哪裡要改」 */
+/* ⚠️ 高度跟左欄鎖在一起，卡片超出時是卡片區自己捲，⛔ 不是整頁捲 */
+.main-right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid #00A9BC;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* =================================================================
+ * 3. 頂部元件 (TOP COMPONENTS) — 與 GM08_short.css 相同
+ * ================================================================= */
+.header {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    padding: 20px 0px 10px 30px;
+    margin-bottom: 0px;
+    flex-shrink: 0;
+}
+.logo {
+    width: 100px;
+    height: auto;
+}
+
+.navigation-buttons {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 10px;
+    margin: 0 5px;
+    color: #fff;
+    transition: opacity 0.3s;
+    opacity: 0.6;
+}
+
+.nav-button img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 3px;
+}
+
+/* 狀態 1: 當前頁面 */
+.nav-button:disabled,
+.nav-button.current-page {
+    cursor: default;
+    opacity: 1.0;
+}
+
+/* 狀態 2: 未開放頁面 */
+.nav-button.temporarily-disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* 狀態 3: 可點擊按鈕的懸停效果 */
+.nav-button:hover:not(:disabled):not(.temporarily-disabled) {
+    opacity: 0.8;
+}
+
+/* =================================================================
+ * 4. 影片與畫布 (VIDEO AND CANVAS) — 與 GM08_short.css 相同
+ *    正面與側面並排、兩支都播（§2.8）。
+ *    ⛔ 側面不標「不支援」「不適用」那種像壞掉的字。
+ * ================================================================= */
+/* ⚠️ 高度 340px，跟 GM08_short.css 一致。⛔ 不要改 —— 三個分頁切換時影片區不可以跳動。 */
+.video-section-top {
+    display: flex;
+    flex: 0 0 auto;
+    height: 340px;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.image_v {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    background-color: #000000;
+}
+
+video {
+    object-fit: contain;
+    background-color: rgba(0, 0, 0, 0);
+    width: 100%;
+    height: 100%;
+}
+
+#overlayCanvas, #overlayCanvas1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#player-container #play-pause {
+    cursor: pointer;
+    text-indent: -999999px;
+    height: 40px;
+    width: 40px;
+    z-index: 2;
+    background-repeat: no-repeat !important;
+    background-position: center;
+    background-size: 40px;
+}
+.play {
+    background-image: url("../../page/img/btn_play.png");
+}
+.pause {
+    background-image: url("../../page/img/btn_pause.png");
+}
+
+/* =================================================================
+ * 5. 界標列 (LANDMARK BAR) — §2.3
+ *
+ * ⭐ 樣式與結構完全比照 expert-data-v8.jsp / expert-data-v8-short.jsp 的階段列：
+ *    左邊標題、四顆 40px 圓鈕 A T I F、右邊播放鈕。
+ *    class 名稱也沿用（.steps-bar-top / .steps / .step / .stepbutton），
+ *    ⛔ 不要在推桿頁另立一套 —— 三個分頁切換時形狀要一樣。
+ *    ⛔ 鈕上不放中文。A=架桿、T=頂點、I=碰球、F=收桿。
+ *
+ * ⚠️⚠️ 四顆鈕**永遠都在、位置固定**，⛔ 絕不可塌成連續幾顆。
+ *      塌陷會讓「頂點抓不到」在畫面上被讀成「這一推沒有上桿頂點」
+ *      或「這支影片沒拍到收桿」——⛔ 畫面看起來合理，意思是錯的。
+ *
+ * 作法：不可信的那顆加 .is-untrusted —— ⭐ 那是純行為旗標，⛔ 沒有對應的樣式。
+ *      ⛔ 不可以改成 visibility:hidden / display:none、⛔ 不可以把 .step 整格拿掉。
+ * ================================================================= */
+.steps-bar-top {
+    flex: 0 0 auto;
+    background-color: #00A9BC;
+}
+
+.steps-bar-top .steps {
+    display: flex;
+    justify-content: space-between;
+    padding: 0px 20px;
+}
+
+.steps {
+    border-radius: 0px;
+    padding: 0px 20px;
+}
+
+/* ⚠️ 每一個「位置」，⛔ 不隨資料增減 —— 留空位靠的就是這一格 */
+.step {
+    flex: 0 1 calc(20% - 10px);
+    padding: 10px;
+}
+.step_title {
+    font-size: 1em;
+    font-weight: bold;
+}
+.step_4 {
+    font-size: 1em;
+}
+
+.stepbutton {
+    all: unset;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 2em;
+    cursor: pointer;
+}
+.stepbutton:active,
+.stepbutton:hover {
+    background-color: black;
+}
+.stepbutton_selected {
+    all: unset;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: black;
+    color: #00A9BC;
+    font-size: 2em;
+    cursor: pointer;
+}
+
+/*
+ * ⚠️⚠️ 不可信的界標：**鈕完全不變，⛔ 不調暗、⛔ 不屏蔽、⛔ 不消失**
+ *      （user 2026-09-10 兩次裁示）。四顆鈕永遠長一樣。
+ *
+ * ⛔ 這一條推翻了規劃 §2.3 的「不可信的鈕⛔ 不出現」。
+ *    ⚠️ 第一版做成「整顆消失」→ user 第一眼的反應是「是 bug?」
+ *    ⚠️ 第二版做成「調暗＋不可點」→ user：「那是屏蔽按鈕，不用」
+ *    ⭐ 結論：**按鈕的外觀⛔ 不隨資料可信度改變。**
+ *
+ * ⭐ 為什麼這樣是安全的：界標找不到時填的值是**合法幀號**，
+ *    ⛔ seek ⛔ 不會拋例外、⛔ 不會有無法預期的錯誤 ——
+ *    唯一的後果是跳到錯的位置。所以「點了不跳」就夠，
+ *    ⛔ 不需要在外觀上做任何標示。
+ * ⚠️ 少了哪幾顆可信、為什麼，在〔詳細數值〕的「狀態」分頁交代（§2.9）。
+ *
+ * → ⛔ 這裡**刻意沒有** .is-untrusted 的樣式規則。
+ *    不可信與否只影響行為（JS 不跳），⛔ 不影響外觀。
+ */
+
+/* =================================================================
+ * 6. 右欄 (RIGHT COLUMN)：推桿穩定度 ＋ 數值卡片
+ *
+ * ⭐ 數值列的樣式完全比照 GM08_short.css 右欄的 .stats-table / .stat-row
+ *    （切桿頁的擊球數據面板）：深灰底、藍框、三行 標題／單位／數字。
+ *    ⛔ 不要在推桿頁另立一套。
+ * ================================================================= */
+.analysis-box {
+    background-color: rgba(34, 34, 34, 0.8);
+    border-radius: 10px;
+    padding: 14px;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.box-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00A9BC;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #6a7175;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* ---- 6.1 推桿穩定度（§2.10）------------------------------------
+ * ⭐ 圖上⛔ 不出現任何絕對距離數字 —— 模擬器估的推桿距離不準，
+ *    但「彼此散得多開」可信。這張圖回答「這個人穩不穩」，
+ *    ⛔ 不是「這一推準不準」。
+ * ⛔ 不做雷達圖、⛔ 不做曲線球、⛔ 不顯示後旋／側旋／擊球效率／飛行距離。
+ * ⚠️ 圖說只留一行、字要少 —— ⛔ 不要再寫成落落長的說明。
+ */
+.putt-consistency {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.putt-consistency-map {
+    flex: 1 1 auto;
+    min-height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+.putt-consistency-legend {
+    flex: 0 0 auto;
+    text-align: center;
+    color: #eef1f2;
+    font-size: 15px;
+    padding-top: 6px;
+    white-space: nowrap;
+}
+.putt-consistency-legend .mk {
+    margin-left: 14px;
+    margin-right: 4px;
+}
+.putt-consistency-legend .mk:first-child {
+    margin-left: 0;
+}
+/* ⭐ 這幾個顏色要跟 SVG 裡的點一致，⛔ 改一邊就要改另一邊 */
+.putt-consistency-legend .mk-new  { color: rgba(0, 255, 132, 1); }
+.putt-consistency-legend .mk-avg  { color: rgba(54, 162, 235, 1); }
+
+/* ---- 6.2 數值列（§2.4）——⭐ 比照 short 右欄的 .stats-table ------
+ * ⭐ 標籤靠左、數值靠右，單位寫在標籤的括號裡（跟 short 一樣）。
+ * ⚠️ 卡片（.data-panel .card）是 short 的**左下**慣例；
+ *    數值搬到右欄之後就該跟右欄的慣例走。
+ * ⛔ 不要改回卡片：右欄只有 500px 寬，第二階段變四格時卡片會擠爆，
+ *    而列要加幾列就加幾列。
+ */
+.putt-panel-slot {
+    flex: 0 0 auto;
+    height: 260px;
+    position: relative;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
+.putt-value-panel {
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.stats-table {
+    width: 92%;
+    margin: 0 auto;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    /* ⚠️ short 用 #333，投影機下幾乎看不見 —— 這一頁提亮 */
+    border-bottom: 1px solid #55595c;
+}
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    flex: 1;
+    text-align: left;
+    font-size: 1.0em;
+    font-weight: bold;
+}
+
+.stat-value {
+    text-align: right;
+    font-weight: bold;
+    font-size: 1.35em;
+    color: #00A9BC;
+    white-space: nowrap;
+}
+
+/* 切換按鈕（沿用切桿頁的外觀） */
+.motion-toggle-btn {
+    all: unset;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 10;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.motion-toggle-btn:hover {
+    background: rgba(0, 169, 188, 0.4);
+    color: #fff;
+}
+
+/* =================================================================
+ * 7. 詳細數值面板 (DETAIL PANEL) — §2.9
+ *
+ * 與數值卡片共用右欄的同一個插槽，用 ⇄ 切換。
+ * ⚠️ 插槽高度固定，這一塊內部捲動，⛔ 不要把版面撐開。
+ * ================================================================= */
+/*
+ * ⛔ 一次只出一類（⛔ 不要 23 列一次倒出來）。
+ * ⚠️ 分頁鈕本身要能反映狀態，否則點進去才發現是空的（.is-empty）。
+ */
+.putt-detail-panel {
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(34, 34, 34, 0.85);
+    border: 1px solid rgba(0, 169, 188, 0.25);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ⚠️ 右欄較窄 → 標題與分頁上下排，⛔ 不要並排（並排會把分頁擠到換行兩次）*/
+.putt-detail-head {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+    padding: 6px 42px 6px 10px;
+    border-bottom: 1px solid #6a7175;
+}
+.putt-detail-head .putt-detail-caption {
+    color: #00A9BC;
+    font-weight: bold;
+    font-size: 1.0em;
+    flex-shrink: 0;
+}
+
+/* ⚠️ 六個分頁在 460px 寬的右欄放不下 → **換行**，
+   ⛔ 不要用 overflow-x: auto —— 橫向捲軸會把後面幾個分頁藏起來，
+   而「哪幾類算不出來」正是要一眼看到的（.is-empty）。 */
+.putt-detail-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0;
+}
+.putt-detail-tab {
+    all: unset;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #eef1f2;
+    font-size: 0.85em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.putt-detail-tab:hover {
+    background: rgba(0, 169, 188, 0.3);
+    color: #ffffff;
+}
+.putt-detail-tab.is-active {
+    background: #00A9BC;
+    color: #ffffff;
+    font-weight: bold;
+}
+/* ⚠️ 該類算不出來 → 分頁鈕看得出來，⛔ 不要讓人點進去才發現是空的 */
+.putt-detail-tab.is-empty {
+    color: #c3c9cc;
+    background: rgba(255, 255, 255, 0.03);
+}
+.putt-detail-tab.is-empty::after {
+    content: " ⊘";
+}
+
+/* ⚠️ 這塊高度固定、內部捲動 */
+/* ⚠️ 詳細數值的 ⇄ 移到右上角：放在右下角會被捲動的數值列壓過去 */
+.putt-detail-panel .motion-toggle-btn {
+    top: 6px;
+    bottom: auto;
+}
+
+.putt-detail-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 12px 12px 12px;
+    color: #ffffff;
+    font-size: 0.9em;
+}
+.putt-detail-body::-webkit-scrollbar {
+    width: 8px;
+}
+.putt-detail-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 169, 188, 0.45);
+    border-radius: 4px;
+}
+
+.putt-detail-group-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: #00A9BC;
+    font-weight: bold;
+    padding: 4px 0 6px 0;
+    border-bottom: 1px solid #6a7175;
+    margin-bottom: 4px;
+}
+.putt-detail-group-title .verdict {
+    color: #eef1f2;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.putt-metric-row {
+    display: flex;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 1px solid #55595c;
+    gap: 8px;
+}
+.putt-metric-row .metric-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #ffffff;
+}
+.putt-metric-row .metric-value {
+    flex: 0 0 auto;
+    color: #00A9BC;
+    font-weight: bold;
+    text-align: right;
+    min-width: 84px;
+}
+.putt-metric-row .metric-note {
+    flex: 0 0 auto;
+    color: #d3d8da;
+    font-size: 0.88em;
+    text-align: right;
+    min-width: 108px;
+}
+/* ⭐ 「參考，不判定」（decides:false）。ex02 肩線傾斜 14.25° 看起來很大，
+      但系統只算不判 —— ⛔ 這種數字放主畫面會被誤讀成問題 */
+.putt-metric-row.is-reference .metric-value {
+    color: #eef1f2;
+    font-weight: normal;
+}
+/* 這一列算不出來（metrics 各有自己的 applicable，類別層旗標蓋不住） */
+.putt-metric-row.is-na .metric-value,
+.putt-metric-row.is-na .metric-name {
+    color: #c3c9cc;
+}
+
+/* 「狀態」分頁：判定狀態、視角、界標品質、信心、threshold_profile、
+   所有 reason 代碼，以及「為什麼某一格沒出現」的說明 */
+.putt-status-row {
+    display: flex;
+    padding: 4px 0;
+    border-bottom: 1px solid #55595c;
+    gap: 10px;
+}
+.putt-status-row .status-key {
+    flex: 0 0 132px;
+    color: #d3d8da;
+}
+.putt-status-row .status-val {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #ffffff;
+    word-break: break-word;
+}
+.putt-status-note {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: rgba(0, 169, 188, 0.08);
+    border-left: 3px solid rgba(0, 169, 188, 0.5);
+    color: #eef1f2;
+    line-height: 1.6;
+}
+
+/* =================================================================
+ * 8. 左欄下半：回饋區（綜合評價 ＋ 推桿風險）
+ *
+ * ⭐⭐ 樣式完全比照 GM08_short.css 的建議區（.psystemSection / .p_de）：
+ *     白底、主題藍標題 ＋ 3px 藍底線、20px 內文、
+ *     「標籤：內容」兩欄，標籤 10ch 等寬深灰、內容主題藍。
+ *     ⛔ 不要在推桿頁另立一套 —— 三個分頁切換時建議區的長相要一致。
+ *
+ * ⚠️⚠️ 這一塊在**左欄**（影片正下方），⛔ 不在右欄（2026-09-09 user 裁示）：
+ *      左欄 720px 寬，20px 的文案一行約 34 字；擠在 500px 的右欄只有 22 字。
+ *      而且卡片就在影片正下方，「▶ 看這一段」點下去影片就在上面。
+ * ================================================================= */
+.putt-feedback {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    padding: 4px 12px 4px 12px;
+}
+
+/* ---- 8.1 綜合評價（§2.7）---------------------------------------
+ * ⭐ 值直接讀 Core 的 overall 欄，⛔ 頁面不自己算規則。
+ * ⛔ overall = null → 不顯示評價（⛔ 絕不可顯示成「穩定」）。
+ * ⛔ 不顯示任何分數或百分比。
+ * ⚠️ 這裡是主畫面上唯一保留品質標示的地方，⛔ 其他地方全部不放。
+ */
+.putt-overall {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 10px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #ddd;
+}
+/* ⚠️ 這一塊在**深色**右欄，⛔ 不可以用 #333 那種深灰 —— 黑底上看不見。
+   （2026-09-10 從白底左欄搬過來時漏改，已修。） */
+.putt-overall-label {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 20px;
+    flex: 0 0 auto;
+    font-family: "Microsoft JhengHei", monospace;
+}
+.putt-overall-label::after {
+    content: "：";
+}
+.putt-overall-value {
+    font-size: 24px;
+    font-weight: bold;
+    flex: 0 0 auto;
+}
+/* ⚠️ 深色底上的對比色。⛔ 不要用白底那組（#C97B00 等）—— 那是給白底用的。 */
+.putt-overall-value.is-at-risk  { color: #FFB648; }
+.putt-overall-value.is-marked   { color: #FF7A5C; }
+.putt-overall-value.is-stable   { color: #6FD3A0; }
+/* 整支未判定（例：ex04 側面拍攝）。⛔ 絕不可退回顯示「穩定」 */
+.putt-overall-value.is-none     { color: #d0d5d8; font-size: 20px; }
+.putt-overall-reason {
+    flex: 1 1 100%;
+    color: #d0d5d8;
+    font-size: 16px;
+    line-height: 1.5;
+}
+.putt-overall-quality {
+    flex: 1 1 100%;
+    color: #B36A00;
+    font-size: 16px;
+}
+
+/* ---- 8.2 推桿風險：標籤列（§2.5）-------------------------------
+ * ⭐ 一次只顯示一類。⚠️ 五類仍然全部在標籤列上、全部可點 ——
+ *    符合 §2.5「其餘收合，⛔ 但都留在畫面上、都可點開」。
+ *    標籤上的 ●（有風險）／○（正常）／⊘（未判定）讓三態一眼看得到。
+ * ⛔ 標籤數不寫死，⛔ 不要在 CSS 裡假設只有五個。
+ */
+.putt-issues {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.putt-issue-tabs {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-bottom: 3px;
+    margin-bottom: 3px;
+    border-bottom: 1px solid #ddd;
+}
+.putt-issue-tab {
+    all: unset;
+    padding: 1px 9px;
+    border: 1px solid #c2c9cc;
+    border-radius: 12px;
+    color: #333;
+    font-size: 16px;
+    white-space: nowrap;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.putt-issue-tab:hover {
+    background: #eaf8fa;
+}
+.putt-issue-tab.is-active {
+    background: #00a9bc;
+    border-color: #00a9bc;
+    color: #ffffff;
+    font-weight: bold;
+}
+.putt-issue-tab .tab-dot {
+    margin-right: 4px;
+}
+.putt-issue-tab.state-issue  .tab-dot { color: #C4361B; }
+.putt-issue-tab.state-normal .tab-dot { color: #157F4F; }
+.putt-issue-tab.state-na     .tab-dot { color: #8a9094; }
+.putt-issue-tab.is-active .tab-dot { color: #ffffff; }
+
+/* 標籤右邊的圖示說明。⛔ 不要拿掉 —— 三個記號不會自己解釋自己。 */
+.putt-issues-legend {
+    margin-left: auto;
+    align-self: center;
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap;
+}
+.putt-issues-legend .d-issue  { color: #C4361B; }
+.putt-issues-legend .d-normal { color: #157F4F; }
+.putt-issues-legend .d-na     { color: #8a9094; }
+
+/* ---- 8.3 推桿風險：內容（⭐ 完全比照 short 的 .p_de）------------ */
+.putt-issue-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+.putt-issue-panel::-webkit-scrollbar {
+    width: 8px;
+}
+.putt-issue-panel::-webkit-scrollbar-thumb {
+    background: rgba(0, 169, 188, 0.5);
+    border-radius: 4px;
+}
+
+/* 以下四個 class 名稱與樣式抄自 GM08_short.css，⛔ 不要改名 */
+.p_de_title_container {
+    text-align: center;
+    width: 100%;
+}
+.p_de_title {
+    color: #00a9bc;
+    border-bottom: 3px solid #00a9bc;
+    width: 100%;
+    font-weight: bold;
+    padding-bottom: 2px;
+    margin-bottom: 1px;
+    font-size: 20px;
+    display: inline-block;
+}
+.p_de_content {
+    font-size: 20px;
+    display: flex;
+    align-items: flex-start;
+    /* ⚠️ 上下各 1px。⛔ 不要再放大 —— 一類兩個子型時是四列，
+       每列多 2px 就會讓整塊要捲。 */
+    margin: 1px 0;
+    width: 100%;
+}
+.p_de_label {
+    display: inline-block;
+    /*
+     * ⚠️⚠️ 寬度要放得下「狀況：」三個全形字（20px 字級約需 60px）。
+     *      ⛔ 不要縮小 —— 一縮小標籤自己就換行，**每一列都會變成兩倍高**，
+     *      一類兩個子型時整塊直接爆掉。（實測 4ch=48px 時每列從 29px 變 58px。）
+     * ⚠️ nowrap 是保險：字型換掉時標籤也絕不換行。
+     * short 是 10ch（標籤 4 字），這裡標籤 2 字所以用 6ch。
+     */
+    width: 6ch;
+    white-space: nowrap;
+    text-align: justify;
+    font-weight: bold;
+    color: #333;
+    flex-shrink: 0;
+    font-family: "Microsoft JhengHei", monospace;
+    position: relative;
+}
+.p_de_label::after {
+    content: "：";
+    margin-left: 0;
+}
+.p_de_posture {
+    flex: 1;
+    text-align: left;
+    word-break: break-word;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+    color: #00A9BC;
+    font-weight: bold;
+}
+/*
+ * ⚠️ 「狀況」與「說明」⛔ 不可以都用藍字 —— short 原本兩行都是 #00A9BC，
+ *    只差粗細，讀起來分不出哪一行是結論、哪一行是解釋。
+ * ⭐ 這一頁改成：狀況＝結論（主題藍、粗），說明＝內文（深灰 #333）。
+ *    ⛔ 不要把說明改回藍字。
+ */
+.p_de_re {
+    flex: 1;
+    text-align: left;
+    word-break: break-word;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+    color: #333;
+}
+
+/* ⭐ 「▶ 看這一段」——⛔ 這不是裝飾，是「碰球界標找錯」唯一的現場檢查手段（§2.6）。
+      ⛔ 兩端都可信才准跳；任一端不可信 → 這顆⛔ 不出現（文案照樣看得到）。 */
+.putt-card-seek {
+    all: unset;
+    flex: 0 0 auto;
+    margin-left: 10px;
+    padding: 2px 10px;
+    border-radius: 11px;
+    background: #00a9bc;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: bold;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.putt-card-seek:hover {
+    background: #007e8c;
+}
+
+/* 正常／不適用：一行就夠。
+   ⛔ 不適用⛔ 不可以講成「正常」，也⛔ 不可以併進正常那一類。 */
+.putt-oneline {
+    font-size: 20px;
+    color: #333;
+    width: 100%;
+    text-align: center;
+}
+.putt-oneline .state-mark {
+    font-size: 0.9em;
+    margin-right: 6px;
+}
+.putt-oneline.is-normal .state-mark { color: #157F4F; }
+.putt-oneline.is-na .state-mark { color: #8a9094; }
+.putt-oneline .note {
+    color: #666;
+    font-size: 0.85em;
+    margin-left: 6px;
+}
+/* 5 項全不適用 → 併成一行（原因重複五次沒意義） */
+.putt-na-all {
+    width: 100%;
+    text-align: center;
+    color: #555;
+    font-size: 20px;
+    line-height: 1.6;
+}
+
+/* =================================================================
+ * 9. 開發用標記 (DEV ONLY)
+ * ⛔ 接上真資料後整節連同 HTML 的 data-dev 一起刪掉。
+ * ================================================================= */
+.dev-banner {
+    background: repeating-linear-gradient(45deg,
+        rgba(255, 182, 72, 0.15) 0 10px,
+        rgba(255, 182, 72, 0.05) 10px 20px);
+    border: 1px dashed rgba(255, 182, 72, 0.6);
+    color: #FFB648;
+    font-size: 0.78em;
+    padding: 4px 8px;
+    margin-left: auto;
+    margin-right: 20px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+.dev-switcher {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 12px;
+}
+.dev-switcher select {
+    background: #333;
+    color: #FFB648;
+    border: 1px solid rgba(255, 182, 72, 0.6);
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 0.85em;
+}
+
+/* =================================================================
+ * 10. 全螢幕模式修正 (FULLSCREEN OVERRIDES)
+ * ================================================================= */
+#videoContainer:fullscreen,
+#videoContainer1:fullscreen,
+#videoContainer:-webkit-full-screen,
+#videoContainer1:-webkit-full-screen {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* =================================================================
+ * 11. 響應式設計 (MEDIA QUERIES)
+ * ================================================================= */
+@media screen and (max-width: 712px) {
+    .c_m {
+        width: 100%;
+        margin: auto;
+    }
+    /* ⚠️ 界標列在窄畫面仍維持四個固定位置，⛔ 不可換行、⛔ 不可塌陷 */
+    .steps {
+        display: flex;
+        border-radius: 10px;
+        padding: 0px 20px;
+    }
+    .step {
+        padding: 4px 0px;
+    }
+    .step_title {
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .step_4 {
+        font-size: 0.8em;
+    }
+}

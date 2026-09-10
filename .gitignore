@@ -26,3 +26,9 @@ hs_err_pid*
 
 # vscode
 .devcontainer/
+
+.github/
+
+# 推桿開發用範例資料（六支範例，來自資料碟 putting_exp_output/feedback_examples）
+# 不進版控：ex02 / ex05 / ex06 出自有版權的網路教學影片，僅供內部開發
+page/js/dev-data/
