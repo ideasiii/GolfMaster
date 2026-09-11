@@ -132,12 +132,15 @@ class PuttingIssuesManager {
      *
      * ⭐ 這是「換來源只換這一個函式」的接縫，三個階段都走它：
      *   ① 前一輪      寫死的三條示意文字（已刪）
-     *   ② 現在        putting_issue_seed.json 的 18 條，
+     *   ② 上一輪      putting_issue_seed.json 的 18 條，
      *                 整份放在這個檔案最下面的 PUTT_ISSUE_TIPS
-     *   ③ 建表之後    改由 PuttingIssueTip.java 查資料庫 putting_issue_tip，
+     *   ③ ⭐ 現在      PuttingIssueTip.java 查資料庫 putting_issue_tip，
      *                 含 Coach 查不到時退回 default（§3.2「查詢 B」、§6.3 第 15 項）
-     *                 ⚠️ 18 條讀進記憶體快取，⛔ 不要每張卡片查一次資料庫。
-     * ⚠️ R1：正式機的 putting_issue_tip 表還沒有，18 條文案目前只在測試機。
+     *                 ⭐ 18 條讀進記憶體快取，⛔ 不是每張卡片查一次資料庫。
+     *                 ⭐ jsp 把查好的整包放進 data.tips，⛔ 這支 .js 裡沒有任何 Java。
+     *
+     * ⚠️⚠️ R1：**正式機的 putting_issue_tip 表還沒有**，上線前要建表灌資料。
+     *    ⭐ 測試機 2026-09-11 實測有 18 筆，Coach 全部是 'default'（⛔ 沒有任何教練專屬文案）。
      *
      * ⚠️ 只取 tip_text。seed 裡的 caveat（9 條有）⛔ 這一輪不顯示 ——
      *    「放在畫面上是加分還是扣分」是 18 條文案審閱的工項（§5.2），還沒審。
@@ -147,10 +150,19 @@ class PuttingIssuesManager {
      */
     lookupTip(tipId) {
         if (!tipId) return '';
-        // ⚠️ 資料若自帶 tips（例如之後 PuttingData.java 把查好的文案一起送下來）就優先用，
-        //    ⛔ 但這只是同一個接縫的另一個來源，⛔ 不要在別處再開第二個查法。
-        const fromData = this.data && this.data.tips && this.data.tips[tipId];
-        if (fromData) return fromData;
+
+        // ⭐ 有 tips 這個物件＝走的是資料庫那條路（jsp 從 PuttingIssueTip.java 取下來的）。
+        //    → ⛔ 一律以它為準，查不到就是**沒有那段文字**（規劃 §3.2「查詢 B」：
+        //      退 default → 還是查不到 → ⛔ 卡片仍然要出現，只是沒有字）。
+        // ⛔⛔ 這裡⛔ 絕對不可以「查不到就偷偷退回下面那 18 條」——
+        //    那會讓「資料庫沒建表／沒灌資料」在畫面上看起來**完全正常**，
+        //    ⛔ 不報錯、⛔ 沒有人會發現，而正式機到現在都還沒有那張表（R1）。
+        //    ⚠️ 這跟這一頁一路在防的是同一型錯誤：錯的東西安靜地看起來很合理。
+        const tips = this.data && this.data.tips;
+        if (tips) return tips[tipId] || '';
+
+        // ⚠️ 完全沒有 tips 物件＝單機那條路（?ex= 六支範例、page/js/dev-data/verify/*.js），
+        //    那時才用這個檔案最下面的 18 條。⛔ 接上資料庫的頁面走不到這一行。
         return PUTT_ISSUE_TIPS[tipId] || '';
     }
 

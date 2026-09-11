@@ -344,8 +344,11 @@ const PUTT_PANEL_DEV_DATA = {
     values: {
         tempoRatio: '1.65 : 1',
         totalDuration: '3.93',
-        // ⚠️ 球速：來源是 shot_data.BallSpeed（E6 碰球瞬間量到的），
-        //    ⛔ 不是模擬器滾出來的結果。⚠️ 這裡是假資料。
+        // ⚠️⚠️ 球速這一格的值**在 jsp 裡會被真資料覆蓋**（工項 12b，2026-09-11）——
+        //    ⛔ 改這裡的數字對畫面沒有作用，⛔ 不要以為畫面上看到的是它。
+        //    ⭐ 真的來源是 PuttingShotData.processPuttValues()（shot_data.BallSpeed，
+        //       E6 碰球瞬間量到的，⛔ 不是模擬器滾出來的結果）。
+        //    ⭐ 這裡留一個值只為了讓這支 manager 單獨跑（驗收程式）時畫得出來。
         //    ⛔ 算不出來就給 null → setValues() 會讓整列不出現（⛔ 不是顯示「—」）。
         ballSpeed: '4.6',
     },

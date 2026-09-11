@@ -25,6 +25,8 @@
 <%@ page import="com.golfmaster.service.ExpertData"%>
 <%@ page import="com.golfmaster.service.ShotData"%>
 <%@ page import="com.golfmaster.service.ShotVideo"%>
+<%@ page import="com.golfmaster.service.PuttingShotData"%>
+<%@ page import="com.golfmaster.service.PuttingIssueTip"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 
@@ -32,6 +34,8 @@
 <%!ExpertData expertData = new ExpertData();%>
 <%!ShotData shotData = new ShotData();%>
 <%!ShotVideo shotVideo = new ShotVideo();%>
+<%!PuttingShotData puttingShotData = new PuttingShotData();%>
+<%!PuttingIssueTip puttingIssueTip = new PuttingIssueTip();%>
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
@@ -49,6 +53,22 @@ boolean frontAnalyzReady = (boolean) temp[12]; // 正面影像分析是否完成
 boolean sideAnalyzReady = (boolean) temp[13];  // 側面影像分析是否完成 (id_analyzeVideo_side)
 boolean frontExpected = (boolean) temp[14];    // 廠商會送 front 影片 (raw_shotVideo_front)
 boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_shotVideo_side)
+
+// ⭐ 右欄數值面板的球速（工項 12b）—— 這一頁目前唯一接上真資料的數值。
+// ⭐ 來源是 shot_data.BallSpeed，E6 模擬器**碰球瞬間量到**的值（⛔ 不是模擬器滾出來的結果）。
+// ⚠️ shot_data 跟 Core 的影像分析是兩條線 → ⛔ 這一列不必等 fixture、⛔ 也不要去問 Core。
+// ⛔ 算不出來或不可信時 processPuttValues() 讓那個鍵**不存在**（⛔ 不是填 "—"、⛔ 不是填 0），
+//    下面取出來會是空字串 → JS 給 null → setValues() 讓整列不出現。
+JSONObject puttValues = puttingShotData.processPuttValues(shot_data_id);
+String puttBallSpeed = puttValues.optString("ballSpeed", "");
+
+// ⭐ 建議文字改從資料庫查（工項 15）—— putting_issue_tip，18 條一次撈完讀進記憶體快取，
+//    ⛔ 不是一張卡片查一次資料庫。
+// ⚠️ 這一頁目前**沒有教練身分**這個概念（整個專案都沒有）→ 傳 null，只會拿到 default 那一組。
+//    ⭐ PuttingIssueTip 的介面已經吃教練代號了，之後有了⛔ 不必改這一行以外的東西。
+// ⚠️⚠️ R1：正式機還沒有這張表 → 那時這裡會是空的，⭐ 卡片照樣出現、只是沒有那段文字
+//    （規劃 §3.2）。⛔ 絕不可以讓它偷偷退回 js 檔裡那 18 條 —— 那樣「沒灌資料」會看起來完全正常。
+JSONObject puttTips = puttingIssueTip.tipsFor(null);
 %>
 
 <%-- HTML --%>
@@ -359,9 +379,11 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 									     · 桿面角 ClubAngleFace —— ⚠️ 在 LID 017/018（E6）有值，
 									       ⛔ 但⛔ 不是每一台模擬器都給（user 2026-09-10）。
 									       ⛔ 只驗過兩台就上，會在別的場館變成一排 0。
-									  ⚠️⚠️ 這一列現在吃的是假資料。真資料要新寫一支推桿版的
-									       shot_data 查詢（⛔ 不改 ShortGameData.java，§4.7），
-									       ⭐ 那⛔ 不需要等 Core 的 fixture。
+									  ⭐ 這一列**已經接上真資料**（工項 12b，2026-09-11）：
+									     PuttingShotData.processPuttValues()，⛔ 沒有改 ShortGameData.java。
+									     ⭐ 球桿名稱⛔ 沒有寫死 —— 從這一推自己那一列取
+									     （017/018 存 'Putter'、1000 存 'P'，寫死其中一個另一台就撈不到）。
+									  ⚠️ 頁面上其餘兩列（節奏比、總時長）⛔ 仍然是假資料，要等工項 12。
 									--%>
 									<div class="stat-row" data-value-key="ballSpeed">
 										<span class="stat-label">球速 (mph)</span>
@@ -448,6 +470,27 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 		//       判定模組第一次接真資料出事時可以重現。
 		const puttPanelData = PUTT_PANEL_DEV_DATA;
 		const puttIssuesData = PUTT_ISSUES_DEV_DATA;
+
+		// ⭐ 球速接真資料（工項 12b）—— ⛔ 界標、節奏比、總時長仍然是假資料。
+		// ⭐ 接縫在這裡：Java 的值只在 jsp 裡取出來組成 JS 值再交給 manager，
+		//    ⛔ 三支 .js 裡⛔ 不放 Java、⛔ 不放 JSP scriptlet、⛔ 不放 JSP 運算式（user 指定）。
+		// ⚠️⚠️ 這一行的註解⛔ 不可以把 JSP 運算式的符號原樣寫出來 ——
+		//    ⛔ JSP ⛔ 不管 JavaScript 的 // 註解，Jasper 照樣會把它當成一個**空的運算式**
+		//    去編譯，整頁 500（2026-09-11 真的踩過：The method print(boolean) … is not applicable）。
+		// ⚠️ 空字串代表「查不到／E6 沒送／是哨兵值」→ ⛔ 一律給 null，
+		//    setValues() 會讓整列不出現（⛔ 不是顯示「—」、⛔ 不是顯示 0）。
+		const puttBallSpeedReal = '<%= puttBallSpeed %>';
+		puttPanelData.values.ballSpeed = puttBallSpeedReal !== '' ? puttBallSpeedReal : null;
+
+		// ⭐ 建議文字改從資料庫查（工項 15）—— 整包丟給 manager 的 data.tips。
+		// ⭐ 換來源只換 lookupTip() 一個接縫，⛔ 渲染那一段一行都沒有動。
+		// ⚠️⚠️ 只要這個物件**存在**，lookupTip() 就一律以它為準 ——
+		//    ⛔ 查不到⛔ 不會退回 js 檔裡那 18 條（那會讓沒建表看起來完全正常）。
+		// ⚠️ 六支範例那條路（?ex=）走的是 Object.assign({}, puttIssuesData, {...})，
+		//    ⭐ 所以它**也會沿用這裡設的 tips** —— ⛔ 不要以為 ?ex= 讀的是檔案裡那 18 條。
+		//    ⭐ 兩邊本來就是同一份 seed 的同 18 條，內容一致；
+		//    ⛔ 真正還會走檔案那一份的只有 page/js/dev-data/verify/*.js（⛔ 不經過 jsp）。
+		puttIssuesData.tips = <%= puttTips.toString() %>;
 
 		// ===== 影片跳幀 =====
 		// ⛔ 兩支影片的幀號完全不可互換（實測同一次推擊偏移是 35/36/22/60，⛔ 不是常數）。
