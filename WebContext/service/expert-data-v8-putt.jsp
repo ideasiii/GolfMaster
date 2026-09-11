@@ -161,6 +161,15 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 							</div>
 						</div>
 					</div>
+					<%--
+					  界標提示（user 2026-09-10 裁示）
+					  ⚠️ 不可信的那顆被**點下去**時才出現一行字，⛔ 不是常駐的品質標示，
+					     ⛔ 也不是把鈕標成不可用 —— 鈕的外觀仍然完全不變。
+					  ⭐ 為什麼要有它：不跳是對的（值是合法幀號，跳過去只會安靜跳到錯的位置），
+					     ⛔ 但沉默會被讀成「頁面壞了」——§1.3 第 9 點已經栽過一次。
+					  ⛔ 這一行的字由 puttPanelManager 產生，⛔ 不要寫在這裡。
+					--%>
+					<div class="putt-mark-hint hidden-element" id="puttMarkHint"></div>
 				</div>
 
 				<%--
@@ -335,6 +344,29 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 										<span class="stat-label">總時長 (秒)</span>
 										<span class="stat-value"></span>
 									</div>
+									<%--
+									  球速（user 2026-09-10 指定）
+									  ⭐ 來源是 shot_data.BallSpeed —— E6 模擬器**碰球瞬間量到**的值，
+									     ⛔ 不是模擬器滾出來的結果，所以站得住（§4.7）。
+									  ⚠️ 這一列的資料⛔ 不歸 Core 管，⛔ 不要問他 ——
+									     shot_data 是 E6 送進資料庫的，跟影像分析是兩條線。
+									  ⛔ 已經評估後**不放**的：
+									     · 揮桿路徑 ClubAnglePath —— ⚠️ 實測 10052 筆推桿有 9911 筆是 0，
+									       E6 根本沒送這一欄。
+									     · 面路差（桿面角 − 揮桿路徑）—— ⛔ 減數是空的，
+									       算出來會**恰好等於桿面角**卻被標成「面路差」，
+									       ⛔ 不報錯、⛔ 看起來完全正常。這正是 §0.3 擋的那一型。
+									     · 桿面角 ClubAngleFace —— ⚠️ 在 LID 017/018（E6）有值，
+									       ⛔ 但⛔ 不是每一台模擬器都給（user 2026-09-10）。
+									       ⛔ 只驗過兩台就上，會在別的場館變成一排 0。
+									  ⚠️⚠️ 這一列現在吃的是假資料。真資料要新寫一支推桿版的
+									       shot_data 查詢（⛔ 不改 ShortGameData.java，§4.7），
+									       ⭐ 那⛔ 不需要等 Core 的 fixture。
+									--%>
+									<div class="stat-row" data-value-key="ballSpeed">
+										<span class="stat-label">球速 (mph)</span>
+										<span class="stat-value"></span>
+									</div>
 								</div>
 							</div>
 
@@ -471,6 +503,8 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 			marksId: 'puttMarks',
 			valuePanelId: 'puttValuePanel',
 			detailPanelId: 'puttDetailPanel',
+			// ⚠️ 不可信的界標被點下去時那一行提示（user 2026-09-10）
+			markHintId: 'puttMarkHint',
 			onSeekFrame: goToPuttFrame,
 		});
 
@@ -591,8 +625,29 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 			document.getElementById('puttDetailToggle')
 				.addEventListener('click', function () { puttPanelManager.toggle(); });
 
-			// 右欄
-			puttIssuesManager.render(puttIssuesData);
+			// 推桿風險 ＋ 綜合評價
+			// ⚠️ 界標與 onset 要一起傳進去 —— 「▶ 看這一段」靠它決定能不能跳，
+			//    ⛔ trust 一定要跟著走：兩端都可信才准跳，
+			//    ⛔ 而可信度絕對不可以改用「值存不存在」判斷（值是合法幀號）。
+			// ⛔ DEV ONLY：loadPuttDevIssues() 是網址參數切換六支範例那條路徑（R5），
+			//    接上 PuttingData.java（工項 14）之後換成後端送下來的物件即可，
+			//    ⭐ 三支 js ⛔ 一行都不用改。
+			loadPuttDevIssues(puttIssuesData).then(function (issuesData) {
+				issuesData.phases = {
+					address: puttPanelData.phases.address,
+					top: puttPanelData.phases.top,
+					impact: puttPanelData.phases.impact,
+					finish: puttPanelData.phases.finish,
+					// ⚠️ 起桿⛔ 不做成按鈕，但上桿段跳段要用它（§3.3.5）
+					onset: puttPanelData.onset,
+					// ⚠️ onset 是唯一有哨兵的界標（缺值 −1），⛔ 但仍然要明確給 ——
+					//    resolveSegment() 沒給就一律當不可信。
+					trust: Object.assign({}, puttPanelData.trust, {
+						onset: typeof puttPanelData.onset === 'number' && puttPanelData.onset >= 0,
+					}),
+				};
+				puttIssuesManager.render(issuesData);
+			});
 		}
 
 		document.addEventListener('DOMContentLoaded', init);

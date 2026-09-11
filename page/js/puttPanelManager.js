@@ -25,12 +25,14 @@ class PuttPanelManager {
      * @param {string} opts.marksId        界標列容器 id
      * @param {string} opts.valuePanelId   數值面板 id
      * @param {string} opts.detailPanelId  詳細數值面板 id
+     * @param {string} opts.markHintId     界標提示那一行的 id（⚠️ 見 bindEvents()）
      * @param {Function} opts.onSeekFrame  點界標鈕時呼叫，參數是正面影片的幀號
      */
     constructor(opts) {
         this.marksEl = document.getElementById(opts.marksId);
         this.valueEl = document.getElementById(opts.valuePanelId);
         this.detailEl = document.getElementById(opts.detailPanelId);
+        this.markHintEl = opts.markHintId ? document.getElementById(opts.markHintId) : null;
         this.onSeekFrame = opts.onSeekFrame || function () {};
         this.data = null;
         this.bindEvents();
@@ -44,10 +46,21 @@ class PuttPanelManager {
                 btn.addEventListener('click', function (e) {
                     const target = e.currentTarget;
                     // ⚠️ 不可信的那顆：**點得下去，但⛔ 不跳**。
-                    //    ⛔ 外觀完全不變（user 2026-09-10：調暗＝屏蔽按鈕，不要）。
-                    //    ⭐ 值是合法幀號，跳過去⛔ 不會出錯、只會跳到錯的位置，
-                    //    所以「不跳」就夠，⛔ 不需要在外觀上標示。
-                    if (target.classList.contains('is-untrusted')) return;
+                    //    ⛔ 外觀完全不變（user 2026-09-10 兩次裁示：
+                    //    鈕消失＝像 bug、調暗＝屏蔽按鈕，兩個都不要）。
+                    //    ⭐ 值是合法幀號，跳過去⛔ 不會出錯、只會安靜跳到錯的位置。
+                    //
+                    // ⚠️⚠️ 但「鈕看起來正常、點了卻沒反應」會被讀成什麼，
+                    //      前一輪⛔ 完全沒驗過，⛔ 有可能又被讀成「頁面壞了」
+                    //      （§1.3 第 9 點：空位就是這樣被讀成 bug 的）。
+                    //      → user 2026-09-10 裁示：⭐ 維持不跳，⛔ 但要講一句為什麼。
+                    //      ⚠️ 這一句是主畫面上除了綜合評價以外唯一的品質字眼，
+                    //      ⛔ 它只講「這一顆抓不到」，⛔ 不要擴寫成整支影片的品質評語。
+                    if (target.classList.contains('is-untrusted')) {
+                        self.showMarkHint(target.dataset.phase);
+                        return;
+                    }
+                    self.hideMarkHint();
                     self.selectMark(target);
                     const frame = parseInt(target.dataset.frontFrame, 10);
                     if (!isNaN(frame)) self.onSeekFrame(frame);
@@ -102,6 +115,8 @@ class PuttPanelManager {
      */
     setMarks(phases, trust) {
         if (!this.marksEl) return;
+        // 換一支影片就把上一句提示收掉，⛔ 不要讓它留在畫面上講別支的事
+        this.hideMarkHint();
         const map = { A: 'address', T: 'top', I: 'impact', F: 'finish' };
         const self = this;
         // ⚠️ 安全預設：沒給 trust 就當全部不可信。
@@ -134,6 +149,34 @@ class PuttPanelManager {
             const first = self.marksEl.querySelector('.step button[data-phase]:not(.is-untrusted)');
             if (first) self.selectMark(first);
         }
+    }
+
+    /**
+     * 不可信的那顆被點下去時講一句話（user 2026-09-10 裁示）。
+     *
+     * ⚠️ 鈕的外觀仍然⛔ 完全不變 —— 這一行只在「真的被點了」之後才出現，
+     *    ⛔ 不是常駐的品質標示，⛔ 也不是把鈕標成不可用。
+     * ⭐ 為什麼要有它：不跳是對的（值是合法幀號，跳過去會安靜跳到錯的位置），
+     *    ⛔ 但沉默會被讀成「頁面壞了」——§1.3 第 9 點已經栽過一次。
+     * ⚠️ 鈕上⛔ 不放中文（§1.3 第 1 點），⛔ 但這一句要講是哪一顆，
+     *    否則教練不知道剛剛按的是什麼。
+     */
+    showMarkHint(phase) {
+        if (!this.markHintEl) return;
+        const names = { A: '架桿', T: '頂點', I: '碰球', F: '收桿' };
+        const name = names[phase] || '這個階段';
+        // ⚠️⚠️ ⛔ 只講結果，⛔ 不解釋系統為什麼做不到（user 2026-09-10 裁示）。
+        //      ⛔ 原本寫的是「沒有抓到…，為了不跳到錯的位置，這顆鈕不跳」——
+        //      ⛔ 那是在跟教練講我們的內部限制。
+        //      ⭐ 為什麼不能跳，收進〔詳細數值〕的「狀態」分頁（§0.2、§2.9）。
+        this.markHintEl.textContent = '這一推無法跳到「' + name + '」';
+        this.markHintEl.classList.remove('hidden-element');
+    }
+
+    hideMarkHint() {
+        if (!this.markHintEl) return;
+        this.markHintEl.textContent = '';
+        this.markHintEl.classList.add('hidden-element');
     }
 
     // 選取樣式的切換方式與 v8 / v8-short 相同：兩個 class 互換
@@ -301,6 +344,10 @@ const PUTT_PANEL_DEV_DATA = {
     values: {
         tempoRatio: '1.65 : 1',
         totalDuration: '3.93',
+        // ⚠️ 球速：來源是 shot_data.BallSpeed（E6 碰球瞬間量到的），
+        //    ⛔ 不是模擬器滾出來的結果。⚠️ 這裡是假資料。
+        //    ⛔ 算不出來就給 null → setValues() 會讓整列不出現（⛔ 不是顯示「—」）。
+        ballSpeed: '4.6',
     },
 
     detail: {
@@ -328,7 +375,7 @@ const PUTT_PANEL_DEV_DATA = {
         },
         triangle: {
             title: '三角形變動',
-            verdict: '判定：有問題',
+            verdict: '判定：有風險',
             metrics: [
                 { name: '球桿偏離手臂方向－上桿段', value: '1.75°',  note: '參考，不判定',  kind: 'reference' },
                 { name: '球桿偏離手臂方向－下桿段', value: '10.15°', note: '門檻 10.0',     kind: 'decides' },
@@ -349,7 +396,7 @@ const PUTT_PANEL_DEV_DATA = {
         },
         body_sway: {
             title: '身體位移',
-            verdict: '判定：有問題',
+            verdict: '判定：有風險',
             metrics: [
                 { name: '下桿左右移動量',       value: '0.2225', note: '門檻 0.0533',  kind: 'decides' },
                 { name: '上桿左右移動量',       value: '0.0844', note: '參考，不判定', kind: 'reference' },
