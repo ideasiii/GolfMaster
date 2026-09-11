@@ -492,18 +492,24 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 		//    ⛔ 真正還會走檔案那一份的只有 page/js/dev-data/verify/*.js（⛔ 不經過 jsp）。
 		puttIssuesData.tips = <%= puttTips.toString() %>;
 
+		// ⚠️ 幀率由 derivePuttPhases() 從界標與總時長推導，⛔ 不是寫死的 60。
+		//    推不出來（總時長是 0 或 null）時是 null → 幀號換不成秒 → ⛔ 一律不跳。
+		//    ⚠️ 那時界標四顆本來就全部不可信，這裡是第二道防線。
+		let puttFrameRate = null;
+
 		// ===== 影片跳幀 =====
 		// ⛔ 兩支影片的幀號完全不可互換（實測同一次推擊偏移是 35/36/22/60，⛔ 不是常數）。
 		//    每支影片一定用它自己那一列的 PuttingPhases。
 		//    側面只在它自己也可信時才跟著跳；⛔ 不可信就不跳，也⛔ 不標示。
 		function goToPuttFrame(frontFrame) {
 			if (typeof frontFrame !== 'number' || isNaN(frontFrame)) return;
-			seekVideo(video, frontFrame / puttPanelData.fps);
+			if (!(puttFrameRate > 0)) return;
+			seekVideo(video, frontFrame / puttFrameRate);
 
 			const sidePhases = puttPanelData.sidePhases;
 			if (sidePhases && typeof sidePhases.frameFor === 'function') {
 				// 之後接上側面那一列的 PuttingPhases 時走這裡
-				seekVideo(video1, sidePhases.frameFor(frontFrame) / puttPanelData.fps);
+				seekVideo(video1, sidePhases.frameFor(frontFrame) / puttFrameRate);
 			}
 
 			controlBtn.className = 'play';
@@ -525,8 +531,9 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 		// ⭐⭐「▶ 看這一段」——⛔ 這不是裝飾，是「碰球界標找錯」唯一的現場檢查手段（§2.6）。
 		//     跳到區間起點播到終點；教練看到的不是下桿，當場就會發現界標抓錯。
 		function playPuttSegment(startFrame, endFrame) {
+			if (!(puttFrameRate > 0)) return;
 			goToPuttFrame(startFrame);
-			const endTime = endFrame / puttPanelData.fps;
+			const endTime = endFrame / puttFrameRate;
 			const stopAtEnd = function () {
 				if (video.currentTime >= endTime) {
 					video.pause();
@@ -635,8 +642,10 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 			//    會變成一載入就跳到影片中間，看起來像壞掉。
 			//    ⭐ 等 Core 的 fixture 有真的 PuttingPhases 之後，
 			//    再把正面那一支改成跳到自己那一列的架桿幀（§6.2 第 11 項）。
-			setupVideoEvents(video, canvas, null, 0, puttPanelData.fps, false);
-			setupVideoEvents(video1, canvas1, null, 0, puttPanelData.fps, true);
+			// ⚠️ 第 5 個參數是除數，但起始幀是 0（0 除以任何數都是 0）→ 用不到它。
+			//    ⛔ 這裡不可以填 60 —— 那是先前寫死的值，真的拿去換算會偏掉。
+			setupVideoEvents(video, canvas, null, 0, 1, false);
+			setupVideoEvents(video1, canvas1, null, 0, 1, true);
 
 			// 影片輪詢：轉檔完成就先換 src（不等分析），讓使用者更早看到自己的影片。
 			// ⛔ 推桿頁沒有 SwingPlane 覆蓋線要補，所以⛔ 不傳 onAnalysisUpdate。
@@ -655,10 +664,7 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 				},
 			});
 
-			// 左欄下半
-			// ⚠️ 第二個參數是「每一顆可不可信」，⛔ 一定要給 ——
-			//    界標找不到時放的值仍在合法範圍內，⛔ 不可以用值存不存在判斷。
-			puttPanelManager.setMarks(puttPanelData.phases, puttPanelData.trust);
+			// 左欄下半（⚠️ 界標在下面那一段，要等界標欄位讀進來才填）
 			puttPanelManager.setValues(puttPanelData.values);
 			puttPanelManager.setDetail(puttPanelData.detail);
 
@@ -675,21 +681,28 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 			// ⛔ DEV ONLY：loadPuttDevIssues() 是網址參數切換六支範例那條路徑（R5），
 			//    接上 PuttingData.java（工項 14）之後換成後端送下來的物件即可，
 			//    ⭐ 三支 js ⛔ 一行都不用改。
-			loadPuttDevIssues(puttIssuesData).then(function (issuesData) {
-				issuesData.phases = {
-					address: puttPanelData.phases.address,
-					top: puttPanelData.phases.top,
-					impact: puttPanelData.phases.impact,
-					finish: puttPanelData.phases.finish,
-					// ⚠️ 起桿⛔ 不做成按鈕，但上桿段跳段要用它（§3.3.5）
-					onset: puttPanelData.onset,
-					// ⚠️ onset 是唯一有哨兵的界標（缺值 −1），⛔ 但仍然要明確給 ——
-					//    resolveSegment() 沒給就一律當不可信。
-					trust: Object.assign({}, puttPanelData.trust, {
-						onset: typeof puttPanelData.onset === 'number' && puttPanelData.onset >= 0,
-					}),
-				};
-				puttIssuesManager.render(issuesData);
+			// ⚠️ 界標、幀率與可信度全部由 derivePuttPhases() 從那兩欄的原始字串推導。
+			//    ⛔ loadPuttDevPhases() 是開發用的切換路徑，接上 PuttingData.java
+			//    之後改成把後端送下來的兩個字串直接傳給 derivePuttPhases() 即可。
+			// ⚠️⚠️ 界標列與「▶ 看這一段」⛔ 一定要吃同一份 trust，
+			//    ⛔ 只換其中一邊會讓卡片上的跳段鈕跳到不可信的幀。
+			loadPuttDevPhases(puttPanelData.source).then(function (source) {
+				const derived = derivePuttPhases(source.PuttingPhases, source.PuttingTempo);
+				puttFrameRate = derived.fps;
+				puttPanelManager.setMarks(derived.phases, derived.trust);
+
+				return loadPuttDevIssues(puttIssuesData).then(function (issuesData) {
+					issuesData.phases = {
+						address: derived.phases.address,
+						top: derived.phases.top,
+						impact: derived.phases.impact,
+						finish: derived.phases.finish,
+						// ⚠️ 起桿不做成按鈕，但上桿段跳段要用它
+						onset: derived.onset,
+						trust: derived.trust,
+					};
+					puttIssuesManager.render(issuesData);
+				});
 			});
 		}
 

@@ -9,14 +9,158 @@
  * ⛔ 不管右欄的卡片、綜合評價、一致性 —— 那些在 puttingIssuesManager.js。
  * 規劃文件：docs/expert-data-v8-putt-plan.md
  *
- * ═══ 這一輪（§6.1 第 2〜3 項）做到哪裡 ═══
- * ⭐ 切換、分頁、界標鈕的「行為」是真的、會動的。
- * ⚠️ 餵給它的資料是 PUTT_PANEL_DEV_DATA（這個檔案最下面），寫死的假資料。
- * ⛔ 真正的資料來源是 shot_video_swing 的 PuttingPhases / PuttingTempo，
- *    要等 Core 的 fixture 轉換程式（§6.2 第 11〜13 項）。
- * ⛔ fixture 沒到不要硬做 §3.3 那些分支 —— 沒有資料驗證，
- *    規劃階段已經在紙上寫錯過兩次（黑名單擋總時長、只停用對應那顆界標鈕）。
+ * ═══ 資料從哪裡來 ═══
+ * ⭐ 界標與 fps 由 derivePuttPhases() 從 shot_video_swing 的
+ *    PuttingPhases / PuttingTempo 兩欄的原始字串推導出來。
+ * ⚠️ 節奏比、總時長與詳細數值目前仍是 PUTT_PANEL_DEV_DATA（檔案最下面）的假資料。
  */
+
+/* =====================================================================
+ * 界標可信度 ＋ fps 推導
+ *
+ * ⛔ 界標找不到時，填進去的值**仍然落在合法範圍內**
+ *    （address→0、top→0 或推估值、finish→n−1），
+ *    拿去 seek ⛔ 不會拋例外、⛔ 不會報錯，只會安靜跳到錯的位置。
+ * → ⛔ 可不可信⛔ 絕對不可以用「值存不存在」判斷。
+ * ===================================================================== */
+
+/**
+ * reason → 哪幾顆界標還可能可信（putting_columns.md §2.2.1）。
+ *
+ * ⚠️ 這張表只用來**拿掉**信任，⛔ 它不會給出信任（給信任的只有 found）。
+ * ⚠️ 表上原本寫「未知」的一律當 false。
+ * ⛔ 這是白名單：沒列在這裡的 reason（head_lost、impact_missing、
+ *    empty_trajectory、exception:<類型>…）一律四顆都不可信。
+ *    ⛔ 不可以改成黑名單 —— exception: 是動態前綴，列舉擋不完。
+ */
+const PUTT_PHASE_REASON_TRUST = {
+    '':                { address: true,  top: true,  impact: true,  finish: true  },
+    'marginal_rate':   { address: true,  top: true,  impact: true,  finish: true  },
+    'finish_missing':  { address: true,  top: true,  impact: true,  finish: false },
+    'address_missing': { address: false, top: true,  impact: true,  finish: false },
+    'top_missing':     { address: false, top: false, impact: true,  finish: false },
+    'head_flicker':    { address: false, top: false, impact: false, finish: false },
+};
+
+const PUTT_NO_TRUST = { address: false, top: false, impact: false, finish: false, onset: false };
+
+/**
+ * fps = (收桿 − 架桿) ÷ 總時長。
+ *
+ * ⛔ 總時長是 0 或 null 時不可以除 → 回 null。
+ * ⛔ 不 round：29.97 就讓它是 29.97，round 成 30 再乘回幀號會偏掉。
+ * ⚠️ 推桿影片不是一定 60fps，實測有 60 / 59.94 / 50 / 30 / 29.97 / 25 / 23.98。
+ * ⚠️ 這個值只夠用來換算幀→秒。
+ *
+ * @returns {number|null}
+ */
+function derivePuttFps(data, totalDurationSec) {
+    if (!Array.isArray(data) || data.length < 4) return null;
+    if (typeof totalDurationSec !== 'number' || !isFinite(totalDurationSec)) return null;
+    if (totalDurationSec <= 0) return null;
+
+    const span = data[3] - data[0];
+    if (!isFinite(span) || span <= 0) return null;
+
+    return span / totalDurationSec;
+}
+
+/**
+ * 推導每一顆界標可不可信。
+ *
+ *     address / top / finish = found 說有找到  且  reason 允許
+ *     impact                 = found 非空      且  reason 允許
+ *
+ * ⚠️ found 是唯一會給出信任的來源 → 沒有 found 的資料一顆都不可信，
+ *    ⛔ 絕不可當成 true。found 是空物件 {} 也一樣 ——
+ *    那代表分期在分級之前就結束了，⛔ 不是「三個都沒找到」。
+ *
+ * ⚠️ impact 沒有、也不會有 found 布林：它找不到時分期直接早退，
+ *    所以「found 非空」本身就表示 impact 有被找到。
+ * ⛔ 但那只保證「有找到」，⛔ 不保證「找對」——
+ *    impact 取的是全片速度最快的一幀、沒有範圍限制，
+ *    片中有撿球或試揮就會選錯，而那時 status 仍是 OK、reason 仍是空字串。
+ *    ⭐ 那個缺口靠「▶ 看這一段」在現場檢查，⛔ 不是靠這裡擋。
+ *
+ * ⚠️ onset 跟 top 出自同一條桿頭軌跡，所以跟著 top 走，再加哨兵檢查（缺值 −1）。
+ *    ⛔ onset 是 −1 時不要拿架桿代替 —— 中間是瞄準停頓，可能好幾秒。
+ *
+ * @param {boolean} fpsUsable fps 推不出來就換算不成秒，四顆都不能跳
+ */
+function derivePuttTrust(phasesCol, fpsUsable) {
+    if (!fpsUsable || !phasesCol) return Object.assign({}, PUTT_NO_TRUST);
+
+    const gate = (phasesCol.status === 'FAIL')
+        ? PUTT_NO_TRUST
+        : (PUTT_PHASE_REASON_TRUST[phasesCol.reason] || PUTT_NO_TRUST);
+
+    const found = phasesCol.found;
+    const hasFound = !!found && typeof found === 'object' && !Array.isArray(found)
+        && Object.keys(found).length > 0;
+    const foundSays = function (key) {
+        return hasFound && found[key] === true;
+    };
+
+    const trust = {
+        address: foundSays('address') && gate.address === true,
+        top:     foundSays('top')     && gate.top === true,
+        finish:  foundSays('finish')  && gate.finish === true,
+        impact:  hasFound && gate.impact === true,
+        onset:   false,
+    };
+    trust.onset = trust.top && typeof phasesCol.onset === 'number' && phasesCol.onset >= 0;
+
+    return trust;
+}
+
+/**
+ * 把 shot_video_swing 的 PuttingPhases / PuttingTempo 兩欄轉成頁面用得動的東西。
+ * 兩個參數收的是**那兩欄的原始字串**，換資料來源時只換傳進來的字串。
+ *
+ * ⚠️ 欄位是三態：SQL NULL（沒跑過）／JSON 但各鍵 null（視角不支援）／JSON 有值。
+ *    前兩種都回「四顆不可信、fps 是 null」，⛔ 不可以拋例外 ——
+ *    拋了整頁會連影片都不見。
+ */
+function derivePuttPhases(phasesColumn, tempoColumn) {
+    const parse = function (v) {
+        if (v === null || v === undefined || v === '') return null;
+        if (typeof v === 'object') return v;
+        try {
+            return JSON.parse(v);
+        } catch (e) {
+            console.warn('[putt] 界標欄位不是合法 JSON，當成沒跑過處理：' + e.message);
+            return null;
+        }
+    };
+
+    const phasesCol = parse(phasesColumn);
+    const tempoCol = parse(tempoColumn);
+    const data = (phasesCol && Array.isArray(phasesCol.data)) ? phasesCol.data : null;
+
+    // ⚠️ 總時長用 phases 那一欄的；PuttingTempo 的那一份是從它抄過去的。
+    const duration = phasesCol ? phasesCol.total_duration_sec : null;
+    const fps = derivePuttFps(data, duration);
+
+    return {
+        // ⚠️ data 永遠是四個元素，多出來的界標一律走具名鍵
+        phases: data
+            ? { address: data[0], top: data[1], impact: data[2], finish: data[3] }
+            : { address: null, top: null, impact: null, finish: null },
+        // ⚠️ 起桿不做成按鈕，值留著給「上桿段」跳段用
+        onset: (phasesCol && typeof phasesCol.onset === 'number') ? phasesCol.onset : -1,
+        trust: derivePuttTrust(phasesCol, fps !== null),
+        fps: fps,
+        // 下面幾個給〔詳細數值〕的「狀態」分頁用，⛔ 主畫面不顯示
+        status: phasesCol ? phasesCol.status : null,
+        reason: phasesCol ? phasesCol.reason : null,
+        detectionRate: phasesCol ? phasesCol.detection_rate : null,
+        // ⛔ 這個值的語意會隨 reason 改變，⛔ 不可以直接當「這一推花了多久」顯示
+        totalDurationSec: (typeof duration === 'number') ? duration : null,
+        tempoRatio: tempoCol ? tempoCol.tempo_ratio : null,
+        tempoReason: tempoCol ? tempoCol.reason : null,
+    };
+}
+
 
 class PuttPanelManager {
 
@@ -310,6 +454,43 @@ class PuttPanelManager {
 }
 
 
+/**
+ * ⛔ DEV ONLY：網址帶 ?pp= 就改讀 page/js/dev-data/putting-phases/fixtures.json
+ * 裡的那一筆，沒帶就用 fallback。
+ *
+ * ?pp= 收兩種寫法：整數序號（0 起算），或影片檔名的一段（比對 stem）。
+ * fixtures.json 由 dev-data/fixtures/build-putt-phases.js 產生，⛔ 不在版控。
+ *
+ * ⚠️ 一定回 Promise，⛔ 呼叫端不要分成同步與非同步兩條路。
+ * ⛔ 讀不到就退回 fallback，⛔ 但一定要在 console 講一聲，
+ *    ⛔ 不要安靜地換掉資料來源。
+ */
+function loadPuttDevPhases(fallback) {
+    const which = new URLSearchParams(window.location.search).get('pp');
+    if (which === null || which === '') return Promise.resolve(fallback);
+
+    return fetch('../../page/js/dev-data/putting-phases/fixtures.json')
+        .then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
+        .then(function (doc) {
+            const rows = doc.rows || [];
+            const idx = parseInt(which, 10);
+            const row = (String(idx) === which.trim() && rows[idx])
+                ? rows[idx]
+                : rows.filter(function (r) { return r.stem.indexOf(which) >= 0; })[0];
+            if (!row) throw new Error('找不到 ' + which);
+            console.log('[putt] 界標資料改讀 ' + row.stem + '（' + row.group + '）');
+            return { PuttingPhases: row.PuttingPhases, PuttingTempo: row.PuttingTempo };
+        })
+        .catch(function (err) {
+            console.warn('[putt] 讀不到界標範例，改用檔案內建那一份：' + err.message);
+            return fallback;
+        });
+}
+
+
 /* =====================================================================
  * ⛔ 以下是這一輪的開發用假資料，接上真資料後整段刪掉。
  *
@@ -319,21 +500,15 @@ class PuttPanelManager {
  * ===================================================================== */
 const PUTT_PANEL_DEV_DATA = {
 
-    phases: { address: 88, top: 231, impact: 279, finish: 324 },
-
-    // ⚠️⚠️ 每一顆界標可不可信，⛔ 一定要明確給 —— 見 setMarks() 的說明。
-    //    ⛔ 絕對不可以用「值存不存在」判斷：界標找不到時放的值仍在合法範圍內，
-    //    拿去 seek 不會出錯，只會安靜跳到錯的地方。
-    // ⭐ Core 批 1 之後直接把 PuttingPhases 的 found 傳進來（只有三個鍵，
-    //    impact 要另外判）。這裡是假資料，四顆都當可信。
-    trust: { address: true, top: true, impact: true, finish: true },
-
-    // ⚠️ 起桿⛔ 不做成按鈕，但值要留著 —— 卡片標「上桿段」時靠它決定跳到哪
-    onset: 152,
-
-    // ⚠️ fps ⛔ 不可寫死：六支範例分別是 60 / 29.97 / 25。
-    //    fps 推導是 §6.2 第 11 項，等 Core 的 fixture 才做。
-    fps: 60,
+    // ⚠️ 界標與 fps ⛔ 不再寫死 —— 這兩個字串就是 shot_video_swing 那兩欄的內容，
+    //    交給 derivePuttPhases() 推導。接上真資料時換掉這兩個字串即可。
+    // ⛔ 這一份刻意沒有 found：沒有 found 就代表界標一顆都不可信，
+    //    ⛔ 不要為了讓鈕會跳而自己補一個進去。
+    source: {
+        PuttingPhases: '{"data":[88,231,279,324],"status":"OK","reason":"",'
+            + '"total_duration_sec":3.9333333333333336,"detection_rate":1.0,"onset":152}',
+        PuttingTempo: '{"tempo_ratio":1.646,"total_duration_sec":3.9333333333333336,"reason":""}',
+    },
 
     // ⛔ 側面的幀號完全不可拿正面的來套（實測同一次推擊偏移是 35/36/22/60，不是常數）。
     //    沒有側面那一列的 PuttingPhases → 側面就⛔ 不跳、也⛔ 不標示。
