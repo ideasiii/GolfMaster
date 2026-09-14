@@ -13,7 +13,8 @@
  * ⭐ 界標與 fps 由 derivePuttPhases() 從 shot_video_swing 的
  *    PuttingPhases / PuttingTempo 兩欄的原始字串推導出來。
  * ⭐ 節奏比與總時長由 derivePuttValues() 從同一份推導結果算出來。
- * ⚠️ 詳細數值目前仍是 PUTT_PANEL_DEV_DATA（檔案最下面）的假資料。
+ * ⭐ 詳細數值：五類的分頁內容由 puttingIssuesManager.buildDetailSummary() 整理，
+ *    「狀態」分頁由 buildPuttStatusGroup() 組，這裡只負責畫。
  */
 
 /* =====================================================================
@@ -43,7 +44,6 @@ const PUTT_PHASE_REASON_TRUST = {
     'head_flicker':    { address: false, top: false, impact: false, finish: false },
 };
 
-const PUTT_NO_TRUST = { address: false, top: false, impact: false, finish: false, onset: false };
 
 /**
  * fps = (收桿 − 架桿) ÷ 總時長。
@@ -96,29 +96,63 @@ function derivePuttFps(data, totalDurationSec) {
  * @param {boolean} fpsUsable fps 推不出來就換算不成秒，四顆都不能跳
  */
 function derivePuttTrust(phasesCol, fpsUsable) {
-    if (!fpsUsable || !phasesCol) return Object.assign({}, PUTT_NO_TRUST);
+    const why = explainPuttTrust(phasesCol, fpsUsable);
+    const trust = {};
+    Object.keys(why).forEach(function (k) {
+        trust[k] = why[k].length === 0;
+    });
+    return trust;
+}
 
-    const gate = (phasesCol.status === 'FAIL')
-        ? PUTT_NO_TRUST
-        : (PUTT_PHASE_REASON_TRUST[phasesCol.reason] || PUTT_NO_TRUST);
+/**
+ * 每一顆界標不可信的原因代碼，可信的那一顆是空陣列。
+ *
+ * ⚠️ derivePuttTrust() 就是由它決定的 —— ⛔ 兩邊不可以各寫一套條件，
+ *    否則「狀態」分頁講的原因會跟鈕實際跳不跳對不上。
+ * ⚠️ 會把**所有**不成立的條件都列出來，⛔ 不是只列第一個。
+ *
+ *   no_analysis       欄位是 SQL NULL／不是合法 JSON（沒跑過）
+ *   fps_unavailable   fps 推不出來
+ *   phase_failed      status 是 FAIL
+ *   reason            reason 反推表不允許（含白名單以外的 reason）
+ *   found_absent      沒有 found，或 found 是空的 {}
+ *   found_key_absent  found 裡沒有這一顆（分期早退，沒評估過）
+ *   found_false       found 說這一顆沒有定位到
+ *   top_untrusted     （onset）頂點不可信
+ *   onset_missing     （onset）沒有值或是哨兵 −1
+ *
+ * @returns {{address:string[], top:string[], impact:string[], finish:string[], onset:string[]}}
+ */
+function explainPuttTrust(phasesCol, fpsUsable) {
+    const keys = ['address', 'top', 'impact', 'finish'];
+    const why = { address: [], top: [], impact: [], finish: [], onset: [] };
+    const has = Object.prototype.hasOwnProperty;
 
+    if (!phasesCol) {
+        Object.keys(why).forEach(function (k) { why[k].push('no_analysis'); });
+        return why;
+    }
+
+    const gate = has.call(PUTT_PHASE_REASON_TRUST, phasesCol.reason)
+        ? PUTT_PHASE_REASON_TRUST[phasesCol.reason]
+        : null;
     const found = phasesCol.found;
     const hasFound = !!found && typeof found === 'object' && !Array.isArray(found)
         && Object.keys(found).length > 0;
-    const foundSays = function (key) {
-        return hasFound && found[key] === true;
-    };
 
-    const trust = {
-        address: foundSays('address') && gate.address === true,
-        top:     foundSays('top')     && gate.top === true,
-        finish:  foundSays('finish')  && gate.finish === true,
-        impact:  foundSays('impact') && gate.impact === true,
-        onset:   false,
-    };
-    trust.onset = trust.top && typeof phasesCol.onset === 'number' && phasesCol.onset >= 0;
+    keys.forEach(function (k) {
+        if (!fpsUsable) why[k].push('fps_unavailable');
+        if (phasesCol.status === 'FAIL') why[k].push('phase_failed');
+        if (!gate || gate[k] !== true) why[k].push('reason');
+        if (!hasFound) why[k].push('found_absent');
+        else if (!has.call(found, k)) why[k].push('found_key_absent');
+        else if (found[k] !== true) why[k].push('found_false');
+    });
 
-    return trust;
+    if (why.top.length > 0) why.onset.push('top_untrusted');
+    if (!(typeof phasesCol.onset === 'number' && phasesCol.onset >= 0)) why.onset.push('onset_missing');
+
+    return why;
 }
 
 /**
@@ -157,6 +191,8 @@ function derivePuttPhases(phasesColumn, tempoColumn) {
         // ⚠️ 起桿不做成按鈕，值留著給「上桿段」跳段用
         onset: (phasesCol && typeof phasesCol.onset === 'number') ? phasesCol.onset : -1,
         trust: derivePuttTrust(phasesCol, fps !== null),
+        // 每一顆為什麼不可信，給「狀態」分頁用
+        trustWhy: explainPuttTrust(phasesCol, fps !== null),
         fps: fps,
         // 下面幾個給〔詳細數值〕的「狀態」分頁用，⛔ 主畫面不顯示
         status: phasesCol ? phasesCol.status : null,
@@ -194,19 +230,148 @@ const PUTT_DURATION_REASONS = [
  */
 function derivePuttValues(derived) {
     const d = derived || {};
-
-    const dur = d.totalDurationSec;
-    const durationOk = PUTT_DURATION_REASONS.indexOf(d.reason) >= 0
-        && typeof dur === 'number' && isFinite(dur) && dur > 0;
-
-    const ratio = d.tempoRatio;
-    const ratioOk = !!(d.trust && d.trust.top === true)
-        && typeof ratio === 'number' && isFinite(ratio) && ratio > 0;
-
+    const why = explainPuttValues(d);
     return {
-        tempoRatio: ratioOk ? ratio.toFixed(2) + ' : 1' : null,
-        totalDuration: durationOk ? dur.toFixed(2) : null,
+        tempoRatio: why.tempoRatio.length === 0 ? d.tempoRatio.toFixed(2) + ' : 1' : null,
+        totalDuration: why.totalDuration.length === 0 ? d.totalDurationSec.toFixed(2) : null,
     };
+}
+
+/**
+ * 數值列不顯示的原因代碼，顯示的那一列是空陣列。
+ * ⚠️ derivePuttValues() 就是由它決定的，⛔ 兩邊不可以各寫一套條件。
+ *
+ *   reason          （總時長）reason 不在白名單裡
+ *   no_value        不是正數
+ *   top_untrusted   （節奏比）頂點不可信
+ */
+function explainPuttValues(derived) {
+    const d = derived || {};
+    const why = { tempoRatio: [], totalDuration: [] };
+    const positive = function (v) {
+        return typeof v === 'number' && isFinite(v) && v > 0;
+    };
+
+    if (PUTT_DURATION_REASONS.indexOf(d.reason) < 0) why.totalDuration.push('reason');
+    if (!positive(d.totalDurationSec)) why.totalDuration.push('no_value');
+
+    if (!(d.trust && d.trust.top === true)) why.tempoRatio.push('top_untrusted');
+    if (!positive(d.tempoRatio)) why.tempoRatio.push('no_value');
+
+    return why;
+}
+
+/* =====================================================================
+ * 〔詳細數值〕的「狀態」分頁
+ *
+ * ⭐ 主畫面不講的技術原因全部收在這裡：判定狀態、視角、門檻版本、界標品質、
+ *    幀率、每一顆界標為什麼不跳、數值列為什麼沒出現、文案載到幾條、各類的信心與原因。
+ * ⛔ 這裡的字⛔ 不可以搬回主畫面。
+ * ===================================================================== */
+
+const PUTT_MARK_LABELS = {
+    address: '架桿 A', top: '頂點 T', impact: '碰球 I', finish: '收桿 F', onset: '起桿',
+};
+
+const PUTT_WHY_TEXTS = {
+    no_analysis:      '沒有分析結果',
+    fps_unavailable:  '幀率推不出來',
+    phase_failed:     '分期失敗',
+    found_absent:     '分析結果沒有可信度資訊（found）',
+    found_key_absent: '可信度資訊沒有評估這一顆',
+    found_false:      '可信度資訊標為沒有定位到',
+    top_untrusted:    '頂點不可信',
+    onset_missing:    '沒有偵測到起桿',
+    no_value:         '沒有值',
+};
+
+const PUTT_BALL_SPEED_WHY = {
+    not_found: '查不到這一推的擊球數據',
+    not_sent:  '模擬器沒有送球速',
+    sentinel:  '模擬器的上限佔位值，不是量到的',
+};
+
+const PUTT_CLASS_STATE_TEXTS = { issue: '有風險', normal: '正常', na: '無法判定' };
+
+/**
+ * @param {Object} input
+ * @param {Object} input.header   {status, reason, view, threshold_profile}，沒有就給 null
+ * @param {Object} input.derived  derivePuttPhases() 的回傳值
+ * @param {Object} input.values   setValues() 吃的那一份（含 ballSpeed）
+ * @param {string} input.ballSpeedReason  球速不出現的原因代碼，沒有就給空字串
+ * @param {Object} input.tips     {source:'db'|'file', count}
+ * @param {Array}  input.classes  buildDetailSummary().classes
+ * @returns {Object} setDetail() 吃的一組：{title, verdict, rows:[{key, val}], metrics:[]}
+ */
+function buildPuttStatusGroup(input) {
+    const o = input || {};
+    const d = o.derived || {};
+    const values = o.values || {};
+    const rows = [];
+    const add = function (key, val) { rows.push({ key: key, val: val }); };
+    const whyText = function (codes) {
+        return codes.map(function (c) {
+            if (c === 'reason') {
+                return '分期原因 ' + ((d.reason === null || d.reason === undefined) ? '沒有值' : (d.reason || '（空字串）'));
+            }
+            return PUTT_WHY_TEXTS[c] || c;
+        }).join('、');
+    };
+
+    const h = o.header;
+    if (h) {
+        if (h.status) add('判定狀態', h.status + (h.reason ? '（' + h.reason + '）' : ''));
+        if (h.view) {
+            const label = { front: '正面', side: '側面' }[h.view];
+            add('視角', label ? label + '（' + h.view + '）' : h.view);
+        }
+        if (h.threshold_profile) add('門檻版本', h.threshold_profile);
+    }
+
+    add('界標品質', d.status ? d.status + (d.reason ? '／' + d.reason : '') : '沒有分析結果');
+    if (typeof d.detectionRate === 'number') add('偵測率', String(d.detectionRate));
+    // ⚠️ 只在顯示時取兩位小數，⛔ 推導與換算用的仍然是原值
+    add('幀率', (d.fps > 0) ? Number(d.fps.toFixed(2)) + ' fps' : '推不出來');
+
+    const trustWhy = d.trustWhy || {};
+    ['address', 'top', 'impact', 'finish', 'onset'].forEach(function (k) {
+        const codes = trustWhy[k] || ['no_analysis'];
+        add(PUTT_MARK_LABELS[k], codes.length === 0 ? '可信' : '不可信：' + whyText(codes));
+    });
+
+    const valueWhy = explainPuttValues(d);
+    add('節奏比', values.tempoRatio
+        ? '顯示 ' + values.tempoRatio
+        : '不顯示：' + whyText(valueWhy.tempoRatio));
+    if (d.tempoReason) {
+        add('節奏比原因代碼', d.tempoReason
+            + (String(d.tempoReason).indexOf('onset_fallback_address') >= 0 ? '（上桿時間改從架桿起算）' : ''));
+    }
+    add('總時長', values.totalDuration
+        ? '顯示 ' + values.totalDuration + ' 秒'
+        : '不顯示：' + whyText(valueWhy.totalDuration));
+
+    const speedWhy = o.ballSpeedReason || '';
+    add('球速', values.ballSpeed
+        ? '顯示 ' + values.ballSpeed + ' mph'
+        : '不顯示' + (speedWhy ? '：' + (PUTT_BALL_SPEED_WHY[speedWhy] || speedWhy) : ''));
+
+    if (o.tips) {
+        add('建議文字', (o.tips.source === 'db' ? '資料庫 ' : '檔案內建 ') + o.tips.count + ' 條'
+            + (o.tips.source === 'db' && o.tips.count === 0 ? '（表是空的或查不到）' : ''));
+    }
+
+    (o.classes || []).forEach(function (c) {
+        const parts = [PUTT_CLASS_STATE_TEXTS[c.state] || c.state];
+        if (c.confidence) parts.push('信心 ' + c.confidence);
+        if (c.flags && c.flags.length) parts.push('旗標 ' + c.flags.join('、'));
+        // ⛔ 還沒接上的欄位不列代碼、不解釋
+        if (c.na && c.na !== 'not_computed') parts.push(c.na);
+        if (c.why) parts.push(c.why);
+        add(c.short, parts.join('，'));
+    });
+
+    return { title: '狀態', verdict: '', rows: rows, metrics: [] };
 }
 
 
@@ -408,15 +573,18 @@ class PuttPanelManager {
      *    否則點進去才發現是空的。
      *
      * @param {Object} groups key 是分頁 key，值是
-     *        {title, verdict, metrics:[{name, value, note, kind}]}
+     *        {title, verdict, empty, metrics:[{name, value, note, kind}], rows:[{key, val}], note}
      *        kind: 'decides' | 'reference' | 'na'
+     *        empty: 整類算不出來（⚠️ 底下可能仍有參考數值，所以不能只看列數）
+     *        rows: 「狀態」分頁那種「項目：內容」的列
      */
     setDetail(groups) {
         this.detailGroups = groups || {};
         const self = this;
         this.detailEl.querySelectorAll('.putt-detail-tab').forEach(function (btn) {
             const g = self.detailGroups[btn.dataset.tabKey];
-            const empty = !g || !g.metrics || g.metrics.length === 0;
+            const hasRows = !!g && ((g.metrics && g.metrics.length > 0) || (g.rows && g.rows.length > 0));
+            const empty = !g || g.empty === true || !hasRows;
             btn.classList.toggle('is-empty', empty && btn.dataset.tabKey !== 'status');
         });
         const active = this.detailEl.querySelector('.putt-detail-tab.is-active')
@@ -442,6 +610,13 @@ class PuttPanelManager {
             + '<span>' + this.esc(group.title) + '</span>'
             + '<span class="verdict">' + this.esc(group.verdict || '') + '</span>'
             + '</div>';
+
+        (group.rows || []).forEach(function (r) {
+            html += '<div class="putt-status-row">'
+                + '<span class="status-key">' + this.esc(r.key) + '</span>'
+                + '<span class="status-val">' + this.esc(r.val) + '</span>'
+                + '</div>';
+        }, this);
 
         (group.metrics || []).forEach(function (m) {
             // ⭐ 「參考，不判定」（decides:false）很重要：ex02 的肩線傾斜是 14.25°，
@@ -545,75 +720,5 @@ const PUTT_PANEL_DEV_DATA = {
         //    ⭐ 這裡留一個值只為了讓這支 manager 單獨跑（驗收程式）時畫得出來。
         //    ⛔ 算不出來就給 null → setValues() 會讓整列不出現（⛔ 不是顯示「—」）。
         ballSpeed: '4.6',
-    },
-
-    detail: {
-        status: {
-            title: '狀態',
-            verdict: '',
-            metrics: [
-                { name: '判定狀態',           value: 'evaluated',            note: '', kind: 'reference' },
-                { name: '視角',               value: '正面',                 note: '', kind: 'reference' },
-                { name: '界標品質',           value: 'OK',                   note: '', kind: 'reference' },
-                { name: 'reason 代碼',        value: '（無）',               note: '', kind: 'reference' },
-                { name: 'threshold_profile',  value: 'putting_issue_th_v1',  note: '', kind: 'reference' },
-            ],
-            note: '這個分頁還要放「為什麼某一格沒出現」的說明，例如哪幾顆界標不可信、為什麼。',
-        },
-        stance: {
-            title: '站姿',
-            verdict: '判定：正常',
-            metrics: [
-                { name: '兩腳張開寬度（相對肩寬）', value: '0.6812', note: '門檻 0.4〜0.8', kind: 'decides' },
-                { name: '兩腳踝間距（相對肩寬）',   value: '0.8807', note: '參考，不判定', kind: 'reference' },
-                { name: '兩腳外緣寬度（相對肩寬）', value: '1.2114', note: '參考，不判定', kind: 'reference' },
-                { name: '鞋子寬度佔比',             value: '0.2651', note: '量測品質',     kind: 'reference' },
-            ],
-        },
-        triangle: {
-            title: '三角形變動',
-            verdict: '判定：有風險',
-            metrics: [
-                { name: '球桿偏離手臂方向－上桿段', value: '1.75°',  note: '參考，不判定',  kind: 'reference' },
-                { name: '球桿偏離手臂方向－下桿段', value: '10.15°', note: '門檻 10.0',     kind: 'decides' },
-                { name: '球桿偏離手臂方向－送桿段', value: '4.23°',  note: '門檻 5.0',      kind: 'decides' },
-                { name: '手肘彎曲程度（相對架桿時）', value: '7.82°', note: '門檻 20.0',    kind: 'decides' },
-                // ⚠️ 這兩列示範「metrics 各有自己的 applicable」，類別是有問題，
-                //    底下仍可能有某一列算不出來
-                { name: '雙手相對雙肩的左右偏移',   value: '本次未取得', note: 'not_computed', kind: 'na' },
-                { name: '收桿時肩膀寬度變化',       value: '本次未取得', note: 'not_computed', kind: 'na' },
-            ],
-        },
-        // ⚠️ 這一類整類算不出來 → 分頁鈕會自動變成 .is-empty，
-        //    ⛔ 不要讓人點進去才發現是空的
-        ball_position: {
-            title: '球位',
-            verdict: '本次無法判定',
-            metrics: [],
-        },
-        body_sway: {
-            title: '身體位移',
-            verdict: '判定：有風險',
-            metrics: [
-                { name: '下桿左右移動量',       value: '0.2225', note: '門檻 0.0533',  kind: 'decides' },
-                { name: '上桿左右移動量',       value: '0.0844', note: '參考，不判定', kind: 'reference' },
-                { name: '大腿傾斜角度',         value: '3.07°',  note: '參考，不判定', kind: 'reference' },
-                { name: '移動量／雜訊倍數',     value: '75.1',   note: '量測品質',     kind: 'reference' },
-                { name: '骨盆寬度（量測基準）', value: '本次未取得', note: 'not_computed', kind: 'na' },
-            ],
-        },
-        swing_angle: {
-            title: '身體傾斜',
-            verdict: '判定：正常',
-            metrics: [
-                { name: '上半身傾斜角度（相對架桿時）', value: '1.04°', note: '門檻 3.0',     kind: 'decides' },
-                // ⭐ 這一列就是那個例子：看起來很大，但系統只算不判。
-                //    ⛔ 這種數字放主畫面會被誤讀成問題。
-                { name: '肩膀連線的傾斜角度',           value: '8.52°', note: '參考，不判定', kind: 'reference' },
-                { name: '架桿前的角度抖動',             value: '0.10°', note: '量測品質',     kind: 'reference' },
-                { name: '上半身中線長度（相對肩寬）',   value: '2.22',  note: '參考，不判定', kind: 'reference' },
-                { name: '頭部相對軀幹的角度變化倍數',   value: '本次未取得', note: 'not_computed', kind: 'na' },
-            ],
-        },
     },
 };

@@ -92,15 +92,19 @@ const PUTT_METRIC_SEGMENT_LABELS = {
  * ⚠️⚠️ **`landmark_missing` 一定會出現在真資料上**（關節點看不到很常見）。
  *      ⛔ 絕對不可以把它落進一句籠統的「未取得畫面」——
  *      它的原因是**關節點看不到**，⛔ 不是沒取到畫面，⛔ 講錯就是編一個原因出來。
+ *
+ * ⚠️ 有兩句刻意跟產生器的原句不同，從產生器重新同步時⛔ 不要蓋回去：
+ *    · not_computed 是空字串：還沒接上的欄位⛔ 不解釋，那一列也⛔ 不列。
+ *    · club_not_at_address 只講結果：原句會被讀成「球員架桿時沒拿桿」。
  * ===================================================================== */
 const PUTT_NA_TEXTS = {
     '':                        '',
     view_not_supported:        '非正面拍攝，本期只支援正面',
-    not_computed:              '這一項尚未接上，之後會補',
+    not_computed:              '',
     ball_not_detected:         '畫面中找不到球',
     ball_detected:             '有偵測到球，不需要用桿頭當下界',
     head_bound_inconclusive:   '只能從桿頭推出球的位置範圍，而那個範圍跨過判定線',
-    club_not_at_address:       '架桿時球桿不在球員手上，無法定位',
+    club_not_at_address:       '無法定位球的位置',
     club_not_detected:         '畫面中找不到球桿，無法用桿頭推出範圍',
     direction_unknown:         '推不出目標方向',
     segment_unavailable:       '這一段在這支影片上取不到足夠的畫面',
@@ -179,6 +183,7 @@ class PuttingIssuesManager {
      *     phases:      {address, top, impact, finish, onset, trust:{...}} 跳段用
      *     consistency: {title, note}
      *     tips:        （選用）已經查好的文案
+     *     header:      （選用）{status, reason, view, threshold_profile}，只給「狀態」分頁用
      *   }
      */
     render(data) {
@@ -509,13 +514,16 @@ class PuttingIssuesManager {
      *      landmark_missing 的原因是關節點看不到，⛔ 不是沒取到畫面。
      */
     segmentNote(issue) {
+        const self = this;
         const parts = [];
         (issue.metrics || []).forEach(function (m) {
             if (m.decides !== true || m.applicable === true) return;
+            // ⛔ 還沒接上的欄位不列、不解釋
+            if (m.na === 'not_computed') return;
             // 講「是哪一項」：有段名就用段名，否則用 Core 給的 metric 標題
             const tail = String(m.key || '').split('.').pop();
             const who = PUTT_METRIC_SEGMENT_LABELS[tail] || m.title || '部分項目';
-            const why = PUTT_NA_TEXTS[m.na];
+            const why = self.naTextForCode(m.na);
             // ⚠️ 代碼不在那 11 個裡面（Core 之後新增的）→ ⛔ 絕不可以編一個原因，
             //    只講「這一項沒有納入判定」—— 那是從 decides/applicable 直接推得的事實。
             parts.push(why ? who + '：' + why : who + '本次沒有納入判定');
@@ -523,15 +531,122 @@ class PuttingIssuesManager {
         return parts.length ? '（' + parts.join('；') + '）' : '';
     }
 
+    /* =================================================================
+     * 〔詳細數值〕面板的內容
+     *
+     * ⭐ 畫面由 puttPanelManager 畫，這裡只把 issues 整理成它吃的形狀。
+     * ⚠️ 要在 render() 之後呼叫：用的是 render() 排好、算好的 this.items，
+     *    主畫面拿掉的原因（item.naText、item.note）就從那裡來，⛔ 不要另外再算一次。
+     * ================================================================= */
+
+    /**
+     * @returns {{groups:Object, classes:Array, tips:{source:string, count:number}}}
+     *   groups  分頁 key → {title, verdict, empty, metrics:[{name, value, note, kind}], note}
+     *   classes 每一類的狀態摘要，給「狀態」分頁用（五類固定順序）
+     *   tips    文案從哪裡來（db／file）、載到幾條
+     */
+    buildDetailSummary() {
+        const self = this;
+        const raw = {};
+        ((this.data && this.data.issues) || []).forEach(function (issue) {
+            if (issue && issue['class']) raw[issue['class']] = issue;
+        });
+
+        const ordered = this.items.slice().sort(function (a, b) {
+            return self.classOrderIndex({ 'class': a.key }) - self.classOrderIndex({ 'class': b.key });
+        });
+
+        const groups = {};
+        const classes = [];
+        ordered.forEach(function (it) {
+            const issue = raw[it.key] || {};
+            // 不適用講原因；正常但某一段沒量到講那一段
+            const why = (it.state === 'na') ? (it.naText || '') : (it.note || '');
+            groups[it.key] = {
+                title: it.title,
+                verdict: { issue: '判定：有風險', normal: '判定：正常', na: '無法判定' }[it.state],
+                // ⚠️ 整類不適用時分頁鈕要看得出來 —— ⛔ 不看底下還有沒有參考數值
+                //    （例：球位判不出來，桿頭邊緣位置仍然有值）
+                empty: it.state === 'na',
+                metrics: self.buildDetailMetrics(issue.metrics),
+                note: why,
+            };
+            classes.push({
+                key: it.key,
+                short: it.short,
+                state: it.state,
+                confidence: issue.confidence || '',
+                flags: Array.isArray(issue.flags) ? issue.flags : [],
+                na: issue.na || '',
+                why: why,
+            });
+        });
+
+        const tips = this.data && this.data.tips;
+        return {
+            groups: groups,
+            classes: classes,
+            tips: tips
+                ? { source: 'db', count: Object.keys(tips).length }
+                : { source: 'file', count: Object.keys(PUTT_ISSUE_TIPS).length },
+        };
+    }
+
+    /**
+     * metrics[] → 詳細數值的列。
+     *
+     * ⛔ 門檻⛔ 不寫死，一律照 bands 原樣列出。
+     *    ⛔ 也⛔ 不從 bands 推「正常區間」或「觸發的是哪一條」——
+     *    那要知道刻度的極性（站姿與球位是雙側，其餘單側），bands 本身不帶這個資訊。
+     * ⭐ decides:false ＝ 照算、照輸出、⛔ 不判定 → 標「參考，不判定」。
+     *    看起來很大的數字（例：肩線傾斜）標了才不會被讀成問題。
+     * ⚠️ metrics 每一列各有自己的 applicable → 算不出來的那一列講原因。
+     * ⛔ na 是 not_computed（還沒接上的欄位）整列不列。
+     */
+    buildDetailMetrics(metrics) {
+        const self = this;
+        const rows = [];
+        (metrics || []).forEach(function (m) {
+            if (!m || m.na === 'not_computed') return;
+            const name = m.title || m.key || '';
+            if (m.applicable !== true) {
+                // ⚠️ 代碼不在表裡 → ⛔ 不編原因，只講沒有納入判定
+                const why = self.naTextForCode(m.na);
+                rows.push({ name: name, value: '', note: why || '本次沒有納入判定', kind: 'na' });
+            } else if (m.decides !== true) {
+                rows.push({ name: name, value: self.formatMetricValue(m), note: '參考，不判定', kind: 'reference' });
+            } else {
+                const bands = (Array.isArray(m.bands) && m.bands.length) ? '門檻 ' + m.bands.join(' / ') : '';
+                rows.push({ name: name, value: self.formatMetricValue(m), note: bands, kind: 'decides' });
+            }
+        });
+        return rows;
+    }
+
+    /** 值 ＋ 單位。⛔ 不另外 round，照 Core 給的位數。 */
+    formatMetricValue(m) {
+        if (typeof m.value !== 'number' || !isFinite(m.value)) return '';
+        const suffix = (m.unit === 'deg') ? '°' : (m.unit === 'pct') ? '%' : '';
+        return String(m.value) + suffix;
+    }
+
+    /** na 代碼 → 白話原因。代碼不在表裡回空字串。 */
+    naTextForCode(code) {
+        return Object.prototype.hasOwnProperty.call(PUTT_NA_TEXTS, code) ? PUTT_NA_TEXTS[code] : '';
+    }
+
     /**
      * 不適用那一行的白話原因。
-     * ⭐ 類別層的 na_text 本來就帶中文，⛔ 直接讀，⛔ 不要自己改寫。
-     * ⚠️ na_text 空的才退回用 na 代碼查（同一份 11 句，⛔ 兩層講同一句話）。
+     * ⭐ 代碼在 PUTT_NA_TEXTS 裡就用那一句 —— metrics 層沒有 na_text、只能查表，
+     *    ⛔ 兩層要講同一句話，教練才不會以為是兩件事。
+     * ⚠️ 代碼不在表裡（Core 之後新增的）才用類別層 Core 給的 na_text。
      */
     naText(issue) {
-        return (issue && issue.na_text)
-            || (issue && PUTT_NA_TEXTS[issue.na])
-            || '';
+        if (!issue) return '';
+        if (Object.prototype.hasOwnProperty.call(PUTT_NA_TEXTS, issue.na)) {
+            return PUTT_NA_TEXTS[issue.na];
+        }
+        return issue.na_text || '';
     }
 
     naReason(issue) {
@@ -953,7 +1068,17 @@ function loadPuttDevIssues(fallback) {
             // ⚠️ 六支是 Core 的原始輸出：有 issues，⛔ 沒有 overall
             //    （9/3 版還沒有那一欄）→ 給 null，render() 會走暫代規則。
             //    ⛔ 不要在這裡自己補一個 overall 進去。
-            return Object.assign({}, fallback, { issues: raw.issues, overall: null });
+            // ⚠️ 表頭那幾欄只給〔詳細數值〕的「狀態」分頁用，⛔ 主畫面不顯示。
+            return Object.assign({}, fallback, {
+                issues: raw.issues,
+                overall: null,
+                header: {
+                    status: raw.status,
+                    reason: raw.reason,
+                    view: raw.view,
+                    threshold_profile: raw.threshold_profile,
+                },
+            });
         })
         .catch(function (err) {
             // ⚠️ 讀不到就退回內建那一份，⛔ 不要讓整個右欄空著 ——

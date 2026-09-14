@@ -61,6 +61,8 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 //    下面取出來會是空字串 → JS 給 null → setValues() 讓整列不出現。
 JSONObject puttValues = puttingShotData.processPuttValues(shot_data_id);
 String puttBallSpeed = puttValues.optString("ballSpeed", "");
+// 球速不出現的原因代碼（not_found／not_sent／sentinel），只給〔詳細數值〕的「狀態」分頁
+String puttBallSpeedReason = puttValues.optString("ballSpeedReason", "");
 
 // ⭐ 建議文字改從資料庫查（工項 15）—— putting_issue_tip，18 條一次撈完讀進記憶體快取，
 //    ⛔ 不是一張卡片查一次資料庫。
@@ -481,6 +483,7 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 		//    setValues() 會讓整列不出現（⛔ 不是顯示「—」、⛔ 不是顯示 0）。
 		const puttBallSpeedReal = '<%= puttBallSpeed %>';
 		puttPanelData.values.ballSpeed = puttBallSpeedReal !== '' ? puttBallSpeedReal : null;
+		const puttBallSpeedReason = '<%= puttBallSpeedReason %>';
 
 		// ⭐ 建議文字改從資料庫查（工項 15）—— 整包丟給 manager 的 data.tips。
 		// ⭐ 換來源只換 lookupTip() 一個接縫，⛔ 渲染那一段一行都沒有動。
@@ -667,7 +670,8 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 			// 左欄下半（⚠️ 界標與數值列在下面那一段，要等界標欄位讀進來才填）
 			// ⚠️ 先把數值列全部收起來，⛔ 不要讓空白的標籤列在推導完成前露出來
 			puttPanelManager.setValues(null);
-			puttPanelManager.setDetail(puttPanelData.detail);
+			// 詳細數值要等卡片算完才填（下面那一段）
+			puttPanelManager.setDetail(null);
 
 			// 數值面板 ⇄ 詳細數值面板
 			document.getElementById('puttPanelToggle')
@@ -692,9 +696,10 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 				puttFrameRate = derived.fps;
 				puttPanelManager.setMarks(derived.phases, derived.trust);
 				// ⚠️ 節奏比與總時長跟界標吃同一份推導結果；球速來自 shot_data，另外帶進來
-				puttPanelManager.setValues(Object.assign({}, derivePuttValues(derived), {
+				const values = Object.assign({}, derivePuttValues(derived), {
 					ballSpeed: puttPanelData.values.ballSpeed,
-				}));
+				});
+				puttPanelManager.setValues(values);
 
 				return loadPuttDevIssues(puttIssuesData).then(function (issuesData) {
 					issuesData.phases = {
@@ -707,6 +712,20 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 						trust: derived.trust,
 					};
 					puttIssuesManager.render(issuesData);
+
+					// 詳細數值：跟主畫面吃同一份界標推導、同一份卡片結果，
+					// ⛔ 不要另外再算一次 —— 兩邊講的原因要一致。
+					const summary = puttIssuesManager.buildDetailSummary();
+					puttPanelManager.setDetail(Object.assign({
+						status: buildPuttStatusGroup({
+							header: issuesData.header || null,
+							derived: derived,
+							values: values,
+							ballSpeedReason: puttBallSpeedReason,
+							tips: summary.tips,
+							classes: summary.classes,
+						}),
+					}, summary.groups));
 				});
 			});
 		}

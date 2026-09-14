@@ -88,53 +88,51 @@ public class PuttingShotData {
 	 * @param shot_data_id 網址 ?expert= 帶進來的擊球 ID
 	 * @return JSONObject；⭐ 某一格算不出來或不可信時**那個鍵就不存在**
 	 *         （⛔ 不是填 "—"、⛔ 不是填 0）→ 頁面端 setValues() 會讓整列不出現。
+	 *         球速不出現時改放 ballSpeedReason（代碼見 ballSpeedReason()），
+	 *         ⛔ 只給〔詳細數值〕的「狀態」分頁，⛔ 主畫面不顯示。
 	 */
 	public JSONObject processPuttValues(Long shot_data_id) {
 		JSONObject values = new JSONObject();
-		if (shot_data_id == null) {
-			return values;
-		}
+		PuttShot shot = (shot_data_id == null) ? null : queryThisPutt(shot_data_id);
 
-		PuttShot shot = queryThisPutt(shot_data_id);
-		if (shot == null) {
-			// ⛔ 查不到這一推 → 整列不出現，⛔ 不要塞預設值
-			return values;
-		}
-
-		String ballSpeed = formatBallSpeed(shot);
-		if (ballSpeed != null) {
-			values.put("ballSpeed", ballSpeed);
+		String reason = ballSpeedReason(shot);
+		if (reason.isEmpty()) {
+			// ⚠️ 單位（mph）寫在 jsp 的標籤括號裡，⛔ 這裡只回數字
+			values.put("ballSpeed", String.format("%.1f", shot.ballSpeed));
+		} else {
+			values.put("ballSpeedReason", reason);
 		}
 		return values;
 	}
 
 	/**
-	 * 球速這一格該顯示什麼，⛔ 不可信時回 null（呼叫端就不放這個鍵 → 整列不出現）。
+	 * 球速這一格為什麼不可信。可信時回空字串。
+	 *
+	 *   not_found   查不到這一推
+	 *   not_sent    欄位是 NULL，或 E6 沒送（存成 0）
+	 *   sentinel    E6 的上限哨兵值（160 配 120），⛔ 不是量到的
 	 *
 	 * ⚠️⚠️ 那幾個數值欄位在 Java 裡宣告成 float、預設 0.0f
 	 *      → **E6 沒送的欄位會存成 0，⛔ 不是 NULL** → ⛔ 只檢查 null 是不夠的。
 	 * ⚠️ 但「0 是不是合法值」⛔ 各欄不同：桿面角與出球方向的 0 是合法的（桿面正、球直直出去），
 	 *    ⛔ 球速的 0 ⛔ 不是 —— 球沒有動就不存在這一推。
 	 *    ⭐ 實測 12857 筆推桿⛔ 沒有任何一筆球速是 0 或 NULL，所以 0 只會是沒送。
+	 * ⚠️ 哨兵值那種列⛔ 不會報錯：0.4 呎的推配 160 mph 照樣渲染得出來。
 	 */
-	private static String formatBallSpeed(PuttShot shot) {
-		Float speed = shot.ballSpeed;
-
-		// ⛔ 欄位是 NULL、或 E6 沒送（存成 0）→ 整列不出現
-		if (speed == null || speed <= 0f) {
-			return null;
+	private static String ballSpeedReason(PuttShot shot) {
+		if (shot == null) {
+			return "not_found";
 		}
-
-		// ⛔ E6 的上限哨兵值（160 配 120）⛔ 不是量到的 → 整列不出現。
-		//    ⚠️ 這種列⛔ 不會報錯：0.4 呎的推配 160 mph 照樣渲染得出來。
+		Float speed = shot.ballSpeed;
+		if (speed == null || speed <= 0f) {
+			return "not_sent";
+		}
 		if (speed >= E6_BALL_SPEED_SENTINEL
 				&& shot.clubHeadSpeed != null
 				&& shot.clubHeadSpeed == E6_CLUB_HEAD_SPEED_SENTINEL) {
-			return null;
+			return "sentinel";
 		}
-
-		// ⚠️ 單位（mph）寫在 jsp 的標籤括號裡，⛔ 這裡只回數字
-		return String.format("%.1f", speed);
+		return "";
 	}
 
 	/**

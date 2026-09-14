@@ -614,6 +614,14 @@ video {
 .putt-metric-row.is-na .metric-name {
     color: #c3c9cc;
 }
+/* 算不出來的那一列沒有值、原因可能很長 → 原因那一欄可以換行，⛔ 不要把名稱擠掉 */
+.putt-metric-row.is-na .metric-value {
+    min-width: 0;
+}
+.putt-metric-row.is-na .metric-note {
+    flex: 0 1 55%;
+    min-width: 0;
+}
 
 /* 「狀態」分頁：判定狀態、視角、界標品質、信心、threshold_profile、
    所有 reason 代碼，以及「為什麼某一格沒出現」的說明 */
