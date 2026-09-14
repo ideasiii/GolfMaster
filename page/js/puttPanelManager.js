@@ -12,7 +12,8 @@
  * ═══ 資料從哪裡來 ═══
  * ⭐ 界標與 fps 由 derivePuttPhases() 從 shot_video_swing 的
  *    PuttingPhases / PuttingTempo 兩欄的原始字串推導出來。
- * ⚠️ 節奏比、總時長與詳細數值目前仍是 PUTT_PANEL_DEV_DATA（檔案最下面）的假資料。
+ * ⭐ 節奏比與總時長由 derivePuttValues() 從同一份推導結果算出來。
+ * ⚠️ 詳細數值目前仍是 PUTT_PANEL_DEV_DATA（檔案最下面）的假資料。
  */
 
 /* =====================================================================
@@ -168,6 +169,46 @@ function derivePuttPhases(phasesColumn, tempoColumn) {
     };
 }
 
+/**
+ * 總時長可以顯示的 reason 白名單。
+ * ⛔ 只有這幾種時 total_duration_sec 才是「這一推花了多久」：
+ *    head_lost / impact_missing 那一格裝的是整支影片長度，
+ *    empty_trajectory / exception 是 0.0，看起來會像一支極短的推擊。
+ * ⛔ 不可以改成黑名單 —— exception: 是動態前綴，列舉擋不完。
+ */
+const PUTT_DURATION_REASONS = [
+    '', 'head_flicker', 'top_missing', 'address_missing', 'finish_missing', 'marginal_rate',
+];
+
+/**
+ * 數值列要顯示的文字。算不出來或不可信就給 null，那一列整列不出現。
+ *
+ * 總時長：reason 在白名單裡、而且是正數才顯示，用的是 PuttingPhases 那一欄的值。
+ *
+ * 節奏比：分子（頂點 − 起桿）與分母（碰球 − 頂點）兩端都掛在頂點上，
+ *    所以頂點不可信時整個比值都不可信 → 看 trust.top。
+ *    ⛔ 不可以只看 tempo_ratio 有沒有值：低幀率時下桿可能只剩一幀，
+ *    比值會變成幾十比一，而那時 tempo_ratio 照樣有值。
+ *
+ * @param {Object} derived derivePuttPhases() 的回傳值
+ */
+function derivePuttValues(derived) {
+    const d = derived || {};
+
+    const dur = d.totalDurationSec;
+    const durationOk = PUTT_DURATION_REASONS.indexOf(d.reason) >= 0
+        && typeof dur === 'number' && isFinite(dur) && dur > 0;
+
+    const ratio = d.tempoRatio;
+    const ratioOk = !!(d.trust && d.trust.top === true)
+        && typeof ratio === 'number' && isFinite(ratio) && ratio > 0;
+
+    return {
+        tempoRatio: ratioOk ? ratio.toFixed(2) + ' : 1' : null,
+        totalDuration: durationOk ? dur.toFixed(2) : null,
+    };
+}
+
 
 class PuttPanelManager {
 
@@ -196,19 +237,11 @@ class PuttPanelManager {
             this.marksEl.querySelectorAll('.step button[data-phase]').forEach(function (btn) {
                 btn.addEventListener('click', function (e) {
                     const target = e.currentTarget;
-                    // ⚠️ 不可信的那顆：**點得下去，但⛔ 不跳**。
-                    //    ⛔ 外觀完全不變（user 2026-09-10 兩次裁示：
-                    //    鈕消失＝像 bug、調暗＝屏蔽按鈕，兩個都不要）。
-                    //    ⭐ 值是合法幀號，跳過去⛔ 不會出錯、只會安靜跳到錯的位置。
-                    //
-                    // ⚠️⚠️ 但「鈕看起來正常、點了卻沒反應」會被讀成什麼，
-                    //      前一輪⛔ 完全沒驗過，⛔ 有可能又被讀成「頁面壞了」
-                    //      （§1.3 第 9 點：空位就是這樣被讀成 bug 的）。
-                    //      → user 2026-09-10 裁示：⭐ 維持不跳，⛔ 但要講一句為什麼。
-                    //      ⚠️ 這一句是主畫面上除了綜合評價以外唯一的品質字眼，
-                    //      ⛔ 它只講「這一顆抓不到」，⛔ 不要擴寫成整支影片的品質評語。
+                    // ⚠️ 不可信的那顆：點得下去，⛔ 但不跳，⛔ 也不出任何文字。
+                    //    外觀完全不變 —— 消失會被讀成 bug，調暗會被讀成被屏蔽。
+                    //    ⛔ 絕對不可以真的跳過去：值是合法幀號，
+                    //    跳過去不會出錯，只會安靜跳到錯的位置。
                     if (target.classList.contains('is-untrusted')) {
-                        self.showMarkHint(target.dataset.phase);
                         return;
                     }
                     self.hideMarkHint();
@@ -302,28 +335,7 @@ class PuttPanelManager {
         }
     }
 
-    /**
-     * 不可信的那顆被點下去時講一句話（user 2026-09-10 裁示）。
-     *
-     * ⚠️ 鈕的外觀仍然⛔ 完全不變 —— 這一行只在「真的被點了」之後才出現，
-     *    ⛔ 不是常駐的品質標示，⛔ 也不是把鈕標成不可用。
-     * ⭐ 為什麼要有它：不跳是對的（值是合法幀號，跳過去會安靜跳到錯的位置），
-     *    ⛔ 但沉默會被讀成「頁面壞了」——§1.3 第 9 點已經栽過一次。
-     * ⚠️ 鈕上⛔ 不放中文（§1.3 第 1 點），⛔ 但這一句要講是哪一顆，
-     *    否則教練不知道剛剛按的是什麼。
-     */
-    showMarkHint(phase) {
-        if (!this.markHintEl) return;
-        const names = { A: '架桿', T: '頂點', I: '碰球', F: '收桿' };
-        const name = names[phase] || '這個階段';
-        // ⚠️⚠️ ⛔ 只講結果，⛔ 不解釋系統為什麼做不到（user 2026-09-10 裁示）。
-        //      ⛔ 原本寫的是「沒有抓到…，為了不跳到錯的位置，這顆鈕不跳」——
-        //      ⛔ 那是在跟教練講我們的內部限制。
-        //      ⭐ 為什麼不能跳，收進〔詳細數值〕的「狀態」分頁（§0.2、§2.9）。
-        this.markHintEl.textContent = '這一推無法跳到「' + name + '」';
-        this.markHintEl.classList.remove('hidden-element');
-    }
-
+    // ⚠️ 提示那一行一律保持隱藏：不可信的鈕被點時⛔ 不出任何文字。
     hideMarkHint() {
         if (!this.markHintEl) return;
         this.markHintEl.textContent = '';
@@ -507,14 +519,13 @@ function loadPuttDevPhases(fallback) {
  * ===================================================================== */
 const PUTT_PANEL_DEV_DATA = {
 
-    // ⚠️ 界標與 fps ⛔ 不再寫死 —— 這兩個字串就是 shot_video_swing 那兩欄的內容，
-    //    交給 derivePuttPhases() 推導。接上真資料時換掉這兩個字串即可。
-    // ⛔ 這一份刻意沒有 found：沒有 found 就代表界標一顆都不可信，
-    //    ⛔ 不要為了讓鈕會跳而自己補一個進去。
+    // ⚠️ 還沒有真的資料來源 → 兩欄當成「沒跑過」（SQL NULL）。
+    //    ⛔ 不可以放示範數字：沒帶 ?pp= 時每一推都會用這一份，
+    //    放了數字就會讓每一推都顯示同一個沒有依據的總時長。
+    //    推導結果：四顆都不可信、fps 是 null、節奏比與總時長整列不出現。
     source: {
-        PuttingPhases: '{"data":[88,231,279,324],"status":"OK","reason":"",'
-            + '"total_duration_sec":3.9333333333333336,"detection_rate":1.0,"onset":152}',
-        PuttingTempo: '{"tempo_ratio":1.646,"total_duration_sec":3.9333333333333336,"reason":""}',
+        PuttingPhases: null,
+        PuttingTempo: null,
     },
 
     // ⛔ 側面的幀號完全不可拿正面的來套（實測同一次推擊偏移是 35/36/22/60，不是常數）。
@@ -524,8 +535,9 @@ const PUTT_PANEL_DEV_DATA = {
     // ⚠️ 單位寫在 jsp 的 .unit 那一行（上桿 : 下桿／秒），
     //    ⛔ 這裡只放數字，⛔ 不要再把單位黏進來
     values: {
-        tempoRatio: '1.65 : 1',
-        totalDuration: '3.93',
+        // ⚠️ 這兩個由 derivePuttValues() 從界標欄位推導後覆蓋，⛔ 不要在這裡填數字
+        tempoRatio: null,
+        totalDuration: null,
         // ⚠️⚠️ 球速這一格的值**在 jsp 裡會被真資料覆蓋**（工項 12b，2026-09-11）——
         //    ⛔ 改這裡的數字對畫面沒有作用，⛔ 不要以為畫面上看到的是它。
         //    ⭐ 真的來源是 PuttingShotData.processPuttValues()（shot_data.BallSpeed，

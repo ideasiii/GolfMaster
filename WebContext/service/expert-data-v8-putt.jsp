@@ -383,7 +383,7 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 									     PuttingShotData.processPuttValues()，⛔ 沒有改 ShortGameData.java。
 									     ⭐ 球桿名稱⛔ 沒有寫死 —— 從這一推自己那一列取
 									     （017/018 存 'Putter'、1000 存 'P'，寫死其中一個另一台就撈不到）。
-									  ⚠️ 頁面上其餘兩列（節奏比、總時長）⛔ 仍然是假資料，要等工項 12。
+									  ⭐ 節奏比與總時長兩列由 derivePuttValues() 從分析結果推導，算不出來或不可信時整列不出現。
 									--%>
 									<div class="stat-row" data-value-key="ballSpeed">
 										<span class="stat-label">球速 (mph)</span>
@@ -471,7 +471,7 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 		const puttPanelData = PUTT_PANEL_DEV_DATA;
 		const puttIssuesData = PUTT_ISSUES_DEV_DATA;
 
-		// ⭐ 球速接真資料（工項 12b）—— ⛔ 界標、節奏比、總時長仍然是假資料。
+		// ⭐ 球速來自 shot_data。節奏比與總時長在 init() 裡由界標欄位推導後才填。
 		// ⭐ 接縫在這裡：Java 的值只在 jsp 裡取出來組成 JS 值再交給 manager，
 		//    ⛔ 三支 .js 裡⛔ 不放 Java、⛔ 不放 JSP scriptlet、⛔ 不放 JSP 運算式（user 指定）。
 		// ⚠️⚠️ 這一行的註解⛔ 不可以把 JSP 運算式的符號原樣寫出來 ——
@@ -664,8 +664,9 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 				},
 			});
 
-			// 左欄下半（⚠️ 界標在下面那一段，要等界標欄位讀進來才填）
-			puttPanelManager.setValues(puttPanelData.values);
+			// 左欄下半（⚠️ 界標與數值列在下面那一段，要等界標欄位讀進來才填）
+			// ⚠️ 先把數值列全部收起來，⛔ 不要讓空白的標籤列在推導完成前露出來
+			puttPanelManager.setValues(null);
 			puttPanelManager.setDetail(puttPanelData.detail);
 
 			// 數值面板 ⇄ 詳細數值面板
@@ -690,6 +691,10 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 				const derived = derivePuttPhases(source.PuttingPhases, source.PuttingTempo);
 				puttFrameRate = derived.fps;
 				puttPanelManager.setMarks(derived.phases, derived.trust);
+				// ⚠️ 節奏比與總時長跟界標吃同一份推導結果；球速來自 shot_data，另外帶進來
+				puttPanelManager.setValues(Object.assign({}, derivePuttValues(derived), {
+					ballSpeed: puttPanelData.values.ballSpeed,
+				}));
 
 				return loadPuttDevIssues(puttIssuesData).then(function (issuesData) {
 					issuesData.phases = {
