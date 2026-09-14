@@ -68,19 +68,26 @@ function derivePuttFps(data, totalDurationSec) {
 /**
  * 推導每一顆界標可不可信。
  *
- *     address / top / finish = found 說有找到  且  reason 允許
- *     impact                 = found 非空      且  reason 允許
+ *     四顆都是：found 說有定位到  且  reason 允許
  *
  * ⚠️ found 是唯一會給出信任的來源 → 沒有 found 的資料一顆都不可信，
  *    ⛔ 絕不可當成 true。found 是空物件 {} 也一樣 ——
- *    那代表分期在分級之前就結束了，⛔ 不是「三個都沒找到」。
+ *    那代表分期在建立任何一顆之前就結束了（空軌跡、桿頭追丟、例外）。
  *
- * ⚠️ impact 沒有、也不會有 found 布林：它找不到時分期直接早退，
- *    所以「found 非空」本身就表示 impact 有被找到。
- * ⛔ 但那只保證「有找到」，⛔ 不保證「找對」——
- *    impact 取的是全片速度最快的一幀、沒有範圍限制，
+ * ⚠️⚠️ found 的鍵**有沒有出現**跟**值是什麼**是兩件事：
+ *    有鍵 = 那一顆被評估過，值才說它有沒有被定位到；
+ *    ⛔ **缺鍵⛔ 不等於 false** —— 那是分期早退、根本沒走到那一步。
+ *    ⭐ 兩種都沒有依據 → 缺鍵一律當不可信。
+ *    偵測順序是 impact → top → address → finish，早退時後面那幾顆不會列出來。
+ *
+ * ⛔⛔ found.impact ⛔ 不可以單獨當跳段閘門：
+ *    它在**任何被評分的列上恆為 true**（另外三顆是從它推出來的，
+ *    走得到評分就表示它被定位過）。
+ *    ⛔ 它只說那一幀被定位過，⛔ 不說那一幀是對的 ——
+ *    碰球取的是全片速度最快的一幀、⛔ 沒有範圍限制，
  *    片中有撿球或試揮就會選錯，而那時 status 仍是 OK、reason 仍是空字串。
- *    ⭐ 那個缺口靠「▶ 看這一段」在現場檢查，⛔ 不是靠這裡擋。
+ *    ⭐ 真正在擋的是 reason 那一側，⛔ 不要把它拿掉只留 found。
+ *    ⭐ 剩下的缺口靠「▶ 看這一段」在現場檢查，⛔ 不是靠這裡擋。
  *
  * ⚠️ onset 跟 top 出自同一條桿頭軌跡，所以跟著 top 走，再加哨兵檢查（缺值 −1）。
  *    ⛔ onset 是 −1 時不要拿架桿代替 —— 中間是瞄準停頓，可能好幾秒。
@@ -105,7 +112,7 @@ function derivePuttTrust(phasesCol, fpsUsable) {
         address: foundSays('address') && gate.address === true,
         top:     foundSays('top')     && gate.top === true,
         finish:  foundSays('finish')  && gate.finish === true,
-        impact:  hasFound && gate.impact === true,
+        impact:  foundSays('impact') && gate.impact === true,
         onset:   false,
     };
     trust.onset = trust.top && typeof phasesCol.onset === 'number' && phasesCol.onset >= 0;
