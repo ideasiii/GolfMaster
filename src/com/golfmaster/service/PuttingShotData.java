@@ -70,26 +70,33 @@ public class PuttingShotData {
 		public Float ballSpeed;
 		public Float clubHeadSpeed;
 		public Float launchDirection;
+		public Float launchAngle;
+		public Float smashFactor;
 		public Float distToPinFt;
 		public Float totalDistFt;
 	}
 
 	/**
-	 * 右欄數值面板要的東西（工項 12b 目前只有球速一列）。
+	 * 這一推在頁面上要用的擊球數據。
 	 *
-	 * ⛔ 這一輪**只放球速**。桿面角與面路差已評估後排除，⛔ 不要「補回來」：
+	 * ballSpeed：右欄數值面板那一列。⭐ 不可信時**那個鍵不存在**（⛔ 不是填 "—"、⛔ 不是填 0）
+	 *   → 頁面端 setValues() 會讓整列不出現；改放 ballSpeedReason（代碼見 ballSpeedReason()），
+	 *   ⛔ 只給〔詳細數值〕的「狀態」分頁，⛔ 主畫面不顯示。
+	 *
+	 * shotCards：影片下方的擊球數據卡片（推桿距離、出球方向、發射角度、擊球效率）。
+	 *   ⭐ 原始量測值照搬，欄位是 NULL 或查不到這一推就是 null，頁面顯示「--」。
+	 *   ⚠️ 出球方向與發射角度的 0 是合法值（桿面正、球貼地出去），⛔ 不可以當成沒有值。
+	 *   ⚠️ 球速⛔ 不在卡片裡：同一個數字⛔ 不可以在畫面上出現兩次。
+	 *
+	 * ⛔ 評估後**不放**的，⛔ 不要「補回來」：
 	 *   · 揮桿路徑 ClubAnglePath —— 10052 筆推桿有 9911 筆是 0，E6 根本沒送這一欄。
 	 *   · 面路差（桿面角 − 揮桿路徑）—— ⛔ 減數整欄是空的，相減會得到一個
 	 *     **恰好等於桿面角**的數字卻被標成「面路差」，⛔ 不報錯、⛔ 畫面完全正常。
-	 *   · 桿面角 ClubAngleFace —— 在 017/018 有值，⛔ 但⛔ 不是每一台機器都給
-	 *     （LID 1000 那 100 筆推桿整欄是 0），只驗過一台就上會在別台變成一排 0。
-	 * ⚠️ 版面上限實測是 4 列，現在用掉 3 列（節奏比、總時長、球速）。
+	 *   · 桿面角 ClubAngleFace —— LID 1000 那 100 筆推桿整欄是 0。
+	 *   · 桿頭速度 ClubHeadSpeed —— LID 1000 那 100 筆推桿整欄是 120。
+	 *   · 總距離、飛行距離 —— 推桿的滾動是模擬器依草皮假設算的，⛔ 不是量到的。
 	 *
-	 * @param shot_data_id 網址 ?expert= 帶進來的擊球 ID
-	 * @return JSONObject；⭐ 某一格算不出來或不可信時**那個鍵就不存在**
-	 *         （⛔ 不是填 "—"、⛔ 不是填 0）→ 頁面端 setValues() 會讓整列不出現。
-	 *         球速不出現時改放 ballSpeedReason（代碼見 ballSpeedReason()），
-	 *         ⛔ 只給〔詳細數值〕的「狀態」分頁，⛔ 主畫面不顯示。
+	 * @param shot_data_id 這一推的 shot_data.id（⛔ 不是網址的 ?expert=）
 	 */
 	public JSONObject processPuttValues(Long shot_data_id) {
 		JSONObject values = new JSONObject();
@@ -102,7 +109,20 @@ public class PuttingShotData {
 		} else {
 			values.put("ballSpeedReason", reason);
 		}
+
+		JSONObject cards = new JSONObject();
+		cards.put("distToPinFt", numberOrNull(shot == null ? null : shot.distToPinFt));
+		cards.put("launchDirection", numberOrNull(shot == null ? null : shot.launchDirection));
+		cards.put("launchAngle", numberOrNull(shot == null ? null : shot.launchAngle));
+		// ⚠️ LID 1000 目前每一筆都是 1.33（桿頭速度固定 120 時的值），照模擬器給的顯示
+		cards.put("smashFactor", numberOrNull(shot == null ? null : shot.smashFactor));
+		values.put("shotCards", cards);
 		return values;
+	}
+
+	private static Object numberOrNull(Float value) {
+		// ⚠️ 用 Float 的字串轉 Double：直接轉會把 8.2 變成 8.199999809265137
+		return value == null ? JSONObject.NULL : Double.valueOf(value.toString());
 	}
 
 	/**
@@ -147,7 +167,7 @@ public class PuttingShotData {
 
 		// ⚠️ id 是 BIGINT，⛔ Java 這邊不可宣告成 Integer
 		String strSQL = "SELECT id, Player, ClubType, LID, Date, "
-				+ "BallSpeed, ClubHeadSpeed, LaunchDirection, DistToPinFt, TotalDistFt "
+				+ "BallSpeed, ClubHeadSpeed, LaunchDirection, LaunchAngle, SmashFactor, DistToPinFt, TotalDistFt "
 				+ "FROM golf_master.shot_data "
 				+ "WHERE id = ?";
 
@@ -171,7 +191,7 @@ public class PuttingShotData {
 	/**
 	 * 撈同一個球員、同一支球桿、同一個 LID 的最近幾推。
 	 *
-	 * ⭐ 給推桿穩定度圖（規劃 §2.10）用的底，⚠️ 這一輪⛔ 還沒有畫面在吃它。
+	 * ⭐ 給推桿穩定度圖（規劃 §2.10）用的底，⚠️ 目前⛔ 還沒有畫面在吃它。
 	 * ⛔ 撈幾推是**參數**，⛔ 不寫死。
 	 * ⛔ ShotData.queryShortGameData() 有一行 `if (maxRecords < 10) maxRecords = 10;`
 	 *    ——⛔ 推桿版⛔ 不照抄那一行：呼叫端要幾推就是幾推，⛔ 不要偷偷改大。
@@ -198,7 +218,7 @@ public class PuttingShotData {
 		ResultSet rs = null;
 
 		String strSQL = "SELECT id, Player, ClubType, LID, Date, "
-				+ "BallSpeed, ClubHeadSpeed, LaunchDirection, DistToPinFt, TotalDistFt "
+				+ "BallSpeed, ClubHeadSpeed, LaunchDirection, LaunchAngle, SmashFactor, DistToPinFt, TotalDistFt "
 				+ "FROM golf_master.shot_data "
 				+ "WHERE Player = ? "
 				+ "AND ClubType = ? "   // ⭐ 由 queryThisPutt() 取得，⛔ 不寫死
@@ -239,6 +259,8 @@ public class PuttingShotData {
 		shot.ballSpeed = nullableFloat(rs, "BallSpeed");
 		shot.clubHeadSpeed = nullableFloat(rs, "ClubHeadSpeed");
 		shot.launchDirection = nullableFloat(rs, "LaunchDirection");
+		shot.launchAngle = nullableFloat(rs, "LaunchAngle");
+		shot.smashFactor = nullableFloat(rs, "SmashFactor");
 		shot.distToPinFt = nullableFloat(rs, "DistToPinFt");
 		shot.totalDistFt = nullableFloat(rs, "TotalDistFt");
 		return shot;

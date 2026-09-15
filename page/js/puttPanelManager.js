@@ -181,9 +181,24 @@ function derivePuttPhases(phasesColumn, tempoColumn) {
 
     // ⚠️ 總時長用 phases 那一欄的；PuttingTempo 的那一份是從它抄過去的。
     const duration = phasesCol ? phasesCol.total_duration_sec : null;
-    const fps = derivePuttFps(data, duration);
+    // Core 有給 fps 就用它；舊資料沒有這個鍵時退回「(收桿 − 架桿) ÷ 總時長」
+    const coreFps = (phasesCol && typeof phasesCol.fps === 'number'
+        && isFinite(phasesCol.fps) && phasesCol.fps > 0) ? phasesCol.fps : null;
+    const fps = coreFps !== null ? coreFps : derivePuttFps(data, duration);
+    // 各界標的秒數：舊資料沒有這個鍵 → null；某一顆對不到時那一顆是 null
+    const rawSeconds = (phasesCol && phasesCol.seconds && typeof phasesCol.seconds === 'object')
+        ? phasesCol.seconds : null;
+    const seconds = rawSeconds ? {} : null;
+    if (rawSeconds) {
+        ['address', 'onset', 'top', 'impact', 'finish'].forEach(function (k) {
+            seconds[k] = (typeof rawSeconds[k] === 'number' && isFinite(rawSeconds[k])) ? rawSeconds[k] : null;
+        });
+    }
 
     return {
+        // ⚠️ 秒數只拿來跳影片；⛔ 有秒數⛔ 不代表那一顆可信，可信度一律看 trust
+        seconds: seconds,
+        fpsSource: coreFps !== null ? 'core' : (fps !== null ? 'derived' : null),
         // ⚠️ data 永遠是四個元素，多出來的界標一律走具名鍵
         phases: data
             ? { address: data[0], top: data[1], impact: data[2], finish: data[3] }
@@ -283,7 +298,34 @@ const PUTT_WHY_TEXTS = {
     top_untrusted:    '頂點不可信',
     onset_missing:    '沒有偵測到起桿',
     no_value:         '沒有值',
+    finish_at_clip_end: '收桿停在影片最後一幀',
 };
+
+/**
+ * 判定結果帶 finish_at_clip_end（收桿停在影片最後一幀）時，收桿改成不可信。
+ *
+ * ⚠️ 那時分期欄的 found.finish 照樣是 true，只看分期欄擋不住：
+ *    跳過去是影片的最後一幀，⛔ 不是收桿姿勢。
+ * ⚠️ 旗標只出現在有判定結果的正面影片（三角形、球位兩類）；沒有判定結果的影片擋不到。
+ * ⭐ 界標列、跳段、狀態分頁都要吃這個函式回傳的那一份，⛔ 不要只換其中一邊。
+ *
+ * @param {Object} derived derivePuttPhases() 的回傳值
+ * @param {Array}  issues  判定物件的 issues 陣列，沒有就給 [] 或 null
+ * @returns {Object} 沒有旗標時原樣回傳；有旗標時回傳新的一份，⛔ 不改傳進來的那一份
+ */
+function applyPuttFinishFlag(derived, issues) {
+    const flagged = (issues || []).some(function (it) {
+        return !!it && Array.isArray(it.flags) && it.flags.indexOf('finish_at_clip_end') >= 0;
+    });
+    if (!flagged) return derived;
+    const trustWhy = Object.assign({}, derived.trustWhy, {
+        finish: (derived.trustWhy && derived.trustWhy.finish ? derived.trustWhy.finish : []).concat(['finish_at_clip_end']),
+    });
+    return Object.assign({}, derived, {
+        trust: Object.assign({}, derived.trust, { finish: false }),
+        trustWhy: trustWhy,
+    });
+}
 
 const PUTT_BALL_SPEED_WHY = {
     not_found: '查不到這一推的擊球數據',
@@ -331,7 +373,9 @@ function buildPuttStatusGroup(input) {
     add('界標品質', d.status ? d.status + (d.reason ? '／' + d.reason : '') : '沒有分析結果');
     if (typeof d.detectionRate === 'number') add('偵測率', String(d.detectionRate));
     // ⚠️ 只在顯示時取兩位小數，⛔ 推導與換算用的仍然是原值
-    add('幀率', (d.fps > 0) ? Number(d.fps.toFixed(2)) + ' fps' : '推不出來');
+    add('幀率', (d.fps > 0)
+        ? Number(d.fps.toFixed(2)) + ' fps' + (d.fpsSource === 'core' ? '（Core 提供）' : '（由界標推算）')
+        : '推不出來');
 
     const trustWhy = d.trustWhy || {};
     ['address', 'top', 'impact', 'finish', 'onset'].forEach(function (k) {
@@ -648,43 +692,6 @@ class PuttPanelManager {
 }
 
 
-/**
- * ⛔ DEV ONLY：網址帶 ?pp= 就改讀 page/js/dev-data/putting-phases/fixtures.json
- * 裡的那一筆，沒帶就用 fallback。
- *
- * ?pp= 收兩種寫法：整數序號（0 起算），或影片檔名的一段（比對 stem）。
- * fixtures.json 由 dev-data/fixtures/build-putt-phases.js 產生，⛔ 不在版控。
- *
- * ⚠️ 一定回 Promise，⛔ 呼叫端不要分成同步與非同步兩條路。
- * ⛔ 讀不到就退回 fallback，⛔ 但一定要在 console 講一聲，
- *    ⛔ 不要安靜地換掉資料來源。
- */
-function loadPuttDevPhases(fallback) {
-    const which = new URLSearchParams(window.location.search).get('pp');
-    if (which === null || which === '') return Promise.resolve(fallback);
-
-    return fetch('../../page/js/dev-data/putting-phases/fixtures.json')
-        .then(function (res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(function (doc) {
-            const rows = doc.rows || [];
-            const idx = parseInt(which, 10);
-            const row = (String(idx) === which.trim() && rows[idx])
-                ? rows[idx]
-                : rows.filter(function (r) { return r.stem.indexOf(which) >= 0; })[0];
-            if (!row) throw new Error('找不到 ' + which);
-            console.log('[putt] 界標資料改讀 ' + row.stem + '（' + row.group + '）');
-            return { PuttingPhases: row.PuttingPhases, PuttingTempo: row.PuttingTempo };
-        })
-        .catch(function (err) {
-            console.warn('[putt] 讀不到界標範例，改用檔案內建那一份：' + err.message);
-            return fallback;
-        });
-}
-
-
 /* =====================================================================
  * ⛔ 以下是這一輪的開發用假資料，接上真資料後整段刪掉。
  *
@@ -694,9 +701,9 @@ function loadPuttDevPhases(fallback) {
  * ===================================================================== */
 const PUTT_PANEL_DEV_DATA = {
 
-    // ⚠️ 還沒有真的資料來源 → 兩欄當成「沒跑過」（SQL NULL）。
-    //    ⛔ 不可以放示範數字：沒帶 ?pp= 時每一推都會用這一份，
-    //    放了數字就會讓每一推都顯示同一個沒有依據的總時長。
+    // ⚠️ 兩欄當成「沒跑過」（SQL NULL）。頁面上的真資料由 jsp 從 PuttingData 取，
+    //    這一份只給單獨跑這支 manager（驗收程式）時用。
+    //    ⛔ 不可以放示範數字：放了就會出現一個沒有依據的總時長。
     //    推導結果：四顆都不可信、fps 是 null、節奏比與總時長整列不出現。
     source: {
         PuttingPhases: null,

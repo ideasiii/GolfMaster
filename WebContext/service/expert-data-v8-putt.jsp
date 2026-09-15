@@ -5,20 +5,15 @@
   ⛔ 檔名是 -putt.jsp，⛔ 不是 -putting.jsp（既有導覽鈕已經指這個名字）。
 
   ═══ 這一頁只放什麼 ═══
-  ⭐ 版面骨架 ＋ 標題 ＋ 不會隨每一推改變的固定標籤
-     （節奏比、總時長、界標名、分頁名、綜合評價、推桿風險…）。
-  ⛔ 會隨每一推改變的文字與數值⛔ 一律不寫在這裡，由兩支 manager 填：
-       page/js/puttPanelManager.js     左欄下半：界標列、數值面板、詳細數值六分頁
-       page/js/puttingIssuesManager.js 右欄：一致性、綜合評價、推桿風險
-     ⚠️ 檔名照 feedback_impl_spec.md §5.3 的命名，⛔ 不要改成別的。
-
-  ═══ 這一輪（§6.1 第 2 項）做到哪裡 ═══
-  ⭐ 頁首、影片區、影片輪詢、PDF modal 抄自 expert-data-v8-short.jsp，是真的、會動的。
-  ⚠️ 界標列、數值面板、卡片的內容全部來自兩支 manager 裡的假資料，只為了撐出版面。
-  ⛔ 卡片邏輯（四組分派、排序、三態、展開規則、跳段判斷）這一輪⛔ 沒有寫，
-     在 puttingIssuesManager.js 裡是標了 TODO 的空函式 —— ⛔ 不要因為畫面會動就以為做好了。
-  ⛔ 這一輪也不接 PuttingData.java（還沒有這個類別）、
-     ⛔ 不解除另外三個頁面 nav-putt 的 temporarily-disabled（那是 §6.1 第 10 項，一定放最後）。
+  ⭐ 版面骨架 ＋ 不會隨每一推改變的固定標籤 ＋ 後端的值 ＋ 把值交給各模組的接線。
+  ⛔ 會隨每一推改變的文字與數值、以及任何判斷邏輯⛔ 一律不寫在這裡，由各功能模組負責：
+       page/js/puttPanelManager.js        界標列、右欄數值面板、詳細數值面板（含界標推導）
+       page/js/puttingIssuesManager.js    推桿風險回饋、綜合評價
+       page/js/puttShotDataManager.js     影片下方：擊球數據卡片 ⇄ 回饋切換
+       page/js/puttConsistencyManager.js  推桿穩定度圖
+       page/js/puttVideoManager.js        影片跳幀、跳段、播放控制、影片輪詢換片
+  後端：PuttingData（界標兩欄 ＋ 判定結果）、PuttingShotData（擊球數據）、PuttingIssueTip（建議文字）。
+  ⛔ 不解除另外三個頁面 nav-putt 的 temporarily-disabled（一定放最後）。
 --%>
 <%@ page import="org.json.JSONObject"%>
 
@@ -27,6 +22,7 @@
 <%@ page import="com.golfmaster.service.ShotVideo"%>
 <%@ page import="com.golfmaster.service.PuttingShotData"%>
 <%@ page import="com.golfmaster.service.PuttingIssueTip"%>
+<%@ page import="com.golfmaster.service.PuttingData"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 
@@ -36,6 +32,7 @@
 <%!ShotVideo shotVideo = new ShotVideo();%>
 <%!PuttingShotData puttingShotData = new PuttingShotData();%>
 <%!PuttingIssueTip puttingIssueTip = new PuttingIssueTip();%>
+<%!PuttingData puttingData = new PuttingData();%>
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
@@ -54,15 +51,9 @@ boolean sideAnalyzReady = (boolean) temp[13];  // 側面影像分析是否完成
 boolean frontExpected = (boolean) temp[14];    // 廠商會送 front 影片 (raw_shotVideo_front)
 boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_shotVideo_side)
 
-// ⭐ 右欄數值面板的球速（工項 12b）—— 這一頁目前唯一接上真資料的數值。
-// ⭐ 來源是 shot_data.BallSpeed，E6 模擬器**碰球瞬間量到**的值（⛔ 不是模擬器滾出來的結果）。
-// ⚠️ shot_data 跟 Core 的影像分析是兩條線 → ⛔ 這一列不必等 fixture、⛔ 也不要去問 Core。
-// ⛔ 算不出來或不可信時 processPuttValues() 讓那個鍵**不存在**（⛔ 不是填 "—"、⛔ 不是填 0），
-//    下面取出來會是空字串 → JS 給 null → setValues() 讓整列不出現。
+// shot_data（E6 模擬器量到的）：右欄的球速、〔詳細數值〕的球速原因、影片下方的擊球數據卡片。
+// ⛔ 球速算不出來或不可信時那個鍵不存在（⛔ 不是填 "—"、⛔ 不是填 0）→ JS 讓整列不出現。
 JSONObject puttValues = puttingShotData.processPuttValues(shot_data_id);
-String puttBallSpeed = puttValues.optString("ballSpeed", "");
-// 球速不出現的原因代碼（not_found／not_sent／sentinel），只給〔詳細數值〕的「狀態」分頁
-String puttBallSpeedReason = puttValues.optString("ballSpeedReason", "");
 
 // ⭐ 建議文字改從資料庫查（工項 15）—— putting_issue_tip，18 條一次撈完讀進記憶體快取，
 //    ⛔ 不是一張卡片查一次資料庫。
@@ -71,6 +62,10 @@ String puttBallSpeedReason = puttValues.optString("ballSpeedReason", "");
 // ⚠️⚠️ R1：正式機還沒有這張表 → 那時這裡會是空的，⭐ 卡片照樣出現、只是沒有那段文字
 //    （規劃 §3.2）。⛔ 絕不可以讓它偷偷退回 js 檔裡那 18 條 —— 那樣「沒灌資料」會看起來完全正常。
 JSONObject puttTips = puttingIssueTip.tipsFor(null);
+
+// 推桿列的界標兩欄原始字串 ＋ 判定結果（putting_issue 沒有這一列時 issues 是 null）
+// ⛔ 這裡不做任何判斷，可信度與要不要顯示全部在 JS。
+JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 %>
 
 <%-- HTML --%>
@@ -88,6 +83,9 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 	<script src="../../page/js/headerNavManager.js"></script>
 	<script src="../../page/js/puttPanelManager.js"></script>
 	<script src="../../page/js/puttingIssuesManager.js"></script>
+	<script src="../../page/js/puttShotDataManager.js"></script>
+	<script src="../../page/js/puttConsistencyManager.js"></script>
+	<script src="../../page/js/puttVideoManager.js"></script>
 	<script src="../../page/js/lib/html2canvas.min.js"></script>
 	<script src="../../page/js/lib/jspdf.umd.min.js"></script>
 	<script src="../../page/js/lib/qrcode.min.js"></script>
@@ -117,8 +115,8 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 					下載 PDF
 				</button>
 			</div>
-			<%-- ⛔ DEV ONLY：接真資料後刪掉 --%>
-			<div class="dev-banner">版面草稿：界標列與右欄為假資料</div>
+			<%-- ⛔ DEV ONLY：上線前（解除三個 nav 停用那一輪）連同 ?ex= 一起刪掉 --%>
+			<div class="dev-banner">推桿穩定度圖為示意</div>
 		</div>
 
 		<div class="main-layout-container">
@@ -206,7 +204,37 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 				         ⭐ §2.6 那個核心互動反而更順。
 				  ⛔ 不要搬回右欄。
 				--%>
-				<div class="putt-feedback">
+				<%--
+				  ⭐ 這一塊比照 expert-data-v8.jsp / -short.jsp：擊球數據卡片 ⇄ 回饋。
+				     預設是卡片（data-mode）；判定完成時由 JS 切成回饋。
+				  ⚠️ 卡片的值與切換由 puttShotDataManager.js 負責，沒有值顯示「--」。
+				  ⛔ 球速⛔ 不放卡片：它在右欄數值面板，同一個數字⛔ 不可以出現兩次。
+				--%>
+				<div class="putt-feedback data-mode" id="puttFeedback">
+					<button class="motion-toggle-btn" id="puttFeedbackToggle" type="button" title="切換顯示">&#x21C4;</button>
+
+					<div class="putt-shot-cards" id="puttShotCards">
+						<div class="card">
+							<div class="title">推桿距離</div>
+							<div class="unit">ft</div>
+							<div class="number" data-card-key="distToPinFt">--</div>
+						</div>
+						<div class="card">
+							<div class="title">出球方向</div>
+							<div class="unit">°</div>
+							<div class="number" data-card-key="launchDirection">--</div>
+						</div>
+						<div class="card">
+							<div class="title">發射角度</div>
+							<div class="unit">°</div>
+							<div class="number" data-card-key="launchAngle">--</div>
+						</div>
+						<div class="card">
+							<div class="title">擊球效率</div>
+							<div class="unit"></div>
+							<div class="number" data-card-key="smashFactor">--</div>
+						</div>
+					</div>
 
 					<%--
 					  推桿風險（§2.5）— 標籤與內容都由 puttingIssuesManager 填
@@ -282,56 +310,7 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 					<div class="putt-consistency" id="puttConsistency">
 						<p class="box-title"></p>
 						<div class="putt-consistency-map">
-							<%--
-							  ⚠️ 這一頁通常投在模擬器的投影機上 —— 投影會把低對比整個吃掉。
-							     ⛔ 軸線與文字不可以用暗灰，字級也不要再往下調。
-
-							  ⭐ 計算方式（真的接資料時照這個做，⛔ 不要改成「離洞多遠」）：
-							     ⚠️⚠️ 兩軸都必須是**碰球瞬間量到的值**，⛔ 不可以用滾動後的結果：
-							       橫軸 ＝ shot_data.LaunchDirection 相對「自己的平均」（出球偏左／偏右）
-							       縱軸 ＝ shot_data.BallSpeed       相對「自己的平均」（推太強／推太弱）
-							     ⛔ 縱軸⛔ 不是距離 —— TotalDistFt 是模擬器用草皮摩擦係數滾出來的。
-							     ⛔ 也⛔ 不可以用 ShortGameData 的 landing_points：
-							       那是球飛行模型幾何反推的（carry × tan(方向) ＋ 側旋常數），對推桿三行全不成立。
-							     · 原點 ⊕ ＝ 這 N 推的**平均**，⛔ 不是洞、⛔ 不是目標
-							     · 每個點 ＝ 該推相對那個平均的偏移
-							     · 虛線圈 ＝ 散布範圍（一個標準差）
-							     ⚠️ 力道軸要**依 DistToPinFt 分層**（2 呎和 30 呎的球速本來就差很多），
-							       基準是「自己在同一個距離帶的平均」，⛔ 不是全域平均。
-							       ⛔ 樣本不足時標「資料不足、不畫」，⛔ 絕不可退回全域平均。
-							  ⭐ 顏色比照 shortTableManager.js（切桿頁的落點圖）：
-							     · 最新這一推 ＝ 亮綠 rgba(0,255,132,1)，半徑放大 ＋ 白框
-							     · 之前幾推   ＝ 亮黃 rgb(255,206,86)，越新 alpha 越高
-							     · 平均點與散布圈 ＝ 亮藍 rgb(54,162,235)
-							  ⚠️ alpha 這裡用 0.35〜0.90；切桿頁原本是 0.20〜0.60。
-							     ⛔ 不要調回 0.20 —— 這一頁投在投影機上，最舊那幾顆會看不見。
-							     · 軸標「偏長／偏短／偏左／偏右」都是**相對自己的平均**
-							  ⛔ 軸標⛔ 不可以寫「推太長／推太短」—— 那是在說這一推不準，
-							     而這張圖回答的是「這個人穩不穩」，⛔ 不是「這一推準不準」。
-							  ⛔ 圖上⛔ 不出現任何絕對距離數字（模擬器估的推桿距離不準）。
-							--%>
-							<svg viewBox="0 0 280 160" width="100%" height="100%" role="img" aria-label="推桿落點散布示意">
-								<line x1="140" y1="16" x2="140" y2="144" stroke="#8f979b" stroke-width="1.4"/>
-								<line x1="50" y1="80" x2="230" y2="80" stroke="#8f979b" stroke-width="1.4"/>
-								<text x="140" y="12" fill="#ffffff" font-size="15" text-anchor="middle">推太強</text>
-								<text x="140" y="157" fill="#ffffff" font-size="15" text-anchor="middle">推太弱</text>
-								<text x="46" y="85" fill="#ffffff" font-size="15" text-anchor="end">偏左</text>
-								<text x="234" y="85" fill="#ffffff" font-size="15" text-anchor="start">偏右</text>
-								<circle cx="137" cy="80" r="28" fill="none" stroke="rgba(54, 162, 235, 0.85)" stroke-width="1.4" stroke-dasharray="4 4"/>
-								<circle cx="122" cy="64" r="3.4" fill="rgba(255, 206, 86, 0.90)"/>
-								<circle cx="151" cy="72" r="3.4" fill="rgba(255, 206, 86, 0.83)"/>
-								<circle cx="134" cy="95" r="3.4" fill="rgba(255, 206, 86, 0.76)"/>
-								<circle cx="160" cy="88" r="3.4" fill="rgba(255, 206, 86, 0.69)"/>
-								<circle cx="118" cy="90" r="3.4" fill="rgba(255, 206, 86, 0.62)"/>
-								<circle cx="128" cy="78" r="3.4" fill="rgba(255, 206, 86, 0.56)"/>
-								<circle cx="156" cy="103" r="3.4" fill="rgba(255, 206, 86, 0.49)"/>
-								<circle cx="112" cy="72" r="3.4" fill="rgba(255, 206, 86, 0.42)"/>
-								<circle cx="143" cy="83" r="3.4" fill="rgba(255, 206, 86, 0.35)"/>
-								<circle cx="147" cy="55" r="5.2" fill="rgba(0, 255, 132, 1)" stroke="rgba(255,255,255,0.8)" stroke-width="1.6"/>
-								<circle cx="137" cy="80" r="8" fill="none" stroke="rgba(54, 162, 235, 1)" stroke-width="2.6"/>
-								<line x1="129" y1="80" x2="145" y2="80" stroke="rgba(54, 162, 235, 1)" stroke-width="2.6"/>
-								<line x1="137" y1="72" x2="137" y2="88" stroke="rgba(54, 162, 235, 1)" stroke-width="2.6"/>
-							</svg>
+							<%-- 內容由 puttConsistencyManager.js 畫 --%>
 						</div>
 						<div class="putt-consistency-legend"></div>
 					</div>
@@ -436,18 +415,17 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 		</div>
 
 	<script>
-		// ===== JSP Data to JS Variables =====
-		const frontVideoPathData = '<%= frontVideoPath %>';
-		const sideVideoPathData = '<%= sideVideoPath %>';
-
-		// 影像分析是否已在頁面載入時完成（id_analyzeVideo_X 有值）
+		// ===== 後端的值（由 org.json 產生，字串裡的斜線與引號已經跳脫）=====
+		// ⛔ 這個區塊的註解⛔ 不可以把 JSP 運算式的符號原樣寫出來 —— Jasper 照樣會把它當成空的運算式去編譯，整頁 500。
+		// ⚠️ frontAnalyzReady／sideAnalyzReady 這兩個名字 pdfDownloadManager.js 會直接讀，⛔ 不要改名、⛔ 不要搬進函式
 		const frontAnalyzReady = <%= frontAnalyzReady %>;
 		const sideAnalyzReady = <%= sideAnalyzReady %>;
-		// 廠商會送哪部影片（raw_shotVideo_X 有值）— 不送的那邊永遠不會 ready，不需追蹤
-		const frontExpected = <%= frontExpected %>;
-		const sideExpected = <%= sideExpected %>;
+		// 球速（沒有這個鍵＝不顯示）、球速不顯示的原因、擊球數據卡片
+		const puttValuesData = <%= puttValues.toString() %>;
+		// 界標兩欄的原始字串、判定物件（沒有判定結果是 null）
+		const puttAnalysisData = <%= puttAnalysis.toString() %>;
 
-		// 影片輪詢（等待轉檔完成）— 抄自 expert-data-v8-short.jsp，參數可在此調整
+		// ===== 各功能模組 =====
 		const videoPoller = new VideoPollManager({
 			statusUrl: 'VideoStatus',
 			shotDataId: '<%= shot_data_id %>',
@@ -456,277 +434,90 @@ JSONObject puttTips = puttingIssueTip.tipsFor(null);
 			initialDelay: 3000,   // 頁面載入後 3 秒開始檢查
 		});
 
-		// ===== Global DOM =====
-		const controlBtn = document.getElementById('play-pause');
-		const videoContainer = document.getElementById('videoContainer');
-		const video = document.getElementById('myvideo');
-		const canvas = document.getElementById('overlayCanvas');
+		const puttVideo = new PuttVideoManager({
+			frontVideoId: 'myvideo', sideVideoId: 'myvideo1',
+			frontCanvasId: 'overlayCanvas', sideCanvasId: 'overlayCanvas1',
+			frontContainerId: 'videoContainer', sideContainerId: 'videoContainer1',
+			playButtonId: 'play-pause',
+		});
 
-		const videoContainer1 = document.getElementById('videoContainer1');
-		const video1 = document.getElementById('myvideo1');
-		const canvas1 = document.getElementById('overlayCanvas1');
-
-		// ⚠️ 這一輪的資料來源是兩支 manager 裡的假資料。
-		//    ⛔ 之後要換成 PuttingData.java 組出來的物件（§6.3 第 14 項），
-		//    ⭐ 但保留「吃 JSON」那條路徑（用網址參數切換，像現有的 ?LLM=true），
-		//       判定模組第一次接真資料出事時可以重現。
-		const puttPanelData = PUTT_PANEL_DEV_DATA;
-		const puttIssuesData = PUTT_ISSUES_DEV_DATA;
-
-		// ⭐ 球速來自 shot_data。節奏比與總時長在 init() 裡由界標欄位推導後才填。
-		// ⭐ 接縫在這裡：Java 的值只在 jsp 裡取出來組成 JS 值再交給 manager，
-		//    ⛔ 三支 .js 裡⛔ 不放 Java、⛔ 不放 JSP scriptlet、⛔ 不放 JSP 運算式（user 指定）。
-		// ⚠️⚠️ 這一行的註解⛔ 不可以把 JSP 運算式的符號原樣寫出來 ——
-		//    ⛔ JSP ⛔ 不管 JavaScript 的 // 註解，Jasper 照樣會把它當成一個**空的運算式**
-		//    去編譯，整頁 500（2026-09-11 真的踩過：The method print(boolean) … is not applicable）。
-		// ⚠️ 空字串代表「查不到／E6 沒送／是哨兵值」→ ⛔ 一律給 null，
-		//    setValues() 會讓整列不出現（⛔ 不是顯示「—」、⛔ 不是顯示 0）。
-		const puttBallSpeedReal = '<%= puttBallSpeed %>';
-		puttPanelData.values.ballSpeed = puttBallSpeedReal !== '' ? puttBallSpeedReal : null;
-		const puttBallSpeedReason = '<%= puttBallSpeedReason %>';
-
-		// ⭐ 建議文字改從資料庫查（工項 15）—— 整包丟給 manager 的 data.tips。
-		// ⭐ 換來源只換 lookupTip() 一個接縫，⛔ 渲染那一段一行都沒有動。
-		// ⚠️⚠️ 只要這個物件**存在**，lookupTip() 就一律以它為準 ——
-		//    ⛔ 查不到⛔ 不會退回 js 檔裡那 18 條（那會讓沒建表看起來完全正常）。
-		// ⚠️ 六支範例那條路（?ex=）走的是 Object.assign({}, puttIssuesData, {...})，
-		//    ⭐ 所以它**也會沿用這裡設的 tips** —— ⛔ 不要以為 ?ex= 讀的是檔案裡那 18 條。
-		//    ⭐ 兩邊本來就是同一份 seed 的同 18 條，內容一致；
-		//    ⛔ 真正還會走檔案那一份的只有 page/js/dev-data/verify/*.js（⛔ 不經過 jsp）。
-		puttIssuesData.tips = <%= puttTips.toString() %>;
-
-		// ⚠️ 幀率由 derivePuttPhases() 從界標與總時長推導，⛔ 不是寫死的 60。
-		//    推不出來（總時長是 0 或 null）時是 null → 幀號換不成秒 → ⛔ 一律不跳。
-		//    ⚠️ 那時界標四顆本來就全部不可信，這裡是第二道防線。
-		let puttFrameRate = null;
-
-		// ===== 影片跳幀 =====
-		// ⛔ 兩支影片的幀號完全不可互換（實測同一次推擊偏移是 35/36/22/60，⛔ 不是常數）。
-		//    每支影片一定用它自己那一列的 PuttingPhases。
-		//    側面只在它自己也可信時才跟著跳；⛔ 不可信就不跳，也⛔ 不標示。
-		function goToPuttFrame(frontFrame) {
-			if (typeof frontFrame !== 'number' || isNaN(frontFrame)) return;
-			if (!(puttFrameRate > 0)) return;
-			seekVideo(video, frontFrame / puttFrameRate);
-
-			const sidePhases = puttPanelData.sidePhases;
-			if (sidePhases && typeof sidePhases.frameFor === 'function') {
-				// 之後接上側面那一列的 PuttingPhases 時走這裡
-				seekVideo(video1, sidePhases.frameFor(frontFrame) / puttFrameRate);
-			}
-
-			controlBtn.className = 'play';
-			controlBtn.innerText = 'Play';
-		}
-
-		function seekVideo(videoEl, time) {
-			if (videoEl.readyState >= 2) {
-				videoEl.pause();
-				videoEl.currentTime = time;
-			} else {
-				videoEl.addEventListener('loadedmetadata', function () {
-					videoEl.pause();
-					videoEl.currentTime = time;
-				});
-			}
-		}
-
-		// ⭐⭐「▶ 看這一段」——⛔ 這不是裝飾，是「碰球界標找錯」唯一的現場檢查手段（§2.6）。
-		//     跳到區間起點播到終點；教練看到的不是下桿，當場就會發現界標抓錯。
-		function playPuttSegment(startFrame, endFrame) {
-			if (!(puttFrameRate > 0)) return;
-			goToPuttFrame(startFrame);
-			const endTime = endFrame / puttFrameRate;
-			const stopAtEnd = function () {
-				if (video.currentTime >= endTime) {
-					video.pause();
-					video.removeEventListener('timeupdate', stopAtEnd);
-					controlBtn.className = 'play';
-					controlBtn.innerText = 'Play';
-				}
-			};
-			video.addEventListener('timeupdate', stopAtEnd);
-			video.play();
-			controlBtn.className = 'pause';
-			controlBtn.innerText = 'Pause';
-		}
-
-		// ===== Managers =====
 		const puttPanelManager = new PuttPanelManager({
 			marksId: 'puttMarks',
 			valuePanelId: 'puttValuePanel',
 			detailPanelId: 'puttDetailPanel',
-			// ⚠️ 不可信的界標被點下去時那一行提示（user 2026-09-10）
 			markHintId: 'puttMarkHint',
-			onSeekFrame: goToPuttFrame,
+			onSeekFrame: function (frame) { puttVideo.goToFrame(frame); },
 		});
 
 		const puttIssuesManager = new PuttingIssuesManager({
 			tabsId: 'puttIssueTabs',
 			panelId: 'puttIssuePanel',
 			overallId: 'puttOverall',
-			consistencyId: 'puttConsistency',
-			onSeekSegment: playPuttSegment,
+			onSeekSegment: function (from, to) { puttVideo.playSegment(from, to); },
 		});
 
-		// ===== 影片控制（抄自 expert-data-v8-short.jsp）=====
-		function toggleFullScreen(containerElement) {
-			if (!document.fullscreenElement) {
-				if (containerElement.requestFullscreen) {
-					containerElement.requestFullscreen();
-				} else if (containerElement.webkitRequestFullscreen) { // Safari
-					containerElement.webkitRequestFullscreen();
-				} else if (containerElement.msRequestFullscreen) { // IE11
-					containerElement.msRequestFullscreen();
-				}
-			} else if (document.exitFullscreen) {
-				document.exitFullscreen();
-			}
-		}
+		const puttShotData = new PuttShotDataManager({
+			feedbackId: 'puttFeedback',
+			cardsId: 'puttShotCards',
+			toggleId: 'puttFeedbackToggle',
+		});
 
-		function handleFullScreenChange() {
-			// 給瀏覽器一點時間更新 DOM 尺寸，再重算兩個畫布
-			setTimeout(function () {
-				resizeCanvas(video, canvas, null, false);
-				resizeCanvas(video1, canvas1, null, true);
-			}, 150);
-		}
+		const puttConsistency = new PuttConsistencyManager({ consistencyId: 'puttConsistency' });
 
-		function playPause() {
-			if (video.paused && video1.paused) {
-				video.play();
-				video1.play();
-				controlBtn.className = 'pause';
-				controlBtn.innerText = 'Pause';
-			} else {
-				video.pause();
-				video1.pause();
-				controlBtn.className = 'play';
-				controlBtn.innerText = 'Play';
-			}
-		}
-
-		function handleVideoEnd() {
-			if (video.ended && video1.ended) {
-				controlBtn.className = 'play';
-				controlBtn.innerText = 'Play';
-			} else if ((video.ended && !video1.paused) || (video1.ended && !video.paused)) {
-				controlBtn.className = 'pause';
-				controlBtn.innerText = 'Pause';
-			}
-		}
-
-		// ===== Initialization =====
+		// ===== 初始化：只負責把值依序交給各模組 =====
 		function init() {
-			window.addEventListener('resize', function () {
-				resizeCanvas(video, canvas, null, false);
-				resizeCanvas(video1, canvas1, null, true);
-			});
-
-			document.addEventListener('fullscreenchange', handleFullScreenChange);
-			document.addEventListener('webkitfullscreenchange', handleFullScreenChange);
-			document.addEventListener('mozfullscreenchange', handleFullScreenChange);
-			document.addEventListener('MSFullscreenChange', handleFullScreenChange);
-
-			if (videoContainer) {
-				video.addEventListener('dblclick', function () { toggleFullScreen(videoContainer); });
-			}
-			if (videoContainer1) {
-				video1.addEventListener('dblclick', function () { toggleFullScreen(videoContainer1); });
-			}
-			controlBtn.addEventListener('click', playPause);
-			video.addEventListener('ended', handleVideoEnd);
-			video1.addEventListener('ended', handleVideoEnd);
-
-			// ⛔ 推桿頁不畫揮桿平面覆蓋線 → swingPlaneData 傳 null（swingVideo.js 有防呆）
-			// ⚠️ 兩支都從第 0 幀開始。
-			//    ⛔ 這一輪⛔ 不要用 puttPanelData.phases.address 當起始幀 ——
-			//    那是 ex01 的假資料（88 幀 ÷ 60fps ≈ 1.47 秒），套到真影片上
-			//    會變成一載入就跳到影片中間，看起來像壞掉。
-			//    ⭐ 等 Core 的 fixture 有真的 PuttingPhases 之後，
-			//    再把正面那一支改成跳到自己那一列的架桿幀（§6.2 第 11 項）。
-			// ⚠️ 第 5 個參數是除數，但起始幀是 0（0 除以任何數都是 0）→ 用不到它。
-			//    ⛔ 這裡不可以填 60 —— 那是先前寫死的值，真的拿去換算會偏掉。
-			setupVideoEvents(video, canvas, null, 0, 1, false);
-			setupVideoEvents(video1, canvas1, null, 0, 1, true);
-
-			// 影片輪詢：轉檔完成就先換 src（不等分析），讓使用者更早看到自己的影片。
-			// ⛔ 推桿頁沒有 SwingPlane 覆蓋線要補，所以⛔ 不傳 onAnalysisUpdate。
-			videoPoller.start({
-				frontExpected: frontExpected,
-				sideExpected: sideExpected,
+			puttVideo.bindControls();
+			puttVideo.startPolling(videoPoller, {
+				frontExpected: <%= frontExpected %>,
+				sideExpected: <%= sideExpected %>,
 				frontReady: frontAnalyzReady,
 				sideReady: sideAnalyzReady,
-				onVideoReady: function (camera, url) {
-					const videoEl = (camera === 'front') ? video : video1;
-					const sourceEl = videoEl.querySelector('source');
-					if (!sourceEl || sourceEl.getAttribute('src') === url) return;
-					sourceEl.setAttribute('src', url);
-					videoEl.load();
-					console.log('[onVideoReady] swapped ' + camera + ' to ' + url);
-				},
 			});
 
-			// 左欄下半（⚠️ 界標與數值列在下面那一段，要等界標欄位讀進來才填）
-			// ⚠️ 先把數值列全部收起來，⛔ 不要讓空白的標籤列在推導完成前露出來
-			puttPanelManager.setValues(null);
-			// 詳細數值要等卡片算完才填（下面那一段）
-			puttPanelManager.setDetail(null);
+			puttConsistency.render();
 
-			// 數值面板 ⇄ 詳細數值面板
+			// 數值面板 ⇄ 詳細數值面板；推導完成前先全部收起來
+			puttPanelManager.setValues(null);
+			puttPanelManager.setDetail(null);
 			document.getElementById('puttPanelToggle')
 				.addEventListener('click', function () { puttPanelManager.toggle(); });
 			document.getElementById('puttDetailToggle')
 				.addEventListener('click', function () { puttPanelManager.toggle(); });
 
-			// 推桿風險 ＋ 綜合評價
-			// ⚠️ 界標與 onset 要一起傳進去 —— 「▶ 看這一段」靠它決定能不能跳，
-			//    ⛔ trust 一定要跟著走：兩端都可信才准跳，
-			//    ⛔ 而可信度絕對不可以改用「值存不存在」判斷（值是合法幀號）。
-			// ⛔ DEV ONLY：loadPuttDevIssues() 是網址參數切換六支範例那條路徑（R5），
-			//    接上 PuttingData.java（工項 14）之後換成後端送下來的物件即可，
-			//    ⭐ 三支 js ⛔ 一行都不用改。
-			// ⚠️ 界標、幀率與可信度全部由 derivePuttPhases() 從那兩欄的原始字串推導。
-			//    ⛔ loadPuttDevPhases() 是開發用的切換路徑，接上 PuttingData.java
-			//    之後改成把後端送下來的兩個字串直接傳給 derivePuttPhases() 即可。
-			// ⚠️⚠️ 界標列與「▶ 看這一段」⛔ 一定要吃同一份 trust，
-			//    ⛔ 只換其中一邊會讓卡片上的跳段鈕跳到不可信的幀。
-			loadPuttDevPhases(puttPanelData.source).then(function (source) {
-				const derived = derivePuttPhases(source.PuttingPhases, source.PuttingTempo);
-				puttFrameRate = derived.fps;
+			// 影片下方先顯示擊球數據卡片，判定結果畫完才決定要不要切成回饋
+			puttShotData.setCards(puttValuesData.shotCards);
+			puttShotData.showDefault(false);
+
+			const phases = derivePuttPhases(puttAnalysisData.PuttingPhases, puttAnalysisData.PuttingTempo);
+			const values = Object.assign({}, derivePuttValues(phases), {
+				ballSpeed: puttValuesData.ballSpeed || null,
+			});
+			puttPanelManager.setValues(values);
+
+			const issuesBase = Object.assign({}, PUTT_ISSUES_EMPTY_DATA, { tips: <%= puttTips.toString() %> });
+			// ⛔ DEV ONLY：網址帶 ?ex= 時改用範例檔蓋掉判定結果（判定模組出事時原地重現）
+			loadPuttDevIssues(applyPuttJudgement(issuesBase, puttAnalysisData.issues)).then(function (issuesData) {
+				// ⚠️⚠️ 界標列、跳段、狀態分頁⛔ 一定吃同一份 derived（含收桿停在片尾的旗標）
+				const derived = applyPuttFinishFlag(phases, issuesData.issues);
+				puttVideo.setFrameRate(derived.fps);
+				puttVideo.setLandmarkSeconds(Object.assign({ onset: derived.onset }, derived.phases), derived.seconds);
 				puttPanelManager.setMarks(derived.phases, derived.trust);
-				// ⚠️ 節奏比與總時長跟界標吃同一份推導結果；球速來自 shot_data，另外帶進來
-				const values = Object.assign({}, derivePuttValues(derived), {
-					ballSpeed: puttPanelData.values.ballSpeed,
-				});
-				puttPanelManager.setValues(values);
 
-				return loadPuttDevIssues(puttIssuesData).then(function (issuesData) {
-					issuesData.phases = {
-						address: derived.phases.address,
-						top: derived.phases.top,
-						impact: derived.phases.impact,
-						finish: derived.phases.finish,
-						// ⚠️ 起桿不做成按鈕，但上桿段跳段要用它
-						onset: derived.onset,
-						trust: derived.trust,
-					};
-					puttIssuesManager.render(issuesData);
+				issuesData.phases = Object.assign({ onset: derived.onset, trust: derived.trust }, derived.phases);
+				puttIssuesManager.render(issuesData);
+				puttShotData.showDefault(puttJudgementComplete(issuesData.header));
 
-					// 詳細數值：跟主畫面吃同一份界標推導、同一份卡片結果，
-					// ⛔ 不要另外再算一次 —— 兩邊講的原因要一致。
-					const summary = puttIssuesManager.buildDetailSummary();
-					puttPanelManager.setDetail(Object.assign({
-						status: buildPuttStatusGroup({
-							header: issuesData.header || null,
-							derived: derived,
-							values: values,
-							ballSpeedReason: puttBallSpeedReason,
-							tips: summary.tips,
-							classes: summary.classes,
-						}),
-					}, summary.groups));
-				});
+				const summary = puttIssuesManager.buildDetailSummary();
+				puttPanelManager.setDetail(Object.assign({
+					status: buildPuttStatusGroup({
+						header: issuesData.header || null,
+						derived: derived,
+						values: values,
+						ballSpeedReason: puttValuesData.ballSpeedReason || '',
+						tips: summary.tips,
+						classes: summary.classes,
+					}),
+				}, summary.groups));
 			});
 		}
 

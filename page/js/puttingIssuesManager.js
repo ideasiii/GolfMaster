@@ -2,11 +2,11 @@
  * @fileoverview puttingIssuesManager.js — 推桿頁的卡片管理。
  *
  * 管的範圍（一個功能一支 js）：
- *   ① 推桿穩定度（標題與圖說）                規劃文件 §2.10
- *   ② 綜合評價                              規劃文件 §2.7
- *   ③ 推桿風險（三態 ＋ 分頁切換 ＋ 跳段）      規劃文件 §2.5、§2.6
+ *   ① 綜合評價                              規劃文件 §2.7
+ *   ② 推桿風險（三態 ＋ 分頁切換 ＋ 跳段）      規劃文件 §2.5、§2.6
  *
- * ⛔ 不管界標列與數值面板 —— 那些在 puttPanelManager.js。
+ * ⛔ 不管的：界標列與數值面板（puttPanelManager.js）、推桿穩定度圖（puttConsistencyManager.js）、
+ *    擊球數據卡片 ⇄ 回饋切換（puttShotDataManager.js）、影片控制（puttVideoManager.js）。
  * ⚠️ 檔名照 feedback_impl_spec.md §5.3 的命名，⛔ 不要改成別的。
  * 規劃文件：docs/expert-data-v8-putt-plan.md
  * 上一輪紀錄：docs/expert-data-v8-putt-session-04-08.md
@@ -109,7 +109,46 @@ const PUTT_NA_TEXTS = {
     direction_unknown:         '推不出目標方向',
     segment_unavailable:       '這一段在這支影片上取不到足夠的畫面',
     landmark_missing:          '判定所需的關節點在畫面中看不到',
+    ball_not_in_place:         '球未到擊球位置',
 };
+
+
+/* 沒有判定結果時回饋那一面的一行字。⛔ 只講狀態，⛔ 不接原因（原因在〔詳細數值〕）。 */
+const PUTT_NOT_ANALYZED_TEXT = '尚未分析';
+
+/**
+ * 這一推算不算「判定完成」：putting_issue 有這一列，而且狀態是
+ * evaluated（已判定）或 not_applicable（整支不適用，例如側面）。
+ * 查不到、或 not_computed（判定模組沒跑）都不算。
+ *
+ * @param {Object} header {status, …}；沒有判定結果時是 null
+ */
+function puttJudgementComplete(header) {
+    return !!header && (header.status === 'evaluated' || header.status === 'not_applicable');
+}
+
+/**
+ * 把後端組好的判定物件（PuttingData.processPutting() 的 issues）套進 render() 要的資料。
+ * ⛔ 沒有判斷邏輯，只搬欄位；判定物件是 null（沒有判定結果）時原樣回傳 base。
+ * ⚠️ 表頭只給〔詳細數值〕的「狀態」分頁；view 來自 shot_video_swing 那一列。
+ *
+ * @param {Object} base    render() 的資料骨架（tips 等已經放好）
+ * @param {Object} judged  判定物件，或 null
+ * @returns {Object} 新的物件，⛔ 不改 base
+ */
+function applyPuttJudgement(base, judged) {
+    if (!judged) return base;
+    return Object.assign({}, base, {
+        issues: judged.issues || [],
+        overall: judged.overall,
+        header: {
+            status: judged.status,
+            reason: judged.reason,
+            view: judged.view,
+            threshold_profile: judged.threshold_profile,
+        },
+    });
+}
 
 
 class PuttingIssuesManager {
@@ -119,14 +158,12 @@ class PuttingIssuesManager {
      * @param {string} opts.tabsId          標籤列容器 id
      * @param {string} opts.panelId         內容容器 id（一次只畫一類）
      * @param {string} opts.overallId       綜合評價容器 id
-     * @param {string} opts.consistencyId   一致性區塊 id
      * @param {Function} opts.onSeekSegment 「▶ 看這一段」按下去時呼叫，參數 (起幀, 迄幀)
      */
     constructor(opts) {
         this.tabsEl = document.getElementById(opts.tabsId);
         this.panelEl = document.getElementById(opts.panelId);
         this.overallEl = document.getElementById(opts.overallId);
-        this.consistencyEl = document.getElementById(opts.consistencyId);
         this.onSeekSegment = opts.onSeekSegment || function () {};
         this.items = [];
     }
@@ -181,7 +218,6 @@ class PuttingIssuesManager {
      *     overall:     Core 的 overall（⚠️ 還沒交 → 給 null，這裡會走暫代）
      *     quality:     影片品質不足時的那一行字（⚠️ 現在一律空字串）
      *     phases:      {address, top, impact, finish, onset, trust:{...}} 跳段用
-     *     consistency: {title, note}
      *     tips:        （選用）已經查好的文案
      *     header:      （選用）{status, reason, view, threshold_profile}，只給「狀態」分頁用
      *   }
@@ -190,41 +226,10 @@ class PuttingIssuesManager {
         this.data = data || {};
         const issues = this.data.issues || [];
 
-        this.renderConsistency(this.data.consistency);
         this.renderOverall(this.resolveOverall(issues));
 
         // ⭐ 分派與排序在這裡跑一次，⛔ 不要散進 render 的其他地方。
         this.renderIssues(this.classifyAndSort(issues));
-    }
-
-    /* =================================================================
-     * ① 推桿穩定度（§2.10）
-     *
-     * ⭐ 圖上⛔ 不出現任何絕對距離數字 —— 模擬器估的推桿距離不準，
-     *    但「彼此散得多開」可信（系統性誤差對每一球都一樣，會互相抵消）。
-     *    這張圖回答「這個人穩不穩」，⛔ 不是「這一推準不準」。
-     * ⛔ 不做雷達圖（推桿只有 3 個站得住的維度）、⛔ 不做曲線球。
-     * ⛔ 後旋／側旋／擊球效率／飛行距離⛔ 不顯示，對推桿無意義。
-     * ⚠️ 撈幾推是參數，⛔ 不寫死（切桿現在是寫死 10）。
-     * ⚠️ 落點圖本身排在第一階段之後（§6.4），現在只填標題與圖說。
-     * ================================================================= */
-    renderConsistency(consistency) {
-        if (!this.consistencyEl || !consistency) return;
-        const titleEl = this.consistencyEl.querySelector('.box-title');
-        const legendEl = this.consistencyEl.querySelector('.putt-consistency-legend');
-
-        // ⚠️ 標題講這張圖回答什麼（穩不穩），⛔ 不要寫成「最近 N 推」——
-        //    那只講了資料範圍，沒講這張圖在回答什麼。
-        if (titleEl) titleEl.textContent = consistency.title;
-
-        // ⚠️ 圖說只留一行、字要少。⛔ 不要再列四個記號 ——
-        //    ⊕ 在正中央、舊球本來就比較淡，⛔ 不必逐一解釋。
-        if (legendEl) {
-            legendEl.innerHTML =
-                '<span class="mk mk-new">●</span> 最新一推'
-                + '<span class="mk mk-avg">⊕</span> 平均'
-                + '<span class="mk"></span>' + this.esc(consistency.note);
-        }
     }
 
     /* =================================================================
@@ -771,6 +776,14 @@ class PuttingIssuesManager {
         if (!this.tabsEl || !this.panelEl) return;
         this.items = items || [];
 
+        // 沒有判定結果（查不到、或判定模組沒跑）→ 一行，⛔ 不接原因
+        if (this.items.length === 0) {
+            this.tabsEl.innerHTML = '';
+            this.tabsEl.classList.add('hidden-element');
+            this.panelEl.innerHTML = '<div class="putt-na-all">' + PUTT_NOT_ANALYZED_TEXT + '</div>';
+            return;
+        }
+
         // 5 項全部不適用 → 併成一行，⛔ 不要列五個都寫同一個原因的標籤
         const allNa = this.items.length > 0 && this.items.every(function (it) {
             return it.state === 'na';
@@ -1052,7 +1065,7 @@ const PUTT_DEV_EXAMPLES = {
  * 網址帶 ?ex=exNN 就改讀那一支範例，沒帶就用 fallback。
  * ⚠️ 一定回 Promise，⛔ 呼叫端不要分成同步與非同步兩條路。
  *
- * @param {Object} fallback 讀不到時用的那一份（PUTT_ISSUES_DEV_DATA）
+ * @param {Object} fallback 讀不到時用的那一份（PUTT_ISSUES_EMPTY_DATA）
  */
 function loadPuttDevIssues(fallback) {
     const which = new URLSearchParams(window.location.search).get('ex');
@@ -1090,101 +1103,23 @@ function loadPuttDevIssues(fallback) {
 
 
 /* =====================================================================
- * ⛔ 以下是開發用假資料，接上真資料後整段刪掉（連同 jsp 頁首那個 .dev-banner）。
+ * 沒有判定結果時的底稿（⛔ 不是示範資料）。
  *
- * ⚠️⚠️ 這一份現在是 **Core 原始的形狀**（issues 陣列直接照 putting_issue 的五欄），
- *      ⛔ 不再是「已經排好序、標好狀態」的清單 ——
- *      ⭐ 這樣 classifyAndSort() / decideState() / pickDefaultOpen() 才真的會跑到。
- *
- * ⭐ 六支範例在 page/js/dev-data/putting/（⛔ 不在版控，見 .gitignore），
- *    網址帶 ?ex=ex03 之類就會改讀那一支（jsp 的 loadPuttDevIssues()）。
- *    ⚠️ 這裡這一份只是 fetch 失敗時的退路（例如 dev-data 沒有一起部署），
- *    內容是 ex01 的骨架 —— ⛔ 只留頁面真的會讀的欄位，⛔ 不是完整的 ex01。
+ * jsp 以它為底，有判定結果時用 applyPuttJudgement() 蓋上去；
+ * ?ex= 讀不到範例檔時也退回這一份。
+ * ⛔ 不可以放示範卡片或示範數字：放了就會讓沒有判定結果的每一推都顯示同一組內容。
  * ===================================================================== */
-const PUTT_ISSUES_DEV_DATA = {
+const PUTT_ISSUES_EMPTY_DATA = {
 
-    consistency: {
-        // ⚠️ 撈幾推是參數，⛔ 不寫死（切桿現在是寫死 10）
-        recentCount: 10,
-        // ⚠️ 標題講「回答什麼」，⛔ 不是講資料範圍
-        title: '推桿穩定度',
-        // ⛔ 這句⛔ 不可以講成「準不準」—— 模擬器估的推桿距離不準，
-        //    但「彼此散得多開」可信，所以這張圖只能回答「穩不穩」。
-        note: '越集中越穩定',
-    },
-
-    // ⚠️⚠️ Core 的 overall 欄還沒交（六支是 9/3 版）→ 這裡給 null，
-    //    render() 會走 computeOverallTemp() 的暫代規則。
-    //    ⭐ Core 一交就把這裡換成它的值，暫代那一段整段刪掉。
+    // 沒有判定結果 → null。⛔ 絕不可以填成 stable
     overall: null,
 
     // ⚠️ 「影片品質不足，結果僅供參考」user 指示先不顯示（2026-09-09）。
     //    ⛔ 程式路徑與樣式都留著，接真資料時由 Core 說品質不足才填。
     quality: '',
 
-    /* ---- ex01 的骨架（⚠️ 只留頁面會讀的欄位）--------------------------
-     * class / applicable / na_text / detected / grade / subtypes / metrics
-     * ⚠️ 順序刻意照 Core 輸出的原順序（站姿→三角形→球位→位移→傾斜），
-     *    ⛔ 不是排好序的結果 —— 排序要由 classifyAndSort() 自己跑出來。
-     * ⭐ ex01 的預期：三角形變動／球位／身體位移三張有風險（都在第 2 組），
-     *    站姿與身體傾斜正常。沒有第 1 組 → pickDefaultOpen() 回 null
-     *    → 退路選排序後的第一個（三角形變動）。
-     */
-    issues: [
-        {
-            'class': 'stance', title: '站姿', applicable: true, na_text: '',
-            detected: false, grade: 'normal', subtypes: [],
-            metrics: [
-                { key: 'stance_gap_ratio', decides: true, applicable: true, na: '' },
-            ],
-        },
-        {
-            'class': 'triangle', title: '上半身穩定度', applicable: true, na_text: '',
-            detected: true, grade: 'mild',
-            subtypes: [
-                {
-                    code: 'T3', segment: 'downswing', grade: 'mild',
-                    title: '下桿段：球桿脫離手臂帶動的方向',
-                    tip_id: 'triangle.T3.downswing.mild',
-                },
-            ],
-            metrics: [
-                { key: 'axis_shaft_angle_deg.downswing', decides: true, applicable: true, na: '' },
-                // ⚠️ decides:false 的參考欄位算不出來⛔ 不註記 —— 六支每一支都是
-                //    not_computed，每張卡註記一次只會變成雜訊（segmentNote()）。
-                { key: 'hands_vs_shoulders_shift', decides: false, applicable: false, na: 'not_computed' },
-            ],
-        },
-        {
-            'class': 'ball_position', title: '球位', applicable: true, na_text: '',
-            detected: true, grade: null,
-            subtypes: [
-                { code: 'B2', segment: null, grade: null, title: '球位偏後', tip_id: 'ball_position.B2' },
-            ],
-            metrics: [
-                { key: 'ball_position_pct', decides: true, applicable: true, na: '' },
-            ],
-        },
-        {
-            'class': 'body_sway', title: '身體晃動', applicable: true, na_text: '',
-            detected: true, grade: null,
-            subtypes: [
-                {
-                    code: 'W0', segment: 'downswing', grade: null,
-                    title: '下半身左右移動（主要在下桿）',
-                    tip_id: 'body_sway.W0.downswing',
-                },
-            ],
-            metrics: [
-                { key: 'hip_lateral_shift.downswing', decides: true, applicable: true, na: '' },
-            ],
-        },
-        {
-            'class': 'swing_angle', title: '身體傾斜角度', applicable: true, na_text: '',
-            detected: false, grade: 'normal', subtypes: [],
-            metrics: [
-                { key: 'midline_tilt_deg', decides: true, applicable: true, na: '' },
-            ],
-        },
-    ],
+    // ⚠️ 沒有判定結果。頁面上的真資料由 jsp 從 PuttingData 取；
+    //    ?ex= 讀不到範例檔時也退回這一份 → 顯示「尚未分析」。
+    //    ⛔ 不可以放示範卡片：放了就會讓沒有判定結果的每一推都顯示同一組風險。
+    issues: [],
 };
