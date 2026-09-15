@@ -256,6 +256,7 @@ function derivePuttValues(derived) {
  * 數值列不顯示的原因代碼，顯示的那一列是空陣列。
  * ⚠️ derivePuttValues() 就是由它決定的，⛔ 兩邊不可以各寫一套條件。
  *
+ *   no_analysis     沒有分析結果（分期欄沒跑過）；這時只列這一個，其餘條件都無從談起
  *   reason          （總時長）reason 不在白名單裡
  *   no_value        不是正數
  *   top_untrusted   （節奏比）頂點不可信
@@ -266,6 +267,13 @@ function explainPuttValues(derived) {
     const positive = function (v) {
         return typeof v === 'number' && isFinite(v) && v > 0;
     };
+
+    // 跟界標那幾列同一個判斷（explainPuttTrust() 的 no_analysis）
+    if (d.trustWhy && (d.trustWhy.top || []).indexOf('no_analysis') >= 0) {
+        why.tempoRatio.push('no_analysis');
+        why.totalDuration.push('no_analysis');
+        return why;
+    }
 
     if (PUTT_DURATION_REASONS.indexOf(d.reason) < 0) why.totalDuration.push('reason');
     if (!positive(d.totalDurationSec)) why.totalDuration.push('no_value');
