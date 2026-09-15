@@ -360,6 +360,13 @@ video {
     align-items: center;
     box-sizing: border-box;
 }
+/* Chart.js 的 canvas 要有一個量得到尺寸的外框才會填滿 */
+.putt-consistency-canvas {
+    position: relative;
+    align-self: stretch;
+    flex: 1 1 auto;
+    min-height: 150px;
+}
 .putt-consistency-legend {
     flex: 0 0 auto;
     text-align: center;

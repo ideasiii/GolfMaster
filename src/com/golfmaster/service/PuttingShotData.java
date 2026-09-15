@@ -35,6 +35,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.golfmaster.common.DBUtil;
@@ -120,6 +121,39 @@ public class PuttingShotData {
 		return values;
 	}
 
+	/**
+	 * 推桿穩定度圖：同一個 Player、同一支球桿的最近幾推（含這一推），新的在前。
+	 *
+	 * 回傳 {"currentId": 這一推的 id, "shots": [{"id", "ballSpeed", "launchDirection"}, …]}。
+	 * 查不到這一推時 shots 是空陣列。
+	 * ⚠️ 球速不可信（沒送、哨兵值）或出球方向是 NULL 的推⛔ 不放進來，所以筆數可能少於 maxRecords。
+	 * ⚠️ 不分推的距離：距離不同的推混在一起時，散得開也可能只是距離不同。
+	 *
+	 * @param shot_data_id 這一推的 shot_data.id
+	 * @param maxRecords   最多撈幾推
+	 * @param sameLidOnly  true：只撈同一個 LID（各廠商量測標準可能不同）；false：不限 LID
+	 */
+	public JSONObject processPuttConsistency(Long shot_data_id, int maxRecords, boolean sameLidOnly) {
+		JSONObject result = new JSONObject();
+		JSONArray list = new JSONArray();
+		PuttShot shot = (shot_data_id == null) ? null : queryThisPutt(shot_data_id);
+		result.put("currentId", shot == null ? JSONObject.NULL : Long.valueOf(shot.id));
+
+		if (shot != null) {
+			List<PuttShot> shots = queryRecentPutts(shot.player, shot.clubType,
+					sameLidOnly ? shot.lid : null, shot.id, maxRecords);
+			for (PuttShot s : shots) {
+				JSONObject o = new JSONObject();
+				o.put("id", s.id);
+				o.put("ballSpeed", numberOrNull(s.ballSpeed));
+				o.put("launchDirection", numberOrNull(s.launchDirection));
+				list.put(o);
+			}
+		}
+		result.put("shots", list);
+		return result;
+	}
+
 	private static Object numberOrNull(Float value) {
 		// ⚠️ 用 Float 的字串轉 Double：直接轉會把 8.2 變成 8.199999809265137
 		return value == null ? JSONObject.NULL : Double.valueOf(value.toString());
@@ -189,26 +223,25 @@ public class PuttingShotData {
 	}
 
 	/**
-	 * 撈同一個球員、同一支球桿、同一個 LID 的最近幾推。
+	 * 撈同一個球員、同一支球桿的最近幾推（id 不大於 maxId，新的在前）。
 	 *
-	 * ⭐ 給推桿穩定度圖（規劃 §2.10）用的底，⚠️ 目前⛔ 還沒有畫面在吃它。
 	 * ⛔ 撈幾推是**參數**，⛔ 不寫死。
 	 * ⛔ ShotData.queryShortGameData() 有一行 `if (maxRecords < 10) maxRecords = 10;`
 	 *    ——⛔ 推桿版⛔ 不照抄那一行：呼叫端要幾推就是幾推，⛔ 不要偷偷改大。
+	 * ⚠️ 球速不可信（NULL、0、哨兵值）或出球方向是 NULL 的推在 SQL 就排除，
+	 *    判斷跟 ballSpeedReason() 相同，⛔ 兩邊要一起改。
 	 *
-	 * ⚠️ 篩 LID 的理由：LID 是我方發給**廠商**的 ID（⛔ 不是場館、⛔ 不是機器）。
-	 *    與 E6 合作的幾家標準相同，工研院（1000）是另一套（側旋正負號相反）。
-	 *    ⭐ 讀「這一推的單一數值」完全不受影響，⛔ 但把不同 LID 的資料倒在一起算離散度
-	 *    ⛔ 就不行 —— 那是穩定度圖真的要畫時的事，這裡先把來源限定在同一個 LID。
+	 * @param lid ⚠️ null 或空字串＝不限 LID。LID 是我方發給**廠商**的 ID（⛔ 不是場館、⛔ 不是機器），
+	 *            工研院（1000）與 E6 合作的幾家量測標準可能不同，要分開時傳這一推的 LID。
 	 */
 	public List<PuttShot> queryRecentPutts(String player, String clubType, String lid,
-			String endDate, int maxRecords) {
+			long maxId, int maxRecords) {
 		List<PuttShot> shots = new ArrayList<>();
+		boolean filterLid = lid != null && !lid.isEmpty();
 
 		// ⛔ 沒有球桿名稱就不要撈：⛔ 不可以退成「撈全部球桿」，那會把切桿與木桿混進來
 		if (player == null || player.isEmpty()
 				|| clubType == null || clubType.isEmpty()
-				|| lid == null || lid.isEmpty()
 				|| maxRecords <= 0) {
 			return shots;
 		}
@@ -222,19 +255,27 @@ public class PuttingShotData {
 				+ "FROM golf_master.shot_data "
 				+ "WHERE Player = ? "
 				+ "AND ClubType = ? "   // ⭐ 由 queryThisPutt() 取得，⛔ 不寫死
-				+ "AND LID = ? "
-				+ "AND Date <= ? "
+				+ (filterLid ? "AND LID = ? " : "")
+				+ "AND id <= ? "
+				+ "AND BallSpeed > 0 "
+				+ "AND LaunchDirection IS NOT NULL "
+				+ "AND NOT (BallSpeed >= ? AND ClubHeadSpeed IS NOT NULL AND ClubHeadSpeed = ?) "
 				+ "ORDER BY id DESC "
 				+ "LIMIT ?";
 
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			pstmt = conn.prepareStatement(strSQL);
-			pstmt.setString(1, player);
-			pstmt.setString(2, clubType);
-			pstmt.setString(3, lid);
-			pstmt.setString(4, endDate);
-			pstmt.setInt(5, maxRecords);
+			int i = 1;
+			pstmt.setString(i++, player);
+			pstmt.setString(i++, clubType);
+			if (filterLid) {
+				pstmt.setString(i++, lid);
+			}
+			pstmt.setLong(i++, maxId);
+			pstmt.setFloat(i++, E6_BALL_SPEED_SENTINEL);
+			pstmt.setFloat(i++, E6_CLUB_HEAD_SPEED_SENTINEL);
+			pstmt.setInt(i++, maxRecords);
 			rs = pstmt.executeQuery();
 			while (rs.next()) {
 				shots.add(readRow(rs));

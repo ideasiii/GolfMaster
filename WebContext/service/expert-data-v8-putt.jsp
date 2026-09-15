@@ -55,6 +55,12 @@ boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_
 // ⛔ 球速算不出來或不可信時那個鍵不存在（⛔ 不是填 "—"、⛔ 不是填 0）→ JS 讓整列不出現。
 JSONObject puttValues = puttingShotData.processPuttValues(shot_data_id);
 
+// 推桿穩定度圖：同一個 Player、同一支球桿的最近幾推
+int puttConsistencyMaxRecords = 10;         // 撈幾推
+boolean puttConsistencySameLidOnly = false; // true：只撈同一個 LID
+JSONObject puttConsistency = puttingShotData.processPuttConsistency(
+		shot_data_id, puttConsistencyMaxRecords, puttConsistencySameLidOnly);
+
 // ⭐ 建議文字改從資料庫查（工項 15）—— putting_issue_tip，18 條一次撈完讀進記憶體快取，
 //    ⛔ 不是一張卡片查一次資料庫。
 // ⚠️ 這一頁目前**沒有教練身分**這個概念（整個專案都沒有）→ 傳 null，只會拿到 default 那一組。
@@ -81,6 +87,7 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 	<script src="../../page/js/videoPollManager.js"></script>
 	<script src="../../page/js/swingVideo.js"></script>
 	<script src="../../page/js/headerNavManager.js"></script>
+	<script src="../../page/js/chart_4_4_0.umd.min.js"></script>
 	<script src="../../page/js/puttPanelManager.js"></script>
 	<script src="../../page/js/puttingIssuesManager.js"></script>
 	<script src="../../page/js/puttShotDataManager.js"></script>
@@ -115,8 +122,6 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 					下載 PDF
 				</button>
 			</div>
-			<%-- ⛔ DEV ONLY：上線前（解除三個 nav 停用那一輪）連同 ?ex= 一起刪掉 --%>
-			<div class="dev-banner">推桿穩定度圖為示意</div>
 		</div>
 
 		<div class="main-layout-container">
@@ -304,8 +309,8 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 					     但「彼此散得多開」可信。這張圖回答「這個人穩不穩」，
 					     ⛔ 不是「這一推準不準」。
 					  ⛔ 不做雷達圖、⛔ 不做曲線球、⛔ 不顯示後旋／側旋／擊球效率／飛行距離。
-					  ⚠️ 標題的「N」與圖說由 manager 填（撈幾推是參數，⛔ 不寫死）。
-					  ⚠️ 落點圖本身排在第一階段之後；下面的 SVG 是版面佔位用的靜態示意圖。
+					  ⚠️ 標題與圖說由 manager 填（撈幾推是參數，⛔ 不寫死）。
+					  ⭐ 圖由 puttConsistencyManager.js 用 Chart.js 畫：同一個 Player、同一支球桿的最近幾推。
 					--%>
 					<div class="putt-consistency" id="puttConsistency">
 						<p class="box-title"></p>
@@ -424,6 +429,8 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 		const puttValuesData = <%= puttValues.toString() %>;
 		// 界標兩欄的原始字串、判定物件（沒有判定結果是 null）
 		const puttAnalysisData = <%= puttAnalysis.toString() %>;
+		// 穩定度圖的最近幾推（新的在前）
+		const puttConsistencyData = <%= puttConsistency.toString() %>;
 
 		// ===== 各功能模組 =====
 		const videoPoller = new VideoPollManager({
@@ -474,7 +481,7 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 				sideReady: sideAnalyzReady,
 			});
 
-			puttConsistency.render();
+			puttConsistency.render(puttConsistencyData);
 
 			// 數值面板 ⇄ 詳細數值面板；推導完成前先全部收起來
 			puttPanelManager.setValues(null);
