@@ -6,8 +6,8 @@
  *
  * ═══ 算法 ═══
  * 兩軸都是**碰球瞬間量到的值**，⛔ 不可以用滾動後的結果：
- *   橫軸 ＝ LaunchDirection − 這幾推的平均（出球偏左／偏右，正值偏右）
- *   縱軸 ＝ BallSpeed       − 這幾推的平均（推太強／推太弱）
+ *   橫軸 ＝ LaunchDirection − 這幾推的平均（出球偏左／出球偏右，正值偏右）
+ *   縱軸 ＝ BallSpeed       − 這幾推的平均（力道偏強／力道偏弱）
  * ⛔ 縱軸⛔ 不是距離 —— TotalDistFt 是模擬器用草皮摩擦係數滾出來的。
  * ⛔ 不可以用 ShortGameData 的 landing_points：那是球飛行模型幾何反推的，對推桿不成立。
  *   · 原點 ⊕ ＝ 這幾推的平均，⛔ 不是洞、⛔ 不是目標
@@ -28,7 +28,10 @@ const PUTT_CONSISTENCY_TEXT = {
     title: '推桿穩定度',
     // ⛔ 不可以講成「準不準」
     note: '越集中越穩定',
-    up: '推太強', down: '推太弱', left: '偏左', right: '偏右',
+    // ⛔ 不可以用「太強／太弱」：原點是這幾推的自己平均，⛔ 不是正確值，
+    //    寫成「太」等於宣稱一個圖上沒有依據的標準（每個人都必然有一半的點落在那一側）。
+    // ⛔ 橫軸講的是出球方向（量測值），⛔ 不是球最後停在哪（那是模擬器滾出來的）。
+    up: '力道偏強', down: '力道偏弱', left: '出球偏左', right: '出球偏右',
 };
 
 const PUTT_CONSISTENCY_COLORS = {
@@ -166,6 +169,13 @@ class PuttConsistencyManager {
         });
 
         const T = PUTT_CONSISTENCY_TEXT;
+        // ⚠️ 投影機情境：字級⛔ 不要往下調（舊示意圖放大後約 24px）。
+        //    軸標畫在圖表區外的留白裡 → 留白不夠時字會被切掉。
+        //    ⛔ 不要寫死留白：中文字寬約等於字級，改文案時字數一變就會再撐出去。
+        const AXIS_FONT_PX = 22;
+        const AXIS_GAP_PX = 6;
+        const sidePad = Math.max(T.left.length, T.right.length) * AXIS_FONT_PX + AXIS_GAP_PX + 4;
+        const vertPad = AXIS_FONT_PX + AXIS_GAP_PX + 2;
         const axesPlugin = {
             id: 'puttConsistencyAxes',
             beforeDatasetsDraw: function (chart) {
@@ -181,8 +191,7 @@ class PuttConsistencyManager {
                 ctx.moveTo(a.left, y0); ctx.lineTo(a.right, y0);
                 ctx.stroke();
                 ctx.fillStyle = C.text;
-                // ⚠️ 投影機情境：字級⛔ 不要再往下調（舊示意圖放大後約 24px）
-                ctx.font = '22px sans-serif';
+                ctx.font = AXIS_FONT_PX + 'px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
                 ctx.fillText(T.up, x0, a.top - 4);
@@ -190,9 +199,9 @@ class PuttConsistencyManager {
                 ctx.fillText(T.down, x0, a.bottom + 4);
                 ctx.textBaseline = 'middle';
                 ctx.textAlign = 'right';
-                ctx.fillText(T.left, a.left - 6, y0);
+                ctx.fillText(T.left, a.left - AXIS_GAP_PX, y0);
                 ctx.textAlign = 'left';
-                ctx.fillText(T.right, a.right + 6, y0);
+                ctx.fillText(T.right, a.right + AXIS_GAP_PX, y0);
                 ctx.restore();
             },
         };
@@ -205,7 +214,7 @@ class PuttConsistencyManager {
                 animation: false,
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { top: 30, bottom: 30, left: 60, right: 60 } },
+                layout: { padding: { top: vertPad, bottom: vertPad, left: sidePad, right: sidePad } },
                 plugins: { legend: { display: false }, tooltip: { enabled: false } },
                 events: [],
                 scales: {
