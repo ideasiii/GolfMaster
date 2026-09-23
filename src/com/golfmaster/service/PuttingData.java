@@ -46,16 +46,26 @@ public class PuttingData {
 	/**
 	 * @param shot_data_id 這一推的 shot_data.id（⛔ 不是網址的 ?expert=）
 	 * @return {
-	 *     PuttingPhases: 字串或 null（SQL NULL 或查不到推桿列）,
-	 *     PuttingTempo:  字串或 null,
-	 *     issues:        組好的判定物件；putting_issue 沒有這一列時是 null
+	 *     PuttingPhases:     字串或 null（SQL NULL 或查不到推桿列）,
+	 *     PuttingTempo:      字串或 null,
+	 *     view:              挑中那一列的 CamPos（front 優先），查不到是 null,
+	 *     SidePuttingPhases: 側面那一列的同一欄，沒有側面列時是 null,
+	 *     SidePuttingTempo:  同上,
+	 *     issues:            組好的判定物件；putting_issue 沒有這一列時是 null
 	 *   }
-	 *   ⚠️ 沒有推桿列時三個鍵都是 null，⛔ 不拋例外 —— 拋了整頁連影片都不見。
+	 *   ⚠️ 沒有推桿列時每個鍵都是 null，⛔ 不拋例外 —— 拋了整頁連影片都不見。
+	 *
+	 * ⚠️ 側面兩欄只給影片跳幀用：側面影片有自己的界標與秒數，
+	 *    ⛔ 正面的幀號拿到側面完全對不上（同一推實測差 7〜240 幀）。
+	 * ⛔ 判定仍然只看挑中的那一列（front 優先），⛔ 側面那兩欄⛔ 不參與任何判定。
 	 */
 	public JSONObject processPutting(Long shot_data_id) {
 		JSONObject result = new JSONObject();
 		result.put("PuttingPhases", JSONObject.NULL);
 		result.put("PuttingTempo", JSONObject.NULL);
+		result.put("view", JSONObject.NULL);
+		result.put("SidePuttingPhases", JSONObject.NULL);
+		result.put("SidePuttingTempo", JSONObject.NULL);
 		result.put("issues", JSONObject.NULL);
 		if (shot_data_id == null) {
 			return result;
@@ -65,8 +75,10 @@ public class PuttingData {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 
-		// ⚠️ 同一次推擊正面與側面各一列：挑 front，沒有才用 side（讀取端規則）。
+		// ⚠️ 同一次推擊正面與側面各一列：判定挑 front，沒有才用 side（讀取端規則）。
 		//    同一個視角重跑過就取最新那一列。
+		// ⚠️ 兩列都要讀回來（側面那一列的界標給側面影片用），所以⛔ 沒有 LIMIT：
+		//    排序讓 front 在前、同視角新的在前 → 第一列就是判定要用的那一列。
 		String strSQL = "SELECT SVS.id AS SwingId, SVS.CamPos, SVS.PuttingPhases, SVS.PuttingTempo, "
 				+ "PI.Id AS IssueId, PI.IssueStatus, PI.IssueReason, PI.DetectedIssues, "
 				+ "PI.ThresholdProfile, PI.Overall, "
@@ -76,33 +88,52 @@ public class PuttingData {
 				+ "ON SVS.ShotVideoId = SV.id AND SVS.AnalysisMode = 'putting' "
 				+ "LEFT JOIN golf_master.putting_issue AS PI ON PI.SwingId = SVS.id "
 				+ "WHERE SV.shot_data_id = ? "
-				+ "ORDER BY CASE WHEN SVS.CamPos = 'front' THEN 0 ELSE 1 END, SVS.id DESC "
-				+ "LIMIT 1";
+				+ "ORDER BY CASE WHEN SVS.CamPos = 'front' THEN 0 ELSE 1 END, SVS.id DESC";
 
 		try {
 			conn = DBUtil.getConnGolfMaster();
 			pstmt = conn.prepareStatement(strSQL);
 			pstmt.setLong(1, shot_data_id);
 			rs = pstmt.executeQuery();
-			if (rs.next()) {
+			boolean primaryTaken = false;
+			boolean sideTaken = false;
+			while (rs.next()) {
 				String camPos = rs.getString("CamPos");
 				String phases = rs.getString("PuttingPhases");
-				result.put("PuttingPhases", phases == null ? JSONObject.NULL : phases);
 				String tempo = rs.getString("PuttingTempo");
-				result.put("PuttingTempo", tempo == null ? JSONObject.NULL : tempo);
 
-				rs.getLong("IssueId");
-				if (!rs.wasNull()) {
-					IssueRow row = new IssueRow();
-					row.issueStatus = rs.getString("IssueStatus");
-					row.issueReason = rs.getString("IssueReason");
-					row.detectedIssues = rs.getString("DetectedIssues");
-					row.thresholdProfile = rs.getString("ThresholdProfile");
-					row.overall = rs.getString("Overall");
-					for (int i = 0; i < ISSUE_COLUMNS.length; i++) {
-						row.issueColumns[i] = rs.getString(ISSUE_COLUMNS[i]);
+				// 第一列就是判定要用的那一列（排序保證 front 優先、同視角取新的）
+				if (!primaryTaken) {
+					primaryTaken = true;
+					result.put("view", camPos == null ? JSONObject.NULL : camPos);
+					result.put("PuttingPhases", phases == null ? JSONObject.NULL : phases);
+					result.put("PuttingTempo", tempo == null ? JSONObject.NULL : tempo);
+
+					rs.getLong("IssueId");
+					if (!rs.wasNull()) {
+						IssueRow row = new IssueRow();
+						row.issueStatus = rs.getString("IssueStatus");
+						row.issueReason = rs.getString("IssueReason");
+						row.detectedIssues = rs.getString("DetectedIssues");
+						row.thresholdProfile = rs.getString("ThresholdProfile");
+						row.overall = rs.getString("Overall");
+						for (int i = 0; i < ISSUE_COLUMNS.length; i++) {
+							row.issueColumns[i] = rs.getString(ISSUE_COLUMNS[i]);
+						}
+						result.put("issues", assemble(camPos, phases, row));
 					}
-					result.put("issues", assemble(camPos, phases, row));
+				}
+
+				// ⚠️ 只有正面列時這兩個鍵仍然是 null → 側面影片就不跳（安全預設）。
+				//    只有側面列時第一列就是它，所以兩邊指到同一列，⭐ 那也是對的。
+				if (!sideTaken && "side".equalsIgnoreCase(camPos)) {
+					sideTaken = true;
+					result.put("SidePuttingPhases", phases == null ? JSONObject.NULL : phases);
+					result.put("SidePuttingTempo", tempo == null ? JSONObject.NULL : tempo);
+				}
+
+				if (primaryTaken && sideTaken) {
+					break;
 				}
 			}
 		} catch (Exception e) {

@@ -35,6 +35,14 @@
  *    empty_trajectory、exception:<類型>…）一律四顆都不可信。
  *    ⛔ 不可以改成黑名單 —— exception: 是動態前綴，列舉擋不完。
  */
+/**
+ * 界標鈕上的代號 → 界標的鍵名。
+ * ⚠️ 鈕上⛔ 不放中文（比照另外兩頁的階段列），鍵名才是程式裡的識別。
+ * ⭐ 點下去時要把鍵名一起送出去 —— 側面影片得靠它查自己那一支的幀號，
+ *    ⛔ 不可以拿正面的幀號去跳側面。
+ */
+const PUTT_MARK_KEYS = { A: 'address', T: 'top', I: 'impact', F: 'finish' };
+
 const PUTT_PHASE_REASON_TRUST = {
     '':                { address: true,  top: true,  impact: true,  finish: true  },
     'marginal_rate':   { address: true,  top: true,  impact: true,  finish: true  },
@@ -435,7 +443,8 @@ class PuttPanelManager {
      * @param {string} opts.valuePanelId   數值面板 id
      * @param {string} opts.detailPanelId  詳細數值面板 id
      * @param {string} opts.markHintId     界標提示那一行的 id（⚠️ 見 bindEvents()）
-     * @param {Function} opts.onSeekFrame  點界標鈕時呼叫，參數是正面影片的幀號
+     * @param {Function} opts.onSeekFrame  點界標鈕時呼叫，參數 (幀號, 界標鍵名)。
+     *                   ⚠️ 幀號是判定那一列的；側面影片要靠鍵名查自己那一支的幀號。
      */
     constructor(opts) {
         this.marksEl = document.getElementById(opts.marksId);
@@ -464,7 +473,8 @@ class PuttPanelManager {
                     self.hideMarkHint();
                     self.selectMark(target);
                     const frame = parseInt(target.dataset.frontFrame, 10);
-                    if (!isNaN(frame)) self.onSeekFrame(frame);
+                    // ⚠️ 第二個參數是界標鍵名：側面影片要靠它查自己那一支的幀號
+                    if (!isNaN(frame)) self.onSeekFrame(frame, PUTT_MARK_KEYS[target.dataset.phase]);
                 });
             });
         }
@@ -518,7 +528,7 @@ class PuttPanelManager {
         if (!this.marksEl) return;
         // 換一支影片就把上一句提示收掉，⛔ 不要讓它留在畫面上講別支的事
         this.hideMarkHint();
-        const map = { A: 'address', T: 'top', I: 'impact', F: 'finish' };
+        const map = PUTT_MARK_KEYS;
         const self = this;
         // ⚠️ 安全預設：沒給 trust 就當全部不可信。
         //    ⛔ 不要改成「沒給就全部可信」—— 那會讓沒接好的資料靜靜跳到錯的幀。

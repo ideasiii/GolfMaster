@@ -22,6 +22,7 @@
 <%@ page import="com.golfmaster.service.PuttingShotData"%>
 <%@ page import="com.golfmaster.service.PuttingIssueTip"%>
 <%@ page import="com.golfmaster.service.PuttingData"%>
+<%@ page import="com.golfmaster.service.Config"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 
@@ -32,6 +33,19 @@
 <%!PuttingShotData puttingShotData = new PuttingShotData();%>
 <%!PuttingIssueTip puttingIssueTip = new PuttingIssueTip();%>
 <%!PuttingData puttingData = new PuttingData();%>
+<%!
+	/** context.xml 的值；沒設或空字串就用 fallback。 */
+	String cfg(String name, String fallback) {
+		String value = Config.getParameter(name);
+		return (value == null || value.isEmpty()) ? fallback : value;
+	}
+
+	/** 資料夾參數一律補成以斜線結尾（ShotVideo 也是這樣接的）。 */
+	String cfgFolder(String name, String fallback) {
+		String value = cfg(name, fallback);
+		return value.endsWith("/") ? value : value + "/";
+	}
+%>
 <%
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
@@ -63,6 +77,37 @@ boolean frontAnalyzReady = (boolean) temp[12]; // 正面影像分析是否完成
 boolean sideAnalyzReady = (boolean) temp[13];  // 側面影像分析是否完成 (id_analyzeVideo_side)
 boolean frontExpected = (boolean) temp[14];    // 廠商會送 front 影片 (raw_shotVideo_front)
 boolean sideExpected = (boolean) temp[15];     // 廠商會送 side 影片 (raw_shotVideo_side)
+
+/* ── 播的是不是這一推自己的影片 ────────────────────────────────────
+ * 這一推沒有影片時 ShotVideo 會退回示範影片；單邊缺影片時還會拿另一邊的示範影片頂上。
+ * ⛔ 那時畫面看起來完全正常，⛔ 但示範影片的幀號跟這一推毫無關係 ——
+ *    跳過去不會報錯，只會安靜停在錯的地方。
+ * → 兩個旗標交給 JS：播示範影片的那一支⛔ 一律不跳。
+ * ⚠️ 預設路徑的組法要跟 ShotVideo 一致（同樣三個參數、同樣的預設值）。
+ *    ⛔ 不改 ShotVideo.java —— 揮桿與切桿都在用它。
+ * ──────────────────────────────────────────────────────────────── */
+String videoBase = cfgFolder("videoBaseUrl", "/downloads/video/");
+String frontFolder = cfgFolder("videoFrontFolder", "analyzVideo_front/");
+String sideFolder = cfgFolder("videoSideFolder", "analyzVideo_side/");
+String demoFrontPath = videoBase + frontFolder
+		+ cfg("defaultFrontVideo", "Player0_shotVideo_front_160230_202405151602.mp4");
+String demoSidePath = videoBase + sideFolder
+		+ cfg("defaultSideVideo", "Player0_shotVideo_side_160230_202405151602.mp4");
+// ⚠️ 兩邊都要比對：單邊缺影片時頂上來的是「另一邊」的示範影片
+boolean frontIsDemo = frontVideoPath.equals(demoFrontPath) || frontVideoPath.equals(demoSidePath);
+boolean sideIsDemo = sideVideoPath.equals(demoSidePath) || sideVideoPath.equals(demoFrontPath);
+
+/* 推桿專用的示範影片：context.xml 設了 defaultPuttFrontVideo／defaultPuttSideVideo 就用它。
+ * ⛔ 不動 defaultFrontVideo／defaultSideVideo —— 那兩個是三頁共用的（現在那一支是揮桿示範）。
+ * ⚠️ 沒設就沿用原本那一支，⛔ 不要自己編一個檔名。 */
+String puttDemoFront = cfg("defaultPuttFrontVideo", "");
+String puttDemoSide = cfg("defaultPuttSideVideo", "");
+if (frontIsDemo && !puttDemoFront.isEmpty()) {
+	frontVideoPath = videoBase + frontFolder + puttDemoFront;
+}
+if (sideIsDemo && !puttDemoSide.isEmpty()) {
+	sideVideoPath = videoBase + sideFolder + puttDemoSide;
+}
 
 // shot_data（E6 模擬器量到的）：右欄的球速、〔詳細數值〕的球速原因、影片下方的擊球數據卡片。
 // ⛔ 球速算不出來或不可信時那個鍵不存在（⛔ 不是填 "—"、⛔ 不是填 0）→ JS 讓整列不出現。
@@ -438,8 +483,11 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 		const sideAnalyzReady = <%= sideAnalyzReady %>;
 		// 球速（沒有這個鍵＝不顯示）、球速不顯示的原因、擊球數據卡片
 		const puttValuesData = <%= puttValues.toString() %>;
-		// 界標兩欄的原始字串、判定物件（沒有判定結果是 null）
+		// 界標兩欄的原始字串（正面與側面各一份）、判定物件（沒有判定結果是 null）
 		const puttAnalysisData = <%= puttAnalysis.toString() %>;
+		// 播的是不是這一推自己的影片；false＝退回示範影片，那一支的幀號對不上 → 不跳
+		const puttFrontIsOwnVideo = <%= !frontIsDemo %>;
+		const puttSideIsOwnVideo = <%= !sideIsDemo %>;
 		// 穩定度圖的最近幾推（新的在前）
 		const puttConsistencyData = <%= puttConsistency.toString() %>;
 
@@ -469,14 +517,16 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 			valuePanelId: 'puttValuePanel',
 			detailPanelId: 'puttDetailPanel',
 			markHintId: 'puttMarkHint',
-			onSeekFrame: function (frame) { puttVideo.goToFrame(frame); },
+			onSeekFrame: function (frame, key) { puttVideo.goToFrame(frame, key); },
 		});
 
 		const puttIssuesManager = new PuttingIssuesManager({
 			tabsId: 'puttIssueTabs',
 			panelId: 'puttIssuePanel',
 			overallId: 'puttOverall',
-			onSeekSegment: function (from, to) { puttVideo.playSegment(from, to); },
+			onSeekSegment: function (from, to, fromKey, toKey) {
+				puttVideo.playSegment(from, to, fromKey, toKey);
+			},
 		});
 
 		const puttShotData = new PuttShotDataManager({
@@ -515,6 +565,9 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 			puttShotData.showDefault(false);
 
 			const phases = derivePuttPhases(puttAnalysisData.PuttingPhases, puttAnalysisData.PuttingTempo);
+			// 側面那一列的界標：只給側面影片跳幀用，⛔ 不參與判定、⛔ 不進數值與狀態分頁
+			const sidePhases = derivePuttPhases(
+				puttAnalysisData.SidePuttingPhases, puttAnalysisData.SidePuttingTempo);
 			const values = Object.assign({}, derivePuttValues(phases), {
 				ballSpeed: puttValuesData.ballSpeed || null,
 			});
@@ -525,8 +578,19 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 			loadPuttDevIssues(applyPuttJudgement(issuesBase, puttAnalysisData.issues)).then(function (issuesData) {
 				// ⚠️⚠️ 界標列、跳段、狀態分頁⛔ 一定吃同一份 derived（含收桿停在片尾的旗標）
 				const derived = applyPuttFinishFlag(phases, issuesData.issues);
-				puttVideo.setFrameRate(derived.fps);
-				puttVideo.setLandmarkSeconds(Object.assign({ onset: derived.onset }, derived.phases), derived.seconds);
+				// ⛔ 每一支影片只吃自己那一列的界標 —— 兩支的幀號完全不可互換。
+				//    正面：判定挑中的是正面那一列時才交給它（挑到側面時正面就不跳）。
+				//    ⚠️ 播的是退回的示範影片時第三個參數是 false → 那一支一律不跳。
+				//    ⚠️ 只有明確挑到側面那一列時正面才不吃（view 是 null 或沒有這個鍵時，
+				//       那一份本來就沒有可信的界標，交給它不會跳到任何地方）。
+				puttVideo.setCameraLandmarks('front',
+					puttAnalysisData.view === 'side' ? null : derived, puttFrontIsOwnVideo);
+				// ⚠️⚠️ 側面暫時⛔ 不餵界標（所以側面⛔ 不會跟著跳）：
+				//    側面那一列可能宣稱四顆都可信（status OK、reason 空、found 全 true），
+				//    實際界標卻對不上自己的影片，⛔ 而那一列沒有任何欄位分辨得出來。
+				//    ⛔ 跳過去不會報錯，只會安靜停在錯的畫面 → 一律不跳（安全預設）。
+				// ⭐ 側面那一列有判得出來的欄位之後，把 null 換回 sidePhases 就會跟著跳。
+				puttVideo.setCameraLandmarks('side', null, puttSideIsOwnVideo);
 				puttPanelManager.setMarks(derived.phases, derived.trust);
 
 				issuesData.phases = Object.assign({ onset: derived.onset, trust: derived.trust }, derived.phases);

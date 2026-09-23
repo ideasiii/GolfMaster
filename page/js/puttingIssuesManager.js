@@ -158,7 +158,9 @@ class PuttingIssuesManager {
      * @param {string} opts.tabsId          標籤列容器 id
      * @param {string} opts.panelId         內容容器 id（一次只畫一類）
      * @param {string} opts.overallId       綜合評價容器 id
-     * @param {Function} opts.onSeekSegment 「▶ 看這一段」按下去時呼叫，參數 (起幀, 迄幀)
+     * @param {Function} opts.onSeekSegment 「▶ 看這一段」按下去時呼叫，
+     *                   參數 (起幀, 迄幀, 起點界標鍵名, 迄點界標鍵名)。
+     *                   ⚠️ 幀號是判定那一列的；側面影片要靠鍵名查自己那一支的幀號。
      */
     constructor(opts) {
         this.tabsEl = document.getElementById(opts.tabsId);
@@ -476,6 +478,9 @@ class PuttingIssuesManager {
                     // ⛔ 兩端都可信才會有值；任一端不可信 → null → 那一列⛔ 不出現跳段鈕
                     seekFrom: seg ? seg.from : null,
                     seekTo: seg ? seg.to : null,
+                    // 界標鍵名：側面影片要跟著播這一段時靠它查自己的幀號
+                    seekFromKey: seg ? seg.fromKey : null,
+                    seekToKey: seg ? seg.toKey : null,
                     seekLabel: PUTT_SEEK_LABEL,
                 };
             });
@@ -735,7 +740,10 @@ class PuttingIssuesManager {
      *
      * @param {Object} subtype Core 的 subtypes[] 一筆（⚠️ segment 可能是 null）
      * @param {Object} phases  {address, top, impact, finish, onset, trust:{...}}
-     * @returns {{from:number, to:number}|null} 不能跳就是 null
+     * @returns {{from:number, to:number, fromKey:string, toKey:string}|null} 不能跳就是 null
+     *
+     * ⚠️ 幀號與界標鍵名兩個都要回：幀號是判定那一列（正面）的，
+     *    側面影片要靠鍵名去查自己那一支的幀號 —— ⛔ 兩支的幀號不可互換。
      */
     resolveSegment(subtype, phases) {
         // ⚠️ segment 是 null 的子型（球位 B2、手肘 T2、傾斜 R0）本來就沒有對應的一段，
@@ -761,7 +769,7 @@ class PuttingIssuesManager {
         // ⚠️ 收不出一段區間（起迄同一幀或反過來）就⛔ 不跳：那不是一段，看不出東西。
         if (to <= from) return null;
 
-        return { from: from, to: to };
+        return { from: from, to: to, fromKey: seg.from, toKey: seg.to };
     }
 
     /**
@@ -867,7 +875,9 @@ class PuttingIssuesManager {
             btn.addEventListener('click', function () {
                 self.onSeekSegment(
                     parseInt(btn.dataset.seekFrom, 10),
-                    parseInt(btn.dataset.seekTo, 10)
+                    parseInt(btn.dataset.seekTo, 10),
+                    btn.dataset.seekFromKey || null,
+                    btn.dataset.seekToKey || null
                 );
             });
         });
@@ -963,7 +973,9 @@ class PuttingIssuesManager {
             + '<span class="p_de_posture">' + this.esc(status)
             + (canSeek
                 ? '<button class="putt-card-seek" type="button" data-seek-from="' + sub.seekFrom
-                    + '" data-seek-to="' + sub.seekTo + '">'
+                    + '" data-seek-to="' + sub.seekTo + '"'
+                    + ' data-seek-from-key="' + this.esc(sub.seekFromKey || '')
+                    + '" data-seek-to-key="' + this.esc(sub.seekToKey || '') + '">'
                     + this.esc(sub.seekLabel || PUTT_SEEK_LABEL) + '</button>'
                 : '')
             + '</span>'
