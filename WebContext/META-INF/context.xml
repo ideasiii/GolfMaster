@@ -103,6 +103,13 @@
 
 	<Environment name="expert" value="8"
 		type="java.lang.String" override="false" />
+	<!-- 推桿頁專用的預設教練影片檔名 (只有推桿頁會讀；沒設就沿用上面那兩支) -->
+	<Environment name="defaultPuttFrontVideo"
+		value="putt_demo_front.mp4"
+		type="java.lang.String" override="false" />
+	<Environment name="defaultPuttSideVideo"
+		value="putt_demo_side.mp4"
+		type="java.lang.String" override="false" />
 
 	<!-- 外部 API 主機位址 (CallLlmAdviseAPI / CallMotionApi 共用)；切換 IP/Port 時只需修改此處 -->
 	<Environment name="apiBaseUrl" value="http://124.9.6.11:49147"
