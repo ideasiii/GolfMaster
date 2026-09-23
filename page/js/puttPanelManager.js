@@ -27,6 +27,14 @@
  * ===================================================================== */
 
 /**
+ * 界標鈕上的代號 → 界標的鍵名。
+ * ⚠️ 鈕上⛔ 不放中文（比照另外兩頁的階段列），鍵名才是程式裡的識別。
+ * ⭐ 點下去時要把鍵名一起送出去 —— 側面影片得靠它查自己那一支的幀號，
+ *    ⛔ 不可以拿正面的幀號去跳側面。
+ */
+const PUTT_MARK_KEYS = { A: 'address', T: 'top', I: 'impact', F: 'finish' };
+
+/**
  * reason → 哪幾顆界標還可能可信（putting_columns.md §2.2.1）。
  *
  * ⚠️ 這張表只用來**拿掉**信任，⛔ 它不會給出信任（給信任的只有 found）。
@@ -35,14 +43,6 @@
  *    empty_trajectory、exception:<類型>…）一律四顆都不可信。
  *    ⛔ 不可以改成黑名單 —— exception: 是動態前綴，列舉擋不完。
  */
-/**
- * 界標鈕上的代號 → 界標的鍵名。
- * ⚠️ 鈕上⛔ 不放中文（比照另外兩頁的階段列），鍵名才是程式裡的識別。
- * ⭐ 點下去時要把鍵名一起送出去 —— 側面影片得靠它查自己那一支的幀號，
- *    ⛔ 不可以拿正面的幀號去跳側面。
- */
-const PUTT_MARK_KEYS = { A: 'address', T: 'top', I: 'impact', F: 'finish' };
-
 const PUTT_PHASE_REASON_TRUST = {
     '':                { address: true,  top: true,  impact: true,  finish: true  },
     'marginal_rate':   { address: true,  top: true,  impact: true,  finish: true  },
@@ -714,40 +714,3 @@ class PuttPanelManager {
 }
 
 
-/* =====================================================================
- * ⛔ 以下是這一輪的開發用假資料，接上真資料後整段刪掉。
- *
- * 出處：六支範例的 ex01（多項偵測到），數字照規劃文件 §3.4：
- *     phases [88, 231, 279, 324]、onset 152、tempo_ratio 1.646、總時長 3.93s
- * 六支範例 JSON 在 page/js/dev-data/putting/（⛔ 不在版控，見 .gitignore）。
- * ===================================================================== */
-const PUTT_PANEL_DEV_DATA = {
-
-    // ⚠️ 兩欄當成「沒跑過」（SQL NULL）。頁面上的真資料由 jsp 從 PuttingData 取，
-    //    這一份只給單獨跑這支 manager（驗收程式）時用。
-    //    ⛔ 不可以放示範數字：放了就會出現一個沒有依據的總時長。
-    //    推導結果：四顆都不可信、fps 是 null、節奏比與總時長整列不出現。
-    source: {
-        PuttingPhases: null,
-        PuttingTempo: null,
-    },
-
-    // ⛔ 側面的幀號完全不可拿正面的來套（實測同一次推擊偏移是 35/36/22/60，不是常數）。
-    //    沒有側面那一列的 PuttingPhases → 側面就⛔ 不跳、也⛔ 不標示。
-    sidePhases: null,
-
-    // ⚠️ 單位寫在 jsp 的 .unit 那一行（上桿 : 下桿／秒），
-    //    ⛔ 這裡只放數字，⛔ 不要再把單位黏進來
-    values: {
-        // ⚠️ 這兩個由 derivePuttValues() 從界標欄位推導後覆蓋，⛔ 不要在這裡填數字
-        tempoRatio: null,
-        totalDuration: null,
-        // ⚠️⚠️ 球速這一格的值**在 jsp 裡會被真資料覆蓋**（工項 12b，2026-09-11）——
-        //    ⛔ 改這裡的數字對畫面沒有作用，⛔ 不要以為畫面上看到的是它。
-        //    ⭐ 真的來源是 PuttingShotData.processPuttValues()（shot_data.BallSpeed，
-        //       E6 碰球瞬間量到的，⛔ 不是模擬器滾出來的結果）。
-        //    ⭐ 這裡留一個值只為了讓這支 manager 單獨跑（驗收程式）時畫得出來。
-        //    ⛔ 算不出來就給 null → setValues() 會讓整列不出現（⛔ 不是顯示「—」）。
-        ballSpeed: '4.6',
-    },
-};
