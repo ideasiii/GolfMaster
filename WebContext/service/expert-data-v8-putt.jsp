@@ -548,40 +548,38 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 			puttPanelManager.setValues(values);
 
 			const issuesBase = Object.assign({}, PUTT_ISSUES_EMPTY_DATA, { tips: <%= puttTips.toString() %> });
-			// ⛔ DEV ONLY：網址帶 ?ex= 時改用範例檔蓋掉判定結果（判定模組出事時原地重現）
-			loadPuttDevIssues(applyPuttJudgement(issuesBase, puttAnalysisData.issues)).then(function (issuesData) {
-				// ⚠️⚠️ 界標列、跳段、狀態分頁⛔ 一定吃同一份 derived（含收桿停在片尾的旗標）
-				const derived = applyPuttFinishFlag(phases, issuesData.issues);
-				// 哪一支影片配哪一份界標、鈕要跟著誰，全部由 derivePuttVideoSources() 決定
-				const sources = derivePuttVideoSources({
-					derived: derived,
-					demo: puttDemoPhases,
-					frontDemoView: puttFrontDemoView,
-					sideDemoView: puttSideDemoView,
-					frontIsOwnVideo: puttFrontIsOwnVideo,
-					judgedView: puttAnalysisData.view,
-				});
-				puttVideo.setCameraLandmarks('front', sources.front, true);
-				puttVideo.setCameraLandmarks('side', sources.side, true);
-				puttPanelManager.setMarks(sources.marks.phases, sources.marks.trust);
-
-				issuesData.phases = Object.assign({ onset: derived.onset, trust: derived.trust }, derived.phases);
-				puttIssuesManager.render(issuesData);
-				puttShotData.showDefault(puttJudgementComplete(issuesData.header));
-
-				const summary = puttIssuesManager.buildDetailSummary();
-				puttPanelManager.setDetail(Object.assign({
-					status: buildPuttStatusGroup({
-						header: issuesData.header || null,
-						derived: derived,
-						values: values,
-						ballSpeedReason: puttValuesData.ballSpeedReason || '',
-						marksFromDemo: sources.marksFromDemo,
-						tips: summary.tips,
-						classes: summary.classes,
-					}),
-				}, summary.groups));
+			const issuesData = applyPuttJudgement(issuesBase, puttAnalysisData.issues);
+			// ⚠️⚠️ 界標列、跳段、狀態分頁⛔ 一定吃同一份 derived（含收桿停在片尾的旗標）
+			const derived = applyPuttFinishFlag(phases, issuesData.issues);
+			// 哪一支影片配哪一份界標、鈕要跟著誰，全部由 derivePuttVideoSources() 決定
+			const sources = derivePuttVideoSources({
+				derived: derived,
+				demo: puttDemoPhases,
+				frontDemoView: puttFrontDemoView,
+				sideDemoView: puttSideDemoView,
+				frontIsOwnVideo: puttFrontIsOwnVideo,
+				judgedView: puttAnalysisData.view,
 			});
+			puttVideo.setCameraLandmarks('front', sources.front, true);
+			puttVideo.setCameraLandmarks('side', sources.side, true);
+			puttPanelManager.setMarks(sources.marks.phases, sources.marks.trust);
+
+			issuesData.phases = Object.assign({ onset: derived.onset, trust: derived.trust }, derived.phases);
+			puttIssuesManager.render(issuesData);
+			puttShotData.showDefault(puttJudgementComplete(issuesData.header));
+
+			const summary = puttIssuesManager.buildDetailSummary();
+			puttPanelManager.setDetail(Object.assign({
+				status: buildPuttStatusGroup({
+					header: issuesData.header || null,
+					derived: derived,
+					values: values,
+					ballSpeedReason: puttValuesData.ballSpeedReason || '',
+					marksFromDemo: sources.marksFromDemo,
+					tips: summary.tips,
+					classes: summary.classes,
+				}),
+			}, summary.groups));
 		}
 
 		document.addEventListener('DOMContentLoaded', init);

@@ -1034,23 +1034,6 @@ video {
     line-height: 1.6;
 }
 
-/* =================================================================
- * 9. 開發用標記 (DEV ONLY)
- * ⛔ 接上真資料後整節連同 HTML 的 data-dev 一起刪掉。
- * ================================================================= */
-.dev-banner {
-    background: repeating-linear-gradient(45deg,
-        rgba(255, 182, 72, 0.15) 0 10px,
-        rgba(255, 182, 72, 0.05) 10px 20px);
-    border: 1px dashed rgba(255, 182, 72, 0.6);
-    color: #FFB648;
-    font-size: 0.78em;
-    padding: 4px 8px;
-    margin-left: auto;
-    margin-right: 20px;
-    border-radius: 4px;
-    white-space: nowrap;
-}
 .dev-switcher {
     display: flex;
     align-items: center;

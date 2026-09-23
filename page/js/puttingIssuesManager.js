@@ -204,7 +204,7 @@ class PuttingIssuesManager {
         const tips = this.data && this.data.tips;
         if (tips) return tips[tipId] || '';
 
-        // ⚠️ 完全沒有 tips 物件＝單機那條路（?ex= 六支範例、page/js/dev-data/verify/*.js），
+        // ⚠️ 完全沒有 tips 物件＝單機那條路（page/js/dev-data/verify/*.js），
         //    那時才用這個檔案最下面的 18 條。⛔ 接上資料庫的頁面走不到這一行。
         return PUTT_ISSUE_TIPS[tipId] || '';
     }
@@ -1053,72 +1053,9 @@ const PUTT_ISSUE_TIPS = {
 
 
 /* =====================================================================
- * ⛔ DEV ONLY：開發期用網址參數切換六支範例，例如 ?expert=123&ex=ex03。
- *
- * ⭐ 這同時是規劃 R5 要保留的「吃 JSON」那條路徑（比照現有的 ?LLM=true）：
- *    判定模組開發期全靠六支，⛔ 上線那天才第一次接真資料 ——
- *    出事時把 Core 的輸出丟進 page/js/dev-data/putting/ 就能原地重現。
- * ⚠️ 六支範例⛔ 不在版控（.gitignore），⛔ 但部署時要一起放到
- *    webapps/page/js/dev-data/，否則這裡會 fetch 失敗、退回檔案裡那一份。
- * ⚠️ 邏輯放在這支 manager，⛔ 不寫進 jsp（§1.3 第 3 點），
- *    也⛔ 不另開第三支 js（§1.3 第 4 點：一個功能一支 manager）。
- * ⛔ 接上 PuttingData.java（工項 14）之後整段刪掉。
- * ===================================================================== */
-const PUTT_DEV_EXAMPLES = {
-    ex01: 'ex01_multi_detected.json',
-    ex02: 'ex02_all_normal.json',
-    ex03: 'ex03_degraded_na.json',
-    ex04: 'ex04_not_applicable_side.json',
-    ex05: 'ex05_low_confidence.json',
-    ex06: 'ex06_segment_na.json',
-};
-
-/**
- * 網址帶 ?ex=exNN 就改讀那一支範例，沒帶就用 fallback。
- * ⚠️ 一定回 Promise，⛔ 呼叫端不要分成同步與非同步兩條路。
- *
- * @param {Object} fallback 讀不到時用的那一份（PUTT_ISSUES_EMPTY_DATA）
- */
-function loadPuttDevIssues(fallback) {
-    const which = new URLSearchParams(window.location.search).get('ex');
-    const file = PUTT_DEV_EXAMPLES[which];
-    if (!file) return Promise.resolve(fallback);
-
-    return fetch('../../page/js/dev-data/putting/' + file)
-        .then(function (res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(function (raw) {
-            // ⚠️ 六支是 Core 的原始輸出：有 issues，⛔ 沒有 overall
-            //    （9/3 版還沒有那一欄）→ 給 null，render() 會走暫代規則。
-            //    ⛔ 不要在這裡自己補一個 overall 進去。
-            // ⚠️ 表頭那幾欄只給〔詳細數值〕的「狀態」分頁用，⛔ 主畫面不顯示。
-            return Object.assign({}, fallback, {
-                issues: raw.issues,
-                overall: null,
-                header: {
-                    status: raw.status,
-                    reason: raw.reason,
-                    view: raw.view,
-                    threshold_profile: raw.threshold_profile,
-                },
-            });
-        })
-        .catch(function (err) {
-            // ⚠️ 讀不到就退回內建那一份，⛔ 不要讓整個右欄空著 ——
-            //    但一定要在 console 講一聲，⛔ 不要安靜地換掉資料來源。
-            console.warn('[putt] 讀不到範例 ' + file + '，改用檔案內建那一份：' + err.message);
-            return fallback;
-        });
-}
-
-
-/* =====================================================================
  * 沒有判定結果時的底稿（⛔ 不是示範資料）。
  *
- * jsp 以它為底，有判定結果時用 applyPuttJudgement() 蓋上去；
- * ?ex= 讀不到範例檔時也退回這一份。
+ * jsp 以它為底，有判定結果時用 applyPuttJudgement() 蓋上去。
  * ⛔ 不可以放示範卡片或示範數字：放了就會讓沒有判定結果的每一推都顯示同一組內容。
  * ===================================================================== */
 const PUTT_ISSUES_EMPTY_DATA = {
@@ -1131,7 +1068,7 @@ const PUTT_ISSUES_EMPTY_DATA = {
     quality: '',
 
     // ⚠️ 沒有判定結果。頁面上的真資料由 jsp 從 PuttingData 取；
-    //    ?ex= 讀不到範例檔時也退回這一份 → 顯示「尚未分析」。
+    //    沒有判定結果時就是這一份 → 顯示「尚未分析」。
     //    ⛔ 不可以放示範卡片：放了就會讓沒有判定結果的每一推都顯示同一組風險。
     issues: [],
 };
