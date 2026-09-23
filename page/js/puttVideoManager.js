@@ -19,6 +19,54 @@
  * 依賴：swingVideo.js（setupVideoEvents、resizeCanvas）、videoPollManager.js。
  */
 
+/**
+ * 決定兩支影片各自要用哪一份界標、以及四顆界標鈕要跟著誰。
+ *
+ * ⛔ 判準是「這一份界標是不是那一格實際播的那支影片的」，⛔ 不是「是不是示範片」：
+ *   · 播這一推自己的影片 → 用這一推那一列（⚠️ 判定挑到側面那一列時正面就沒有）
+ *   · 播推桿示範片       → 用示範片自己那一組（人工標註）
+ *     ⚠️ 單邊缺影片時頂上來的是**另一邊那支**示範片，所以格子與視角可能不一樣 ——
+ *        只有正面影片時，側面那一格播的是示範片的**正面**（同一個視角才比得了）。
+ *   · 播舊的三頁共用示範片 → ⛔ 沒有對應的界標 → 那一格不跳
+ *
+ * ⚠️ 側面播這一推自己的影片時⛔ 一律不給界標：那一列可能宣稱四顆都可信
+ *    （status OK、reason 空、found 全 true）而實際對不上自己的影片，
+ *    ⛔ 沒有任何欄位分辨得出來 → 安全預設是不跳。⭐ 示範片那一支⛔ 不受這條影響。
+ *
+ * ⭐ 這一推一顆可信的界標都沒有、而畫面上播的是示範片 → 四顆鈕改帶示範片的界標，
+ *    教練可以跳到各階段當教材。⛔ 這一推只要有可信的界標，鈕就跟著這一推。
+ *
+ * @param {Object} o {derived, demo:{front,side}, frontDemoView, sideDemoView,
+ *                    frontIsOwnVideo, judgedView, deriveFn}
+ * @returns {{front, side, marks, marksFromDemo}}
+ */
+function derivePuttVideoSources(o) {
+    const derive = o.deriveFn || (typeof derivePuttPhases === 'function' ? derivePuttPhases : null);
+    const demoOf = function (view) {
+        return (view && o.demo && o.demo[view]) ? derive(o.demo[view], null) : null;
+    };
+
+    const front = o.frontDemoView
+        ? demoOf(o.frontDemoView)
+        : ((o.frontIsOwnVideo && o.judgedView !== 'side') ? o.derived : null);
+    const side = o.sideDemoView ? demoOf(o.sideDemoView) : null;
+
+    const trust = (o.derived && o.derived.trust) || {};
+    const ownTrusted = ['address', 'top', 'impact', 'finish'].some(function (k) {
+        return trust[k] === true;
+    });
+    const demoMarks = o.frontDemoView ? front : (o.sideDemoView ? side : null);
+    const marksFromDemo = !ownTrusted && !!demoMarks;
+
+    return {
+        front: front,
+        side: side,
+        marks: marksFromDemo ? demoMarks : o.derived,
+        marksFromDemo: marksFromDemo,
+    };
+}
+
+
 class PuttVideoManager {
 
     /**

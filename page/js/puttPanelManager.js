@@ -398,6 +398,10 @@ function buildPuttStatusGroup(input) {
         const codes = trustWhy[k] || ['no_analysis'];
         add(PUTT_MARK_LABELS[k], codes.length === 0 ? '可信' : '不可信：' + whyText(codes));
     });
+    // ⚠️ 上面那幾列講的是**這一推**的界標。這一推沒有可信的界標、而畫面上播的是
+    //    示範影片時，四顆鈕帶的是示範影片自己的界標（人工標註）——
+    //    ⛔ 不講這一句的話，「狀態說不可信、鈕卻會跳」會看起來像壞掉。
+    if (o.marksFromDemo) add('界標鈕', '帶的是示範影片自己的界標（人工標註）');
 
     const valueWhy = explainPuttValues(d);
     add('節奏比', values.tempoRatio
