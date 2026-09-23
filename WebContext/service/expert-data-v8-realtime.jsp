@@ -104,7 +104,7 @@ String suggestion = result.optString("expert_suggestion", "");
 				<button class="nav-button" id="nav-chip" data-page="expert-data-v8-short.jsp">
 					<img src="../../page/img/chip_icon.png" alt="切桿分析">
 				</button>
-				<button class="nav-button temporarily-disabled" id="nav-putt" data-page="expert-data-v8-putt.jsp">
+				<button class="nav-button" id="nav-putt" data-page="expert-data-v8-putt.jsp">
 					<img src="../../page/img/putt_icon.png" alt="推桿分析">
 				</button>
 			</div>

@@ -24,6 +24,24 @@
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 Long shot_data_id = result.getLong("shotdata_id");
+
+/* ── 最新一推輪詢的設定（交給 latestShotPollManager.js）────────────────
+ * lid：網址的 LID，沒帶就不輪詢
+ * follow：'0' 只顯示提示，其餘自動換到最新一推
+ * sec：幾秒問一次，沒帶用預設值
+ * ──────────────────────────────────────────────────────────────── */
+/* 診斷用：這一桿是哪支球桿。落點圖是拿這支球桿去撈同一位球員的最近幾筆，
+   所以球桿換了，圖的內容也會跟著換。只印到 console，⛔ 不顯示在畫面上。 */
+JSONObject shotMeta = shotData.processShotMeta(shot_data_id);
+
+JSONObject latestPollCfg = new JSONObject();
+/* 網址同時帶 expert 與 LID 時，ExpertData 只認 expert、LID 會被忽略；
+   這時若還輪詢，偵測到新一桿也只會重載成同一桿 —— 所以有 expert 就不輪詢。 */
+latestPollCfg.put("lid", (request.getParameter("expert") != null || request.getParameter("LID") == null)
+		? "" : request.getParameter("LID"));
+latestPollCfg.put("follow", request.getParameter("follow") == null ? "1" : request.getParameter("follow"));
+latestPollCfg.put("sec", request.getParameter("sec") == null ? "" : request.getParameter("sec"));
+latestPollCfg.put("currentShotId", shot_data_id == null ? "" : String.valueOf(shot_data_id));
 // Long shot_data_id = 128069L; // test (expert = 128002)
 Long exID = result.getLong("id"); // Unused, but kept for context
 
@@ -97,6 +115,7 @@ if (useLLM != null && useLLM.equals("true")) {
 	<script src="../../page/js/cmpChartManager.js"></script>
 	<script src="../../page/js/shortTableManager.js"></script>
 	<script src="../../page/js/headerNavManager.js"></script>
+	<script src="../../page/js/latestShotPollManager.js"></script>
 	<script src="../../page/js/lib/html2canvas.min.js"></script>
 	<script src="../../page/js/lib/jspdf.umd.min.js"></script>
 	<script src="../../page/js/lib/qrcode.min.js"></script>
@@ -115,7 +134,7 @@ if (useLLM != null && useLLM.equals("true")) {
 					<img src="../../page/img/chip_icon.png" alt="切桿分析">
 				</button>
 				<%-- 尚未實作 --%>
-				<button class="nav-button temporarily-disabled" id="nav-putt" data-page="expert-data-v8-putt.jsp">
+				<button class="nav-button" id="nav-putt" data-page="expert-data-v8-putt.jsp">
 					<img src="../../page/img/putt_icon.png" alt="推桿分析">
 				</button>
 				<button class="pdf-download-btn" id="btn-download-pdf" type="button" title="下載紀念 PDF">
@@ -277,6 +296,11 @@ if (useLLM != null && useLLM.equals("true")) {
 			maxAttempts: 40,      // 最多 40 次（約 2 分鐘）
 			initialDelay: 3000,   // 頁面載入後 3 秒開始檢查
 		});
+
+		/* ── 最新一推輪詢 ────────────────────────────────────────────
+		 * 同一個廠商（LID）有新的一推時換過去。網址沒帶 LID 就不會輪詢。
+		 * ─────────────────────────────────────────────────────────── */
+		const latestShotPoll = new LatestShotPollManager(<%= latestPollCfg.toString() %>);
 
 		// console.log(sideSwingPlaneData);
 		// console.log(frontSwingPlaneData);
@@ -514,6 +538,14 @@ if (useLLM != null && useLLM.equals("true")) {
 		// --- Initialization ---
 		function init() {
 			// console.log("init");
+
+			// 沒帶 LID 時這一行不會做任何事
+			latestShotPoll.start();
+
+			const shotMeta = <%= shotMeta.toString() %>;
+			console.log('[這一桿] 球桿=' + (shotMeta.ClubType || '(不明)')
+				+ '　球員=' + (shotMeta.player || '(不明)')
+				+ '　shot_data id=<%= shot_data_id %>');
 
 			// Setup event listeners
 			window.addEventListener('resize', () => {

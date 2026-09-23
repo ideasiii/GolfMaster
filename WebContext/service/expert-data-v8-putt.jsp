@@ -13,7 +13,6 @@
        page/js/puttConsistencyManager.js  推桿穩定度圖
        page/js/puttVideoManager.js        影片跳幀、跳段、播放控制、影片輪詢換片
   後端：PuttingData（界標兩欄 ＋ 判定結果）、PuttingShotData（擊球數據）、PuttingIssueTip（建議文字）。
-  ⛔ 不解除另外三個頁面 nav-putt 的 temporarily-disabled（一定放最後）。
 --%>
 <%@ page import="org.json.JSONObject"%>
 
@@ -37,6 +36,20 @@
 request.setCharacterEncoding("UTF-8");
 JSONObject result = expertData.processRequest(request);
 Long shot_data_id = result.getLong("shotdata_id");
+
+/* ── 最新一推輪詢的設定（交給 latestShotPollManager.js）────────────────
+ * lid：網址的 LID，沒帶就不輪詢
+ * follow：'0' 只顯示提示，其餘自動換到最新一推
+ * sec：幾秒問一次，沒帶用預設值
+ * ──────────────────────────────────────────────────────────────── */
+JSONObject latestPollCfg = new JSONObject();
+/* 網址同時帶 expert 與 LID 時，ExpertData 只認 expert、LID 會被忽略；
+   這時若還輪詢，偵測到新一桿也只會重載成同一桿 —— 所以有 expert 就不輪詢。 */
+latestPollCfg.put("lid", (request.getParameter("expert") != null || request.getParameter("LID") == null)
+		? "" : request.getParameter("LID"));
+latestPollCfg.put("follow", request.getParameter("follow") == null ? "1" : request.getParameter("follow"));
+latestPollCfg.put("sec", request.getParameter("sec") == null ? "" : request.getParameter("sec"));
+latestPollCfg.put("currentShotId", shot_data_id == null ? "" : String.valueOf(shot_data_id));
 
 // ⭐ 影片路徑與分析完成旗標沿用切桿頁的來源（ShotVideo.processAnalyz）。
 // ⛔ 這裡取得的 A/T/I/F 是「揮桿」的分期，⛔ 不是推桿的界標，所以本頁不取用。
@@ -93,6 +106,7 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 	<script src="../../page/js/puttShotDataManager.js"></script>
 	<script src="../../page/js/puttConsistencyManager.js"></script>
 	<script src="../../page/js/puttVideoManager.js"></script>
+	<script src="../../page/js/latestShotPollManager.js"></script>
 	<script src="../../page/js/lib/html2canvas.min.js"></script>
 	<script src="../../page/js/lib/jspdf.umd.min.js"></script>
 	<script src="../../page/js/lib/qrcode.min.js"></script>
@@ -111,9 +125,6 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 				<%--
 				  ⚠️ 本頁自己這顆⛔ 不加 temporarily-disabled：headerNavManager.js 會比對
 				     data-page 與當前檔名，自動把它設成 current-page（最亮、不可點）。
-				  ⛔ 另外三個頁面（v8 / v8-short / v8-realtime）的 nav-putt 停用⛔ 不要在這一輪解除，
-				     那是最後一個 session 的工項 —— ⛔ 半成品不開放給使用者點進來。
-				     停用只是一個 CSS class，⛔ 沒有 JS 邏輯要動。
 				--%>
 				<button class="nav-button" id="nav-putt" data-page="expert-data-v8-putt.jsp">
 					<img src="../../page/img/putt_icon.png" alt="推桿分析">
@@ -441,6 +452,11 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 			initialDelay: 3000,   // 頁面載入後 3 秒開始檢查
 		});
 
+		/* ── 最新一推輪詢 ────────────────────────────────────────────
+		 * 同一個廠商（LID）有新的一推時換過去。網址沒帶 LID 就不會輪詢。
+		 * ─────────────────────────────────────────────────────────── */
+		const latestShotPoll = new LatestShotPollManager(<%= latestPollCfg.toString() %>);
+
 		const puttVideo = new PuttVideoManager({
 			frontVideoId: 'myvideo', sideVideoId: 'myvideo1',
 			frontCanvasId: 'overlayCanvas', sideCanvasId: 'overlayCanvas1',
@@ -473,6 +489,9 @@ JSONObject puttAnalysis = puttingData.processPutting(shot_data_id);
 
 		// ===== 初始化：只負責把值依序交給各模組 =====
 		function init() {
+			// 沒帶 LID 時這一行不會做任何事
+			latestShotPoll.start();
+
 			puttVideo.bindControls();
 			puttVideo.startPolling(videoPoller, {
 				frontExpected: <%= frontExpected %>,

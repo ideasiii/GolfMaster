@@ -108,6 +108,16 @@ class PuttConsistencyManager {
     /** @param {Object} data processPuttConsistency() 的回傳值；沒有就給 null */
     render(data) {
         if (!this.el) return;
+        // 診斷用：圖是拿「這一桿的球桿」撈同球員的最近幾筆。
+        // 最新一桿不是推桿時（LID 模式下會發生），畫的就是那支球桿的散布 ——
+        // 畫面上看不出來，所以在這裡留一行給工程師對。
+        if (data) {
+            console.log('[推桿穩定度] 球桿=' + (data.clubType === null || data.clubType === undefined ? '(不明)' : data.clubType)
+                + '　球員=' + (data.player === null || data.player === undefined ? '(不明)' : data.player)
+                + '　LID=' + (data.lid === null || data.lid === undefined ? '(不明)' : data.lid)
+                + '　這一桿 id=' + data.currentId
+                + '　取樣 ' + ((data.shots || []).length) + ' 筆');
+        }
         const titleEl = this.el.querySelector('.box-title');
         const mapEl = this.el.querySelector('.putt-consistency-map');
         const legendEl = this.el.querySelector('.putt-consistency-legend');

@@ -138,6 +138,11 @@ public class PuttingShotData {
 		JSONArray list = new JSONArray();
 		PuttShot shot = (shot_data_id == null) ? null : queryThisPutt(shot_data_id);
 		result.put("currentId", shot == null ? JSONObject.NULL : Long.valueOf(shot.id));
+		/* 診斷用：圖是拿「這一桿的球桿」去撈同球員的最近幾筆，所以最新一桿不是推桿時，
+		   圖畫的就是那支球桿的散布。前端只把這三個值印到 console，⛔ 不顯示在畫面上。 */
+		result.put("clubType", shot == null || shot.clubType == null ? JSONObject.NULL : shot.clubType);
+		result.put("player", shot == null || shot.player == null ? JSONObject.NULL : shot.player);
+		result.put("lid", shot == null || shot.lid == null ? JSONObject.NULL : shot.lid);
 
 		if (shot != null) {
 			List<PuttShot> shots = queryRecentPutts(shot.player, shot.clubType,

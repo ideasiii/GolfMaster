@@ -1104,3 +1104,40 @@ video {
         font-size: 0.8em;
     }
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * 推桿頁的「下載 PDF」先不開放。
+ *
+ * ⛔ 只隱藏，⛔ 不要刪掉按鈕、modal 或 pdfDownloadManager.js ——
+ *    推桿版報告的內容還沒議定，議定後把這一段拿掉就開回來。
+ * ⚠️ 只寫在推桿頁自己的樣式表，揮桿／切桿／即時三頁不受影響。
+ * ⚠️ jsp 的 frontAnalyzReady／sideAnalyzReady 仍然要留著（pdfDownloadManager.js 直接讀）。
+ * ───────────────────────────────────────────────────────────── */
+#btn-download-pdf {
+    display: none;
+}
+
+/* 有新的一桿時的提示；由 latestShotPollManager.js 產生，只有網址帶 follow=0 才會出現。
+   放在頁首按鈕列（.navigation-buttons，flex 橫排）最右邊。 */
+.latest-shot-notice {
+    margin-left: auto;
+    margin-right: 30px;
+    padding: 8px 16px;
+    font-size: 18px;
+    font-weight: bold;
+    white-space: nowrap;
+    color: #10202a;
+    background: rgba(0, 255, 132, 0.92);
+    border: 2px solid #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* 找不到頁首按鈕列時的退路，改成固定在右上角 */
+.latest-shot-notice.is-floating {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    margin-left: 0;
+    z-index: 9999;
+}
